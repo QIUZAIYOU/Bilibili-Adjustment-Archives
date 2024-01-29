@@ -14,9 +14,7 @@
 // @grant             GM_setValue
 // @grant             GM_getValue
 // @grant             GM_addStyle
-// @grant             GM_log
 // @grant             GM_registerMenuCommand
-// @grant             GM.info
 // @grant             window.onurlchange
 // @supportURL        https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment-Further
 // @homepageURL       https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment-Further
@@ -39,8 +37,22 @@
     insertSkipTimeNodesSwitchButtonCounts: 0,
     functionExecutionsCounts: 0
   }
-  const vals = {
-    initValue() {
+
+  let arrays = {
+    intervalIds: [],
+    skipNodesRecords: []
+  }
+  const selector = {
+    player: '#bilibili-player',
+    playerContainer: '#bilibili-player .bpx-player-container',
+    playerControler: '#bilibili-player .bpx-player-ctrl-btn',
+    video: '#bilibili-player video',
+    videoBwp: 'bwp-video',
+    screenModeWideEnterBtn: '.bpx-player-ctrl-wide-enter',
+    screenModeWebEnterBtn: '.bpx-player-ctrl-web-enter',
+  }
+  const utils = {
+    initValue () {
       const value = [{
         name: 'is_vip',
         value: false,
@@ -91,47 +103,16 @@
         value: false,
       }]
       value.forEach(v => {
-        if (getValue(v.name) === undefined) {
-          setValue(v.name, v.value)
-        }
+        this.setValue(v.name, v.value)
       })
     },
-    is_vip: getValue('is_vip'),
-    player_type: getValue('player_type'),
-    offset_top: Math.trunc(getValue('offset_top')),
-    auto_locate: getValue('auto_locate'),
-    auto_locate_video: getValue('auto_locate_video'),
-    auto_locate_bangumi: getValue('auto_locate_bangumi'),
-    click_player_auto_locate: getValue('click_player_auto_locate'),
-    player_offset_top: Math.trunc(getValue('player_offset_top')),
-    current_screen_mode: getValue('current_screen_mode'),
-    selected_screen_mode: getValue('selected_screen_mode'),
-    auto_select_video_highest_quality: getValue('auto_select_video_highest_quality'),
-    contain_quality_4k: getValue('contain_quality_4k'),
-    contain_quality_8k: getValue('contain_quality_8k'),
-    webfull_unlock: getValue('webfull_unlock'),
-    auto_reload: getValue('auto_reload'),
-    auto_skip: getValue('auto_skip')
-  }
-  let arrays = {
-    intervalIds: [],
-    skipNodesRecords: []
-  }
-  const selector = {
-    player: '#bilibili-player',
-    video: '#bilibili-player video',
-    videoBwp: 'bwp-video',
-    videoContainer: '#bilibili-player .bpx-player-container',
-    videoControlerBtn: '#bilibili-player .bpx-player-ctrl-btn'
-  }
-  const utils = {
-    getValue() {
+    getValue () {
       return GM_getValue(name)
     },
-    setValue(name, value) {
+    setValue (name, value) {
       GM_setValue(name, value)
     },
-    sleep(times) {
+    sleep (times) {
       return new Promise(resolve => setTimeout(resolve, times))
     },
     /**
@@ -139,20 +120,20 @@
      * @param {String} id 样式表id
      * @param {String} css 样式内容
      */
-    insertStyleToDocument(css) {
+    insertStyleToDocument (css) {
       GM_addStyle(css)
     },
     logger: {
-      info(content) {
+      info (content) {
         console.info('%c播放页调整', 'color:white;background:#006aff;padding:2px;border-radius:2px', content);
       },
-      warn(content) {
+      warn (content) {
         console.warn('%c播放页调整', 'color:white;background:#ff6d00;padding:2px;border-radius:2px', content);
       },
-      error(content) {
+      error (content) {
         console.error('%c播放页调整', 'color:white;background:#f33;padding:2px;border-radius:2px', content);
       },
-      debug(content) {
+      debug (content) {
         console.info('%c播放页调整(调试)', 'color:white;background:#cc00ff;padding:2px;border-radius:2px', content);
       },
     },
@@ -163,7 +144,7 @@
      * @param {Number} delay 检查时间间隔
      * @returns Promise() TorF
      */
-    checkElementExistence(selector, maxAttempts, delay) {
+    checkElementExistence (selector, maxAttempts, delay) {
       return new Promise(resolve => {
         let attempts = 0
         const timer = setInterval(() => {
@@ -181,10 +162,105 @@
       })
     },
     /**
+     * 检查当前文档是否被激活
+     */
+    checkDocumentIsHidden () {
+      const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
+      const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null
+      if (documentHiddenPropertyName !== null) {
+        const isHidden = () => document[documentHiddenPropertyName]
+        const onChange = () => isHidden()
+        // 添加各种事件监听器
+        visibilityChangeEventNames.forEach(eventName => document.addEventListener(eventName, onChange))
+        window.addEventListener('focus', onChange)
+        window.addEventListener('blur', onChange)
+        window.addEventListener('pageshow', onChange)
+        window.addEventListener('pagehide', onChange)
+        document.onfocusin = document.onfocusout = onChange
+        return isHidden()
+      }
+      // 如果无法判断是否隐藏，则返回undefined
+      return undefined
+    },
+    /**
+     * 监听当前URL变化并执行函数
+     */
+    whenWindowUrlChange () {
+      if (window.onurlchange === null) {
+        // 支持该功能
+        window.addEventListener('urlchange', () => {
+          // utils.logger.info('urlchange')
+        });
+      }
+    },
+    reloadCurrentTab () {
+      if (vals.auto_reload) location.reload()
+    },
+    documentScrollTo (offset) {
+      document.documentElement.scrollTop = offset
+      document.body.scrollTop = offset
+    },
+    /**
+     * 获取指定 meta 标签的属性值
+     * @param {*} attribute 属性名称
+     * @returns 属性值
+     */
+    getMetaContent (attribute) {
+      const meta = document.querySelector(`meta[${attribute}]`)
+      if (meta) {
+        return meta.getAttribute('content')
+      } else {
+        return null
+      }
+    },
+    getBodyHeight () {
+      const bodyHeight = document.body.clientHeight || 0
+      const docHeight = document.documentElement.clientHeight || 0
+      return bodyHeight < docHeight ? bodyHeight : docHeight
+    },
+    /**
+     * 确保页面销毁时清除所有定时器
+     */
+    clearAllTimersWhenCloseTab () {
+      window.addEventListener('beforeunload', () => {
+        for (let id of arrays.intervalIds) {
+          clearInterval(id)
+        }
+        arrays.intervalIds = []
+      })
+    }
+  }
+  const vals = {
+    is_vip: utils.getValue('is_vip'),
+    player_type: utils.getValue('player_type'),
+    offset_top: Math.trunc(utils.getValue('offset_top')),
+    auto_locate: utils.getValue('auto_locate'),
+    auto_locate_video: utils.getValue('auto_locate_video'),
+    auto_locate_bangumi: utils.getValue('auto_locate_bangumi'),
+    click_player_auto_locate: utils.getValue('click_player_auto_locate'),
+    player_offset_top: Math.trunc(utils.getValue('player_offset_top')),
+    current_screen_mode: utils.getValue('current_screen_mode'),
+    selected_screen_mode: utils.getValue('selected_screen_mode'),
+    auto_select_video_highest_quality: utils.getValue('auto_select_video_highest_quality'),
+    contain_quality_4k: utils.getValue('contain_quality_4k'),
+    contain_quality_8k: utils.getValue('contain_quality_8k'),
+    webfull_unlock: utils.getValue('webfull_unlock'),
+    auto_reload: utils.getValue('auto_reload'),
+    auto_skip: utils.getValue('auto_skip')
+  }
+  const modules = {
+    /**
+     * 判断用户是否登录
+     * @returns
+     */
+    isLogin () {
+      return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || null)
+    },
+    /**
      * 检查视频是否可以播放
      * @returns Promise() TorF
      */
-    async checkVideoCanPlayThrough() {
+    async checkVideoCanPlayThrough () {
       // const BwpVideoPlayerExists = await this.checkElementExistence(selector.videoBwp, 10, 10)
       // if (BwpVideoPlayerExists) {
       //   return new Promise(resolve => {
@@ -209,108 +285,68 @@
       })
     },
     /**
-     * 检查当前文档是否被激活
+     * 监听屏幕模式变化(normal/wide/web/full)
      */
-    checkDocumentIsHidden() {
-      const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
-      const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null
-      if (documentHiddenPropertyName !== null) {
-        const isHidden = () => document[documentHiddenPropertyName]
-        const onChange = () => isHidden()
-        // 添加各种事件监听器
-        visibilityChangeEventNames.forEach(eventName => document.addEventListener(eventName, onChange))
-        window.addEventListener('focus', onChange)
-        window.addEventListener('blur', onChange)
-        window.addEventListener('pageshow', onChange)
-        window.addEventListener('pagehide', onChange)
-        document.onfocusin = document.onfocusout = onChange
-        return isHidden()
-      }
-      // 如果无法判断是否隐藏，则返回undefined
-      return undefined
-    },
-    /**
-     * 监听当前URL变化并执行函数
-     */
-    whenWindowUrlChange() {
-      if (window.onurlchange === null) {
-        // 支持该功能
-        window.addEventListener('urlchange', () => {
-          utils.logger.info('urlchange')
-        });
-      }
-    },
-    reloadCurrentTab() {
-      if (vals.auto_reload) location.reload()
-    },
-    documentScrollTo(offset) {
-      document.documentElement.scrollTop = offset
-      document.body.scrollTop = offset
-    },
-    /**
-     * 获取指定 meta 标签的属性值
-     * @param {*} attribute 属性名称
-     * @returns 属性值
-     */
-    getMetaContent(attribute) {
-      const meta = document.querySelector(`meta[${attribute}]`)
-      if (meta) {
-        return meta.getAttribute('content')
-      } else {
-        return null
-      }
-    },
-    getBodyHeight() {
-      const bodyHeight = document.body.clientHeight || 0
-      const docHeight = document.documentElement.clientHeight || 0
-      return bodyHeight < docHeight ? bodyHeight : docHeight
-    },
-    /**
-     * 确保页面销毁时清除所有定时器
-     */
-    clearAllTimersWhenCloseTab() {
-      window.addEventListener('beforeunload', () => {
-        for (let id of arrays.intervalIds) {
-          clearInterval(id)
-        }
-        arrays.intervalIds = []
+    observerPlayerDataScreenChanges () {
+      const playerContainer = document.querySelector(selector.playerContainer)
+      const observer = new MutationObserver(mutations => {
+        const playerDataScreen = playerContainer.getAttribute('data-screen')
+        utils.setValue('current_screen_mode', playerDataScreen)
+        utils.logger.debug(utils.getValue('current_screen_mode'))
       })
-    }
-  }
-  const modules = {
-    /**
-     * 判断用户是否登录
-     * @returns 
-     */
-    isLogin() {
-      return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || null)
+      observer.observe(playerContainer, {
+        attributes: true,
+        attributeFilter: ['data-screen'],
+      })
+    },
+    getCurrentScreenMode () {
+      const playerDataScreen = document.querySelector(selector.playerContainer).getAttribute('data-screen')
+      return playerDataScreen
+    },
+    autoSelectScreenMode () {
+      if (vars.autoSelectScreenModeRunningCounts += 1) {
+        const currentScreenMode = this.getCurrentScreenMode()
+        utils.logger.debug(vals)
+        const screenModeMap = {
+          wide: () => { return { enterBtn: document.querySelector(selector.screenModeWideEnterBtn), done: true, mode: 'wide' } },
+          web: () => { return { enterBtn: document.querySelector(selector.screenModeWebEnterBtn), done: true, mode: 'web' } },
+        }
+        if (screenModeMap[currentScreenMode]) return screenModeMap[currentScreenMode]()
+        if (screenModeMap[vals.selected_screen_mode]) screenModeMap[vals.selected_screen_mode]().enterBtn.click()
+      }
     },
     /**
     * 前期准备函数
     * 提前执行其他脚本功能所依赖的其他函数
     */
-    thePrepFunction() {
+    thePrepFunction () {
       if (vars.thePrepFunctionRunningCounts += 1) {
         utils.clearAllTimersWhenCloseTab()
         utils.whenWindowUrlChange()
-        vals.initValue()
+        utils.initValue()
+        modules.observerPlayerDataScreenChanges()
       }
     },
     /**
      * 脚本执行主函数
      * 定义了所有功能函数将按何种规则执行
      */
-    async theMainFunction() {
-      const videoPlayerExists = await utils.checkElementExistence(selector.video, 5, 100)
-      if (videoPlayerExists) {
-        const isCanPlayThrough = await utils.checkVideoCanPlayThrough()
-        const videoControlerBtnExists = await utils.checkElementExistence(selector.videoControlerBtn, 100, 100)
-        if (isCanPlayThrough && videoControlerBtnExists) {
-
+    async theMainFunction () {
+      if (vars.theMainFunctionRunningCounts += 1) {
+        const videoPlayerExists = await utils.checkElementExistence(selector.video, 5, 100)
+        if (videoPlayerExists) {
+          utils.logger.info('播放器｜存在')
+          const isCanPlayThrough = await modules.checkVideoCanPlayThrough()
+          const videoControlerBtnExists = await utils.checkElementExistence(selector.playerControler, 100, 100)
+          if (isCanPlayThrough || (!isCanPlayThrough && videoControlerBtnExists)) {
+            utils.logger.info('视频资源｜可以播放')
+            modules.autoSelectScreenMode()
+          }
         }
       }
     }
   }
+
   if (modules.isLogin()) {
     modules.thePrepFunction()
     const timer = setInterval(() => {
