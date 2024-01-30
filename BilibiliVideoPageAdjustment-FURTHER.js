@@ -51,14 +51,13 @@
     mutedButton: '.bpx-player-ctrl-muted-icon',
     video: '#bilibili-player video',
     videoBwp: 'bwp-video',
-    screenModeWideEnterBtn: '.bpx-player-ctrl-wide-enter',
-    screenModeWebEnterBtn: '.bpx-player-ctrl-web-enter',
+    qualitySwitchButtons: '.bpx-player-ctrl-quality-menu-item',
+    screenModeWideEnterButton: '.bpx-player-ctrl-wide-enter',
+    screenModeWebEnterButton: '.bpx-player-ctrl-web-enter',
     danmukuBox: '#danmukuBox',
-
-
   }
   const utils = {
-    initValue() {
+    initValue () {
       const value = [{
         name: 'is_vip',
         value: false,
@@ -112,13 +111,13 @@
         this.setValue(v.name, v.value)
       })
     },
-    getValue(name) {
+    getValue (name) {
       return GM_getValue(name)
     },
-    setValue(name, value) {
+    setValue (name, value) {
       GM_setValue(name, value)
     },
-    sleep(times) {
+    sleep (times) {
       return new Promise(resolve => setTimeout(resolve, times))
     },
     /**
@@ -126,20 +125,20 @@
      * @param {String} id 样式表id
      * @param {String} css 样式内容
      */
-    insertStyleToDocument(css) {
+    insertStyleToDocument (css) {
       GM_addStyle(css)
     },
     logger: {
-      info(content) {
+      info (content) {
         console.info('%c播放页调整', 'color:white;background:#006aff;padding:2px;border-radius:2px', content);
       },
-      warn(content) {
+      warn (content) {
         console.warn('%c播放页调整', 'color:white;background:#ff6d00;padding:2px;border-radius:2px', content);
       },
-      error(content) {
+      error (content) {
         console.error('%c播放页调整', 'color:white;background:#f33;padding:2px;border-radius:2px', content);
       },
-      debug(content) {
+      debug (content) {
         console.info('%c播放页调整(调试)', 'color:white;background:#cc00ff;padding:2px;border-radius:2px', content);
       },
     },
@@ -149,7 +148,7 @@
      * @param {Number} maxAttempts 最大尝试次数
      * @param {Number} delay 检查时间间隔
      */
-    checkElementExistence(selector, maxAttempts, delay) {
+    checkElementExistence (selector, maxAttempts, delay) {
       return new Promise(resolve => {
         let attempts = 0
         const timer = setInterval(() => {
@@ -169,7 +168,7 @@
     /**
      * 检查当前文档是否被激活
      */
-    checkDocumentIsHidden() {
+    checkDocumentIsHidden () {
       const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
       const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null
       if (documentHiddenPropertyName !== null) {
@@ -190,7 +189,7 @@
     /**
      * 监听当前URL变化并执行函数
      */
-    whenWindowUrlChange() {
+    whenWindowUrlChange () {
       if (window.onurlchange === null) {
         // 支持该功能
         window.addEventListener('urlchange', () => {
@@ -198,10 +197,10 @@
         });
       }
     },
-    reloadCurrentTab() {
+    reloadCurrentTab () {
       if (vals.auto_reload) location.reload()
     },
-    documentScrollTo(offset) {
+    documentScrollTo (offset) {
       document.documentElement.scrollTop = offset
       document.body.scrollTop = offset
     },
@@ -210,7 +209,7 @@
      * @param {*} attribute 属性名称
      * @returns 属性值
      */
-    getMetaContent(attribute) {
+    getMetaContent (attribute) {
       const meta = document.querySelector(`meta[${attribute}]`)
       if (meta) {
         return meta.getAttribute('content')
@@ -218,7 +217,7 @@
         return null
       }
     },
-    getBodyHeight() {
+    getBodyHeight () {
       const bodyHeight = document.body.clientHeight || 0
       const docHeight = document.documentElement.clientHeight || 0
       return bodyHeight < docHeight ? bodyHeight : docHeight
@@ -226,7 +225,7 @@
     /**
      * 确保页面销毁时清除所有定时器
      */
-    clearAllTimersWhenCloseTab() {
+    clearAllTimersWhenCloseTab () {
       window.addEventListener('beforeunload', () => {
         for (let id of arrays.intervalIds) {
           clearInterval(id)
@@ -240,7 +239,7 @@
      * @param {*} attribute CSS属性名
      * @returns CSS属性值
      */
-    async getElementComputedStyle(selector, attribute) {
+    async getElementComputedStyle (selector, attribute) {
       const element = await elmGetter.get(selector)
       return window.getComputedStyle(element)[attribute]
     }
@@ -267,13 +266,13 @@
     /**
      * 判断用户是否登录
      */
-    isLogin() {
+    isLogin () {
       return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || null)
     },
     /**
      * 检查视频是否可以播放
      */
-    checkVideoCanPlayThrough() {
+    checkVideoCanPlayThrough () {
       // const BwpVideoPlayerExists = await this.checkElementExistence(selector.videoBwp, 10, 10)
       // if (BwpVideoPlayerExists) {
       //   return new Promise(resolve => {
@@ -300,7 +299,7 @@
     /**
      * 监听屏幕模式变化(normal/wide/web/full)
      */
-    observerPlayerDataScreenChanges() {
+    observerPlayerDataScreenChanges () {
       const playerContainer = document.querySelector(selector.playerContainer)
       const observer = new MutationObserver(mutations => {
         const playerDataScreen = playerContainer.getAttribute('data-screen')
@@ -310,7 +309,7 @@
         attributeFilter: ['data-screen'],
       })
     },
-    getCurrentScreenMode() {
+    getCurrentScreenMode () {
       const playerDataScreen = document.querySelector(selector.playerContainer).getAttribute('data-screen')
       return playerDataScreen
     },
@@ -321,11 +320,11 @@
      * - 未成功自动重试
      * - 递归超过5次则返回失败
      */
-    async checkScreenModeSwitchSuccess(expectScreenMode) {
+    async checkScreenModeSwitchSuccess (expectScreenMode) {
       vars.checkScreenModeSwitchSuccessDepths++
       const enterBtnMap = {
-        wide: async () => { return await elmGetter.get(selector.screenModeWideEnterBtn) },
-        web: async () => { return await elmGetter.get(selector.screenModeWebEnterBtn) },
+        wide: async () => { return await elmGetter.get(selector.screenModeWideEnterButton) },
+        web: async () => { return await elmGetter.get(selector.screenModeWebEnterButton) },
       }
       if (enterBtnMap[expectScreenMode]) {
         const enterBtn = await enterBtnMap[expectScreenMode]()
@@ -350,7 +349,7 @@
      * - 功能开启，但当前屏幕已为宽屏或网页全屏，则直接返回成功
      * - 功能开启，执行切换函数
      */
-    async autoSelectScreenMode() {
+    async autoSelectScreenMode () {
       if (vars.autoSelectScreenModeRunningCounts += 1) {
         if (vals.selected_screen_mode === 'close') return { done: true, mode: 'normal' }
         const currentScreenMode = this.getCurrentScreenMode()
@@ -365,7 +364,7 @@
       }
     },
     // 自动关闭静音
-    async autoCancelMute() {
+    async autoCancelMute () {
       if (vars.autoCancelMuteRunningCounts += 1) {
         const mutedButton = document.querySelector(selector.mutedButton)
         const volumeButton = document.querySelector(selector.volumeButton)
@@ -378,10 +377,50 @@
       }
     },
     /**
+     * 自动选择最高画质
+     * @description
+     * 质量代码：
+     * 127->8K 超高清;120->4K 超清;116->1080P 60帧;
+     * 80->1080P 高清；64->720P 高清；32->480P 清晰；
+     * 16->360P 流畅；0->自动
+     */
+    async autoSelectVideoHighestQuality () {
+      if (vars.autoSelectVideoHighestQualityRunningCounts += 1) {
+        let message
+        const qualitySwitchButtonsMap = new Map()
+        if (!vals.auto_select_video_highest_quality) return
+        const qualitySwitchButtons = await elmGetter.each(selector.qualitySwitchButtons, document, button => {
+          qualitySwitchButtonsMap.set(button.dataset.value, button)
+        })
+        if (vals.is_vip) {
+          if (!vals.contain_quality_4k && !vals.contain_quality_8k) {
+            [...qualitySwitchButtonsMap].filter(quality => {
+              return +quality[0] < 120
+            })[0][1].click()
+            message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
+          }
+          if (vals.contain_quality_4k && !vals.contain_quality_8k) {
+            qualitySwitchButtonsMap.get('120').click()
+            message = '最高画质｜VIP｜4K｜切换成功'
+          }
+          if ((vals.contain_quality_4k && vals.contain_quality_8k) || (!vals.contain_quality_4k && vals.contain_quality_8k)) {
+            qualitySwitchButtonsMap.get('127').click()
+            message = '最高画质｜VIP｜8K｜切换成功'
+          }
+        } else {
+          [...qualitySwitchButtonsMap].filter(button => {
+            return button[1].children.length < 2
+          })[0][1].click()
+          message = '最高画质｜非VIP｜切换成功'
+        }
+        utils.logger.info(message)
+      }
+    },
+    /**
     * 前期准备函数
     * 提前执行其他脚本功能所依赖的其他函数
     */
-    thePrepFunction() {
+    thePrepFunction () {
       if (vars.thePrepFunctionRunningCounts += 1) {
         utils.clearAllTimersWhenCloseTab()
         utils.whenWindowUrlChange()
@@ -393,7 +432,7 @@
      * 脚本执行主函数
      * 定义了所有功能函数将按何种规则执行
      */
-    async theMainFunction() {
+    async theMainFunction () {
       if (vars.theMainFunctionRunningCounts += 1) {
         const videoPlayerExists = await elmGetter.get(selector.video)
         if (videoPlayerExists) {
@@ -406,6 +445,7 @@
             if (selectedScreenMode.done) {
               utils.logger.info(`屏幕模式｜${selectedScreenMode['mode'].toUpperCase()}｜切换成功`)
               this.autoCancelMute()
+              this.autoSelectVideoHighestQuality()
             } else {
               utils.logger.error('屏幕模式｜切换失败)')
               utils.reloadCurrentTab()
