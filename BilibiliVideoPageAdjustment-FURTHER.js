@@ -11,6 +11,7 @@
 // @match             *://*.bilibili.com/list/*
 // @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
 // @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
+// @require           https://scriptcat.org/lib/513/2.0.0/ElementGetter.js#sha256=KbLWud5OMbbXZHRoU/GLVgvIgeosObRYkDEbE/YanRU=
 // @grant             GM_setValue
 // @grant             GM_getValue
 // @grant             GM_addStyle
@@ -35,9 +36,9 @@
     insertGoToCommentsButtonCounts: 0,
     insertSetSkipTimeNodesButtonCounts: 0,
     insertSkipTimeNodesSwitchButtonCounts: 0,
-    functionExecutionsCounts: 0
+    functionExecutionsCounts: 0,
+    checkScreenModeSwitchSuccessDepths: 0,
   }
-
   let arrays = {
     intervalIds: [],
     skipNodesRecords: []
@@ -46,13 +47,18 @@
     player: '#bilibili-player',
     playerContainer: '#bilibili-player .bpx-player-container',
     playerControler: '#bilibili-player .bpx-player-ctrl-btn',
+    volumeButton: '.bpx-player-ctrl-volume-icon',
+    mutedButton: '.bpx-player-ctrl-muted-icon',
     video: '#bilibili-player video',
     videoBwp: 'bwp-video',
     screenModeWideEnterBtn: '.bpx-player-ctrl-wide-enter',
     screenModeWebEnterBtn: '.bpx-player-ctrl-web-enter',
+    danmukuBox: '#danmukuBox',
+
+
   }
   const utils = {
-    initValue () {
+    initValue() {
       const value = [{
         name: 'is_vip',
         value: false,
@@ -106,13 +112,13 @@
         this.setValue(v.name, v.value)
       })
     },
-    getValue () {
+    getValue(name) {
       return GM_getValue(name)
     },
-    setValue (name, value) {
+    setValue(name, value) {
       GM_setValue(name, value)
     },
-    sleep (times) {
+    sleep(times) {
       return new Promise(resolve => setTimeout(resolve, times))
     },
     /**
@@ -120,20 +126,20 @@
      * @param {String} id 样式表id
      * @param {String} css 样式内容
      */
-    insertStyleToDocument (css) {
+    insertStyleToDocument(css) {
       GM_addStyle(css)
     },
     logger: {
-      info (content) {
+      info(content) {
         console.info('%c播放页调整', 'color:white;background:#006aff;padding:2px;border-radius:2px', content);
       },
-      warn (content) {
+      warn(content) {
         console.warn('%c播放页调整', 'color:white;background:#ff6d00;padding:2px;border-radius:2px', content);
       },
-      error (content) {
+      error(content) {
         console.error('%c播放页调整', 'color:white;background:#f33;padding:2px;border-radius:2px', content);
       },
-      debug (content) {
+      debug(content) {
         console.info('%c播放页调整(调试)', 'color:white;background:#cc00ff;padding:2px;border-radius:2px', content);
       },
     },
@@ -142,9 +148,8 @@
      * @param {String} selector 元素选择器
      * @param {Number} maxAttempts 最大尝试次数
      * @param {Number} delay 检查时间间隔
-     * @returns Promise() TorF
      */
-    checkElementExistence (selector, maxAttempts, delay) {
+    checkElementExistence(selector, maxAttempts, delay) {
       return new Promise(resolve => {
         let attempts = 0
         const timer = setInterval(() => {
@@ -164,7 +169,7 @@
     /**
      * 检查当前文档是否被激活
      */
-    checkDocumentIsHidden () {
+    checkDocumentIsHidden() {
       const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
       const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null
       if (documentHiddenPropertyName !== null) {
@@ -185,7 +190,7 @@
     /**
      * 监听当前URL变化并执行函数
      */
-    whenWindowUrlChange () {
+    whenWindowUrlChange() {
       if (window.onurlchange === null) {
         // 支持该功能
         window.addEventListener('urlchange', () => {
@@ -193,10 +198,10 @@
         });
       }
     },
-    reloadCurrentTab () {
+    reloadCurrentTab() {
       if (vals.auto_reload) location.reload()
     },
-    documentScrollTo (offset) {
+    documentScrollTo(offset) {
       document.documentElement.scrollTop = offset
       document.body.scrollTop = offset
     },
@@ -205,7 +210,7 @@
      * @param {*} attribute 属性名称
      * @returns 属性值
      */
-    getMetaContent (attribute) {
+    getMetaContent(attribute) {
       const meta = document.querySelector(`meta[${attribute}]`)
       if (meta) {
         return meta.getAttribute('content')
@@ -213,7 +218,7 @@
         return null
       }
     },
-    getBodyHeight () {
+    getBodyHeight() {
       const bodyHeight = document.body.clientHeight || 0
       const docHeight = document.documentElement.clientHeight || 0
       return bodyHeight < docHeight ? bodyHeight : docHeight
@@ -221,13 +226,23 @@
     /**
      * 确保页面销毁时清除所有定时器
      */
-    clearAllTimersWhenCloseTab () {
+    clearAllTimersWhenCloseTab() {
       window.addEventListener('beforeunload', () => {
         for (let id of arrays.intervalIds) {
           clearInterval(id)
         }
         arrays.intervalIds = []
       })
+    },
+    /**
+     * 获取指定元素属性样式
+     * @param {*} selector CSS选择器
+     * @param {*} attribute CSS属性名
+     * @returns CSS属性值
+     */
+    async getElementComputedStyle(selector, attribute) {
+      const element = await elmGetter.get(selector)
+      return window.getComputedStyle(element)[attribute]
     }
   }
   const vals = {
@@ -251,16 +266,14 @@
   const modules = {
     /**
      * 判断用户是否登录
-     * @returns
      */
-    isLogin () {
+    isLogin() {
       return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || null)
     },
     /**
      * 检查视频是否可以播放
-     * @returns Promise() TorF
      */
-    async checkVideoCanPlayThrough () {
+    checkVideoCanPlayThrough() {
       // const BwpVideoPlayerExists = await this.checkElementExistence(selector.videoBwp, 10, 10)
       // if (BwpVideoPlayerExists) {
       //   return new Promise(resolve => {
@@ -287,39 +300,88 @@
     /**
      * 监听屏幕模式变化(normal/wide/web/full)
      */
-    observerPlayerDataScreenChanges () {
+    observerPlayerDataScreenChanges() {
       const playerContainer = document.querySelector(selector.playerContainer)
       const observer = new MutationObserver(mutations => {
         const playerDataScreen = playerContainer.getAttribute('data-screen')
         utils.setValue('current_screen_mode', playerDataScreen)
-        utils.logger.debug(utils.getValue('current_screen_mode'))
-      })
-      observer.observe(playerContainer, {
+      }).observe(playerContainer, {
         attributes: true,
         attributeFilter: ['data-screen'],
       })
     },
-    getCurrentScreenMode () {
+    getCurrentScreenMode() {
       const playerDataScreen = document.querySelector(selector.playerContainer).getAttribute('data-screen')
       return playerDataScreen
     },
-    autoSelectScreenMode () {
-      if (vars.autoSelectScreenModeRunningCounts += 1) {
+    /**
+     * 递归检查屏幕模式是否切换成功
+     * @param {*} expectScreenMode 期望的屏幕模式
+     * @description
+     * - 未成功自动重试
+     * - 递归超过5次则返回失败
+     */
+    async checkScreenModeSwitchSuccess(expectScreenMode) {
+      vars.checkScreenModeSwitchSuccessDepths++
+      const enterBtnMap = {
+        wide: async () => { return await elmGetter.get(selector.screenModeWideEnterBtn) },
+        web: async () => { return await elmGetter.get(selector.screenModeWebEnterBtn) },
+      }
+      if (enterBtnMap[expectScreenMode]) {
+        const enterBtn = await enterBtnMap[expectScreenMode]()
+        enterBtn.click()
+        await utils.sleep(200)
         const currentScreenMode = this.getCurrentScreenMode()
-        utils.logger.debug(vals)
-        const screenModeMap = {
-          wide: () => { return { enterBtn: document.querySelector(selector.screenModeWideEnterBtn), done: true, mode: 'wide' } },
-          web: () => { return { enterBtn: document.querySelector(selector.screenModeWebEnterBtn), done: true, mode: 'web' } },
+        const equal = expectScreenMode === currentScreenMode
+        await utils.sleep(200)
+        const danmukuBoxMarginTop = await utils.getElementComputedStyle(selector.danmukuBox, 'margin-top')
+        const success = expectScreenMode === 'wide' ? equal && +danmukuBoxMarginTop.slice(0, -2) > 0 : equal
+        if (success) return { done: success, mode: expectScreenMode }
+        else {
+          if (vars.checkScreenModeSwitchSuccessDepths === 5) return { done: false, mode: expectScreenMode }
+          return this.checkScreenModeSwitchSuccess(expectScreenMode)
         }
-        if (screenModeMap[currentScreenMode]) return screenModeMap[currentScreenMode]()
-        if (screenModeMap[vals.selected_screen_mode]) screenModeMap[vals.selected_screen_mode]().enterBtn.click()
+      }
+    },
+    /**
+     * 执行自动切换屏幕模式
+     * @description
+     * - 功能未开启，不执行切换函数，直接返回成功
+     * - 功能开启，但当前屏幕已为宽屏或网页全屏，则直接返回成功
+     * - 功能开启，执行切换函数
+     */
+    async autoSelectScreenMode() {
+      if (vars.autoSelectScreenModeRunningCounts += 1) {
+        if (vals.selected_screen_mode === 'close') return { done: true, mode: 'normal' }
+        const currentScreenMode = this.getCurrentScreenMode()
+        const screenModeMap = {
+          wide: { done: true, mode: 'wide' },
+          web: { done: true, mode: 'web' },
+        }
+        if (screenModeMap[currentScreenMode]) return screenModeMap[currentScreenMode]
+        if (screenModeMap[vals.selected_screen_mode]) {
+          return await this.checkScreenModeSwitchSuccess(vals.selected_screen_mode)
+        }
+      }
+    },
+    // 自动关闭静音
+    async autoCancelMute() {
+      if (vars.autoCancelMuteRunningCounts += 1) {
+        const mutedButton = document.querySelector(selector.mutedButton)
+        const volumeButton = document.querySelector(selector.volumeButton)
+        const mutedButtonDisplay = mutedButton.style.display
+        const volumeButtonDisplay = volumeButton.style.display
+        if (mutedButtonDisplay === 'block' || volumeButtonDisplay === 'none') {
+          mutedButton.click()
+          utils.logger.info('静音丨已关闭')
+        }
       }
     },
     /**
     * 前期准备函数
     * 提前执行其他脚本功能所依赖的其他函数
     */
-    thePrepFunction () {
+    thePrepFunction() {
       if (vars.thePrepFunctionRunningCounts += 1) {
         utils.clearAllTimersWhenCloseTab()
         utils.whenWindowUrlChange()
@@ -331,17 +393,30 @@
      * 脚本执行主函数
      * 定义了所有功能函数将按何种规则执行
      */
-    async theMainFunction () {
+    async theMainFunction() {
       if (vars.theMainFunctionRunningCounts += 1) {
-        const videoPlayerExists = await utils.checkElementExistence(selector.video, 5, 100)
+        const videoPlayerExists = await elmGetter.get(selector.video)
         if (videoPlayerExists) {
-          utils.logger.info('播放器｜存在')
+          utils.logger.info('播放器｜已找到')
           const isCanPlayThrough = await modules.checkVideoCanPlayThrough()
-          const videoControlerBtnExists = await utils.checkElementExistence(selector.playerControler, 100, 100)
+          const videoControlerBtnExists = await elmGetter.get(selector.playerControler)
           if (isCanPlayThrough || (!isCanPlayThrough && videoControlerBtnExists)) {
             utils.logger.info('视频资源｜可以播放')
-            modules.autoSelectScreenMode()
+            const selectedScreenMode = await modules.autoSelectScreenMode()
+            if (selectedScreenMode.done) {
+              utils.logger.info(`屏幕模式｜${selectedScreenMode['mode'].toUpperCase()}｜切换成功`)
+              this.autoCancelMute()
+            } else {
+              utils.logger.error('屏幕模式｜切换失败)')
+              utils.reloadCurrentTab()
+            }
+          } else {
+            utils.logger.error('视频资源｜加载失败')
+            utils.reloadCurrentTab()
           }
+        } else {
+          utils.logger.error('播放器｜未找到')
+          utils.reloadCurrentTab()
         }
       }
     }
