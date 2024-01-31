@@ -350,19 +350,18 @@
       if (enterBtnMap[expectScreenMode]) {
         const enterBtn = await enterBtnMap[expectScreenMode]()
         enterBtn.click()
-        await utils.sleep(200)
+        await utils.sleep(300)
         const currentScreenMode = this.getCurrentScreenMode()
         const equal = expectScreenMode === currentScreenMode
-        utils.logger.debug(`${expectScreenMode} ${currentScreenMode}`)
-        await utils.sleep(200)
-        // const success = expectScreenMode === 'wide' ? equal && +danmukuBoxMarginTop.slice(0, -2) > 0 : equal
+        // utils.logger.debug(`${expectScreenMode} ${currentScreenMode}`)
+        await utils.sleep(300)
         const success = vals.player_type === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selector.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
         if (success) {
           document.dispatchEvent(new CustomEvent('autoSelectScreenModeDone', { detail: { done: success, mode: expectScreenMode } }))
           return { done: success, mode: expectScreenMode }
         }
         else {
-          if (vars.checkScreenModeSwitchSuccessDepths === 5) return { done: false, mode: expectScreenMode }
+          if (vars.checkScreenModeSwitchSuccessDepths === 10) return { done: false, mode: expectScreenMode }
           return this.checkScreenModeSwitchSuccess(expectScreenMode)
         }
       }
@@ -391,8 +390,10 @@
     // 自动关闭静音
     async autoCancelMute () {
       if (vars.autoCancelMuteRunningCounts += 1) {
-        const mutedButton = document.querySelector(selector.mutedButton)
-        const volumeButton = document.querySelector(selector.volumeButton)
+        const mutedButton = await elmGetter.get(selector.mutedButton)
+        const volumeButton = await elmGetter.get(selector.volumeButton)
+        // const mutedButtonDisplay = getComputedStyle(mutedButton)['display']
+        // const volumeButtonDisplay = getComputedStyle(volumeButton)['display']
         const mutedButtonDisplay = mutedButton.style.display
         const volumeButtonDisplay = volumeButton.style.display
         if (mutedButtonDisplay === 'block' || volumeButtonDisplay === 'none') {
@@ -417,6 +418,7 @@
         const qualitySwitchButtons = await elmGetter.each(selector.qualitySwitchButtons, document, button => {
           qualitySwitchButtonsMap.set(button.dataset.value, button)
         })
+        await utils.sleep(100)
         if (vals.is_vip) {
           if (!vals.contain_quality_4k && !vals.contain_quality_8k) {
             [...qualitySwitchButtonsMap].filter(quality => {
@@ -456,9 +458,14 @@
       if (!onAutoLocate || vals.selected_screen_mode === 'web') return
       vars.autoLocationRetryDepths++
       const video = await elmGetter.get(selector.video)
-      // const videoOffsetTop = vals.player_type === 'video' ? document.querySelector(selector.header).getBoundingClientRect().height + document.querySelector(selector.videoTitleElement).getBoundingClientRect().height : document.querySelector(selector.header).getBoundingClientRect().height + +getComputedStyle(document.querySelector(selector.bangumiMainContainer))['margin-top'].slice(0, 2)
-      const videoOffsetTop = utils.getElementToDocumentTop(video).top
-      utils.logger.debug(videoOffsetTop)
+      await utils.sleep(100)
+      /**
+       * @todo
+       * 解决document.querySelector() 获取不到元素的问题
+       */
+      const videoOffsetTop = vals.player_type === 'video' ? document.querySelector(selector.header).getBoundingClientRect().height + document.querySelector(selector.videoTitleElement).getBoundingClientRect().height : document.querySelector(selector.header).getBoundingClientRect().height + +getComputedStyle(document.querySelector(selector.bangumiMainContainer))['margin-top'].slice(0, 2)
+      // const videoOffsetTop = utils.getElementToDocumentTop(video).top
+      // utils.logger.debug(videoOffsetTop)
       utils.documentScrollTo(videoOffsetTop - vals.offset_top)
       await utils.sleep(100)
       const videoClientTop = Math.trunc(video.getBoundingClientRect().top)
@@ -467,7 +474,7 @@
         utils.logger.info('自动定位｜成功')
         return true
       } else {
-        if (vars.autoLocationRetryDepths === 5) return false
+        if (vars.autoLocationRetryDepths === 10) return false
         utils.logger.warn(`自动定位失败，继续尝试
         -----------------
         当前文档顶部偏移量：${Math.trunc(window.pageYOffset)}
