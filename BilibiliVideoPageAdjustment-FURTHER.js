@@ -53,15 +53,22 @@
     mutedButton: '.bpx-player-ctrl-muted-icon',
     video: '#bilibili-player video',
     videoBwp: 'bwp-video',
-    videoTitleElement: '#viewbox_report',
+    videoTitleArea: '#viewbox_report',
+    videoFloatNav: '.fixed-sidenav-storage',
+    bangumiFloatNav: '[class*="navTools_floatNavExp"] [class*="navTools_navMenu"]',
     bangumiMainContainer: '.main-container',
     qualitySwitchButtons: '.bpx-player-ctrl-quality-menu-item',
     screenModeWideEnterButton: '.bpx-player-ctrl-wide-enter',
     screenModeWebEnterButton: '.bpx-player-ctrl-web-enter',
     danmukuBox: '#danmukuBox',
   }
+  const events = {
+    videoCanPlayThrough: document.dispatchEvent(new Event('videoCanPlayThrough')),
+    autoSelectScreenModeSuccess: document.dispatchEvent(new Event('autoSelectScreenModeSuccess')),
+    autoLocationSuccess: document.dispatchEvent(new Event('autoLocationSuccess'))
+  }
   const utils = {
-    initValue () {
+    initValue() {
       const value = [{
         name: 'is_vip',
         value: false,
@@ -115,13 +122,13 @@
         this.setValue(v.name, v.value)
       })
     },
-    getValue (name) {
+    getValue(name) {
       return GM_getValue(name)
     },
-    setValue (name, value) {
+    setValue(name, value) {
       GM_setValue(name, value)
     },
-    sleep (times) {
+    sleep(times) {
       return new Promise(resolve => setTimeout(resolve, times))
     },
     /**
@@ -129,50 +136,50 @@
      * @param {String} id 样式表id
      * @param {String} css 样式内容
      */
-    insertStyleToDocument (css) {
+    insertStyleToDocument(css) {
       GM_addStyle(css)
     },
     logger: {
-      info (content) {
+      info(content) {
         console.info('%c播放页调整', 'color:white;background:#006aff;padding:2px;border-radius:2px', content);
       },
-      warn (content) {
+      warn(content) {
         console.warn('%c播放页调整', 'color:white;background:#ff6d00;padding:2px;border-radius:2px', content);
       },
-      error (content) {
+      error(content) {
         console.error('%c播放页调整', 'color:white;background:#f33;padding:2px;border-radius:2px', content);
       },
-      debug (content) {
+      debug(content) {
         console.info('%c播放页调整(调试)', 'color:white;background:#cc00ff;padding:2px;border-radius:2px', content);
       },
     },
-    /**
-     * 检查元素是否存在
-     * @param {String} selector 元素选择器
-     * @param {Number} maxAttempts 最大尝试次数
-     * @param {Number} delay 检查时间间隔
-     */
-    checkElementExistence (selector, maxAttempts, delay) {
-      return new Promise(resolve => {
-        let attempts = 0
-        const timer = setInterval(() => {
-          attempts++
-          const $element = document.querySelector(selector)
-          if ($element) {
-            clearInterval(timer)
-            resolve(true)
-          } else if (attempts === maxAttempts) {
-            clearInterval(timer)
-            resolve(false)
-          }
-        }, delay)
-        arrays.intervalIds.push(timer)
-      })
-    },
+    // /**
+    //  * 检查元素是否存在
+    //  * @param {String} selector 元素选择器
+    //  * @param {Number} maxAttempts 最大尝试次数
+    //  * @param {Number} delay 检查时间间隔
+    //  */
+    // checkElementExistence(selector, maxAttempts, delay) {
+    //   return new Promise(resolve => {
+    //     let attempts = 0
+    //     const timer = setInterval(() => {
+    //       attempts++
+    //       const $element = document.querySelector(selector)
+    //       if ($element) {
+    //         clearInterval(timer)
+    //         resolve(true)
+    //       } else if (attempts === maxAttempts) {
+    //         clearInterval(timer)
+    //         resolve(false)
+    //       }
+    //     }, delay)
+    //     arrays.intervalIds.push(timer)
+    //   })
+    // },
     /**
      * 检查当前文档是否被激活
      */
-    checkDocumentIsHidden () {
+    checkDocumentIsHidden() {
       const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
       const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null
       if (documentHiddenPropertyName !== null) {
@@ -193,7 +200,7 @@
     /**
      * 监听当前URL变化并执行函数
      */
-    whenWindowUrlChange () {
+    whenWindowUrlChange() {
       if (window.onurlchange === null) {
         // 支持该功能
         window.addEventListener('urlchange', () => {
@@ -201,10 +208,10 @@
         });
       }
     },
-    reloadCurrentTab () {
+    reloadCurrentTab() {
       if (vals.auto_reload) location.reload()
     },
-    documentScrollTo (offset) {
+    documentScrollTo(offset) {
       document.documentElement.scrollTop = offset
       document.body.scrollTop = offset
     },
@@ -213,7 +220,7 @@
      * @param {*} attribute 属性名称
      * @returns 属性值
      */
-    getMetaContent (attribute) {
+    getMetaContent(attribute) {
       const meta = document.querySelector(`meta[${attribute}]`)
       if (meta) {
         return meta.getAttribute('content')
@@ -221,7 +228,7 @@
         return null
       }
     },
-    getBodyHeight () {
+    getBodyHeight() {
       const bodyHeight = document.body.clientHeight || 0
       const docHeight = document.documentElement.clientHeight || 0
       return bodyHeight < docHeight ? bodyHeight : docHeight
@@ -229,7 +236,7 @@
     /**
      * 确保页面销毁时清除所有定时器
      */
-    clearAllTimersWhenCloseTab () {
+    clearAllTimersWhenCloseTab() {
       window.addEventListener('beforeunload', () => {
         for (let id of arrays.intervalIds) {
           clearInterval(id)
@@ -237,18 +244,17 @@
         arrays.intervalIds = []
       })
     },
-    getElementToDocumentTop (ele) {
-      const offset = {
-        left: 0,
-        top: 0
+    getElementOffsetToDocument(element) {
+      let rect, win
+      if (!element.getClientRects().length) {
+        return { top: 0, left: 0 }
       }
-      let parent = ele
-      while (parent !== null) {
-        offset.left += parent.offsetLeft;
-        offset.top += parent.offsetTop;
-        parent = parent.offsetParent;
+      rect = element.getBoundingClientRect()
+      win = element.ownerDocument.defaultView
+      return {
+        top: rect.top + win.pageYOffset,
+        left: rect.left + win.pageXOffset
       }
-      return offset;
     }
   }
   const vals = {
@@ -275,7 +281,7 @@
      * 如果都没匹配上则弹窗报错
      * @returns 当前视频类型
      */
-    getCurrentPlayerType () {
+    getCurrentPlayerType() {
       const playerType = (vars.currentUrl.includes('www.bilibili.com/video') || vars.currentUrl.includes('www.bilibili.com/list/')) ? 'video' : vars.currentUrl.includes('www.bilibili.com/bangumi') ? 'bangumi' : false
       if (!playerType) {
         utils.logger.debug('视频类型丨未匹配')
@@ -287,61 +293,51 @@
     /**
      * 判断用户是否登录
      */
-    isLogin () {
+    isLogin() {
       return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || null)
     },
     /**
      * 检查视频是否可以播放
      */
-    checkVideoCanPlayThrough () {
+    async checkVideoCanPlayThrough() {
       // const BwpVideoPlayerExists = await this.checkElementExistence(selector.videoBwp, 10, 10)
       // if (BwpVideoPlayerExists) {
       //   return new Promise(resolve => {
       //     resolve(true)
       //   })
       // }
-      return new Promise(resolve => {
-        let attempts = 100
-        const timer = setInterval(() => {
-          const $video = document.querySelector(selector.video)
-          const videoReadyState = $video.readyState
-          if (videoReadyState === 4) {
-            resolve(true)
-            clearInterval(timer)
-          } else if (attempts <= 0) {
-            resolve(false)
-            clearInterval(timer)
-          }
-          attempts--
-        }, 100)
-        arrays.intervalIds.push(timer)
+      const $video = await elmGetter.get(selector.video, 100)
+      $video.addEventListener("canplaythrough", async () => {
+        utils.logger.info('视频资源｜可以播放')
+        return events.videoCanPlayThrough
       })
     },
     /**
      * 监听屏幕模式变化(normal/wide/web/full)
      */
-    async observerPlayerDataScreenChanges () {
-      const playerContainer = await elmGetter.get(selector.playerContainer)
+    async observerPlayerDataScreenChanges() {
+      const $playerContainer = await elmGetter.get(selector.playerContainer, 100)
       const observer = new MutationObserver(mutations => {
-        const playerDataScreen = playerContainer.getAttribute('data-screen')
+        const playerDataScreen = $playerContainer.getAttribute('data-screen')
         utils.setValue('current_screen_mode', playerDataScreen)
-      }).observe(playerContainer, {
+      }).observe($playerContainer, {
         attributes: true,
         attributeFilter: ['data-screen'],
       })
     },
-    getCurrentScreenMode () {
-      const playerDataScreen = document.querySelector(selector.playerContainer).getAttribute('data-screen')
-      return playerDataScreen
+    async getCurrentScreenMode(delay = 0) {
+      const $playerContainer = await elmGetter.get(selector.playerContainer, delay)
+      // utils.logger.debug($playerContainer)
+      return $playerContainer.getAttribute('data-screen')
     },
     /**
      * 递归检查屏幕模式是否切换成功
      * @param {*} expectScreenMode 期望的屏幕模式
      * @description
      * - 未成功自动重试
-     * - 递归超过5次则返回失败
+     * - 递归超过 10 次则返回失败
      */
-    async checkScreenModeSwitchSuccess (expectScreenMode) {
+    async checkScreenModeSwitchSuccess(expectScreenMode) {
       vars.checkScreenModeSwitchSuccessDepths++
       const enterBtnMap = {
         wide: async () => { return await elmGetter.get(selector.screenModeWideEnterButton) },
@@ -350,18 +346,20 @@
       if (enterBtnMap[expectScreenMode]) {
         const enterBtn = await enterBtnMap[expectScreenMode]()
         enterBtn.click()
-        await utils.sleep(300)
-        const currentScreenMode = this.getCurrentScreenMode()
+        const currentScreenMode = await this.getCurrentScreenMode(300)
         const equal = expectScreenMode === currentScreenMode
         // utils.logger.debug(`${expectScreenMode} ${currentScreenMode}`)
         await utils.sleep(300)
         const success = vals.player_type === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selector.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
         if (success) {
-          document.dispatchEvent(new CustomEvent('autoSelectScreenModeDone', { detail: { done: success, mode: expectScreenMode } }))
-          return { done: success, mode: expectScreenMode }
+          utils.logger.info(`屏幕模式｜${expectScreenMode.toUpperCase()}｜切换成功`)
+          return events.autoSelectScreenModeSuccess
         }
         else {
-          if (vars.checkScreenModeSwitchSuccessDepths === 10) return { done: false, mode: expectScreenMode }
+          if (vars.checkScreenModeSwitchSuccessDepths === 10) {
+            utils.logger.info(`屏幕模式｜${expectScreenMode.toUpperCase()}｜切换失败`)
+            return utils.reloadCurrentTab()
+          }
           return this.checkScreenModeSwitchSuccess(expectScreenMode)
         }
       }
@@ -373,25 +371,72 @@
      * - 功能开启，但当前屏幕已为宽屏或网页全屏，则直接返回成功
      * - 功能开启，执行切换函数
      */
-    async autoSelectScreenMode () {
+    async autoSelectScreenMode() {
       if (vars.autoSelectScreenModeRunningCounts += 1) {
-        if (vals.selected_screen_mode === 'close') return { done: true, mode: 'normal' }
-        const currentScreenMode = this.getCurrentScreenMode()
-        const screenModeMap = {
-          wide: { done: true, mode: 'wide' },
-          web: { done: true, mode: 'web' },
-        }
-        if (screenModeMap[currentScreenMode]) return screenModeMap[currentScreenMode]
-        if (screenModeMap[vals.selected_screen_mode]) {
+        if (vals.selected_screen_mode === 'close') return events.autoSelectScreenModeSuccess
+        const screenModeMap = ['wide', 'web']
+        if (vals.player_type === 'bangumi') await utils.sleep(1000)
+        const currentScreenMode = await this.getCurrentScreenMode()
+        if (screenModeMap.includes(currentScreenMode)) return events.autoSelectScreenModeSuccess
+        if (screenModeMap.includes(vals.selected_screen_mode)) {
           return await this.checkScreenModeSwitchSuccess(vals.selected_screen_mode)
         }
       }
     },
+    /**
+     * 自动定位至播放器
+     * @description
+     * - 未定位成功自动重试，递归超过5次则返回失败
+     * - 基础数据：
+     * - videoOffsetTop：播放器相对文档顶部距离，大小不随页面滚动变化
+     * - videoClientTop：播放器相对浏览器视口顶部距离，大小随页面滚动变化
+     * - targetOffset：用户期望的播放器相对浏览器视口顶部距离，由用户自定义
+     * - 文档滚动距离：videoOffsetTop - targetOffset
+     */
+    async autoLocation() {
+      const onAutoLocate = vals.auto_locate && ((!vals.auto_locate_video && !vals.auto_locate_bangumi) || (vals.auto_locate_video && vals.player_type === 'video') || (vals.auto_locate_bangumi && vals.player_type === 'bangumi'))
+      if (!onAutoLocate || vals.selected_screen_mode === 'web') return events.autoLocationSuccess
+      vars.autoLocationRetryDepths++
+      const $video = await elmGetter.get(selector.video)
+      // const $header = await elmGetter.get(selector.header)
+      // const placeholderElement = await elmGetter.get(selector.videoTitleArea, 100) || await elmGetter.get(selector.bangumiMainContainer, 100)
+      // const headerHeight = $header.getBoundingClientRect().height
+      // const placeholderElementHeight = placeholderElement.getBoundingClientRect().height
+      // const videoOffsetTop = vals.player_type === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle(placeholderElement)['margin-top'].slice(0, -2)
+      const videoOffsetTop = utils.getElementOffsetToDocument($video).top
+      // utils.logger.debug(videoOffsetTop)
+      utils.documentScrollTo(videoOffsetTop - vals.offset_top)
+      await utils.sleep(100)
+      const videoClientTop = Math.trunc($video.getBoundingClientRect().top)
+      if ((videoClientTop === vals.offset_top) || (Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset) < 5))) {
+        return events.autoLocationSuccess
+      } else {
+        if (vars.autoLocationRetryDepths === 10) return utils.reloadCurrentTab()
+        utils.logger.warn(`
+        自动定位失败，继续尝试
+        -----------------
+        当前文档顶部偏移量：${Math.trunc(window.pageYOffset)}
+        期望文档顶部偏移量：${videoOffsetTop - vals.offset_top}
+        偏移量误差：${(videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)}
+        播放器顶部偏移量：${videoClientTop}
+        设置偏移量：${vals.offset_top}`)
+        await utils.sleep(100)
+        utils.documentScrollTo(0)
+        return this.autoLocation()
+      }
+    },
+    async clickPlayerAutoLocation() {
+      if (vals.click_player_auto_locate) {
+        const $video = await elmGetter.get(selector.video)
+        $video.addEventListener('click', () => {
+          return this.autoLocation()
+        })
+      }
+    },
     // 自动关闭静音
-    async autoCancelMute () {
+    async autoCancelMute() {
       if (vars.autoCancelMuteRunningCounts += 1) {
-        const mutedButton = await elmGetter.get(selector.mutedButton)
-        const volumeButton = await elmGetter.get(selector.volumeButton)
+        const [mutedButton, volumeButton] = await elmGetter.get([selector.mutedButton, selector.volumeButton])
         // const mutedButtonDisplay = getComputedStyle(mutedButton)['display']
         // const volumeButtonDisplay = getComputedStyle(volumeButton)['display']
         const mutedButtonDisplay = mutedButton.style.display
@@ -410,7 +455,7 @@
      * - 80->1080P 高清；64->720P 高清；32->480P 清晰；
      * - 16->360P 流畅；0->自动
      */
-    async autoSelectVideoHighestQuality () {
+    async autoSelectVideoHighestQuality() {
       if (vars.autoSelectVideoHighestQualityRunningCounts += 1) {
         let message
         const qualitySwitchButtonsMap = new Map()
@@ -443,64 +488,25 @@
         utils.logger.info(message)
       }
     },
-    /**
-     * 自动定位至播放器
-     * @description
-     * - 未定位成功自动重试，递归超过5次则返回失败
-     * - 基础数据：
-     * - videoOffsetTop：播放器相对文档顶部距离，大小不随页面滚动变化
-     * - videoClientTop：播放器相对浏览器视口顶部距离，大小随页面滚动变化
-     * - targetOffset：用户期望的播放器相对浏览器视口顶部距离，由用户自定义
-     * - 文档滚动距离：videoOffsetTop - targetOffset
-     */
-    async autoLocation () {
-      const onAutoLocate = vals.auto_locate && ((!vals.auto_locate_video && !vals.auto_locate_bangumi) || (vals.auto_locate_video && vals.player_type === 'video') || (vals.auto_locate_bangumi && vals.player_type === 'bangumi'))
-      if (!onAutoLocate || vals.selected_screen_mode === 'web') return
-      vars.autoLocationRetryDepths++
-      const video = await elmGetter.get(selector.video)
-      await utils.sleep(100)
-      /**
-       * @todo
-       * 解决document.querySelector() 获取不到元素的问题
-       */
-      const videoOffsetTop = vals.player_type === 'video' ? document.querySelector(selector.header).getBoundingClientRect().height + document.querySelector(selector.videoTitleElement).getBoundingClientRect().height : document.querySelector(selector.header).getBoundingClientRect().height + +getComputedStyle(document.querySelector(selector.bangumiMainContainer))['margin-top'].slice(0, 2)
-      // const videoOffsetTop = utils.getElementToDocumentTop(video).top
-      // utils.logger.debug(videoOffsetTop)
-      utils.documentScrollTo(videoOffsetTop - vals.offset_top)
-      await utils.sleep(100)
-      const videoClientTop = Math.trunc(video.getBoundingClientRect().top)
-      if ((videoClientTop === vals.offset_top) || (Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset) < 5))) {
-        document.dispatchEvent(new Event('autoLocationDone'))
-        utils.logger.info('自动定位｜成功')
-        return true
-      } else {
-        if (vars.autoLocationRetryDepths === 10) return false
-        utils.logger.warn(`自动定位失败，继续尝试
-        -----------------
-        当前文档顶部偏移量：${Math.trunc(window.pageYOffset)}
-        期望文档顶部偏移量：${videoOffsetTop - vals.offset_top}
-        偏移量误差：${(videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)}
-        播放器顶部偏移量：${videoClientTop}
-        设置偏移量：${vals.offset_top}`)
-        await utils.sleep(100)
-        utils.documentScrollTo(0)
-        return this.autoLocation()
-      }
-    },
-    async clickPlayerAutoLocation () {
-      if (vals.click_player_auto_locate) {
-        const video = await elmGetter.get(selector.video)
-        video.addEventListener('click', () => {
-          return this.autoLocation()
-        })
+    async insertFloatSideNavToolsButton() {
+      const currentScreenMode = await this.getCurrentScreenMode()
+      const $floatNav = vals.player_type === 'video' ? await elmGetter.get(selector.videoFloatNav) : await elmGetter.get(selector.bangumiFloatNav, 100)
+      const dataV = $floatNav.lastChild.attributes[1].name
+      if (vals.player_type === 'video') {
+        const locateButtonHtml = '<div class="fixed-sidenav-storage-item locate" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>'.replace('title="定位至播放器"', `title="定位至播放器" ${dataV}`)
+        const locateButton = elmGetter.create(locateButtonHtml, $floatNav.lastChild)
+        locateButton.onclick = () => {
+          this.autoLocation()
+        }
       }
     },
     /**
     * 前期准备函数
     * 提前执行其他脚本功能所依赖的其他函数
     */
-    thePrepFunction () {
+    thePrepFunction() {
       if (vars.thePrepFunctionRunningCounts += 1) {
+        document.body.style.overflow = 'hidden'
         utils.clearAllTimersWhenCloseTab()
         utils.whenWindowUrlChange()
         utils.initValue()
@@ -512,59 +518,48 @@
      * 脚本执行主函数
      * 定义了所有功能函数将按何种规则执行
      */
-    async theMainFunction () {
+    async theMainFunction() {
       if (vars.theMainFunctionRunningCounts += 1) {
-        // 自动定位前禁止用户操作滚动条
-        document.body.style.overflow = 'hidden'
-        const videoPlayerExists = await elmGetter.get(selector.video)
-        if (videoPlayerExists) {
+        if (await elmGetter.get(selector.video)) {
           utils.logger.info('播放器｜已找到')
-          const isCanPlayThrough = await modules.checkVideoCanPlayThrough()
-          const videoControlerBtnExists = await elmGetter.get(selector.playerControler)
-          if (isCanPlayThrough || (!isCanPlayThrough && videoControlerBtnExists)) {
-            utils.logger.info('视频资源｜可以播放')
-            const selectedScreenMode = await modules.autoSelectScreenMode()
-            if (selectedScreenMode.done) {
-              utils.logger.info(`屏幕模式｜${selectedScreenMode['mode'].toUpperCase()}｜切换成功`)
-              this.autoCancelMute()
-              this.autoSelectVideoHighestQuality()
-              this.clickPlayerAutoLocation()
-              this.autoLocation()
-              // await utils.sleep(100)
-              document.body.style.overflow = 'auto'
-            } else {
-              utils.logger.error('屏幕模式｜切换失败)')
-              utils.reloadCurrentTab()
-            }
-          } else {
-            utils.logger.error('视频资源｜加载失败')
-            utils.reloadCurrentTab()
-          }
+          this.checkVideoCanPlayThrough()
+          document.addEventListener('videoCanPlayThrough', () => {
+            this.autoSelectScreenMode()
+          })
+          document.addEventListener('autoSelectScreenModeSuccess', () => {
+            this.autoCancelMute()
+            this.autoSelectVideoHighestQuality()
+            this.clickPlayerAutoLocation()
+            this.autoLocation()
+          })
+          document.addEventListener('autoLocationSuccess', () => {
+            document.body.style.overflow = 'auto'
+            utils.logger.info('自动定位｜成功')
+            document.removeEventListener('autoLocationSuccess', this.autoLocation)
+            this.insertFloatSideNavToolsButton()
+          })
         } else {
           utils.logger.error('播放器｜未找到')
           utils.reloadCurrentTab()
         }
       }
-    },
-    theMainFunctionEvent () {
-      this.autoSelectScreenMode()
-      document.addEventListener('autoSelectScreenModeDone', ({ detail: { mode } } = e) => {
-        utils.logger.info(`屏幕模式｜${mode.toUpperCase()}｜切换成功丨事件`)
-        this.autoLocation()
-      })
-      document.addEventListener('autoLocationDone', (e) => {
-        utils.logger.info('自动定位｜成功丨事件')
-      })
     }
   }
 
   if (modules.isLogin()) {
     modules.thePrepFunction()
+    // document.addEventListener('documentIsHidde', ({ detail: isHidden } = e) => {
+    //   console.log(isHidden);
+    //   if (isHidden) {
+    //     utils.logger.info('当前标签｜已激活｜开始应用配置')
+    //     modules.theMainFunction()
+    //   }
+    // })
     const timer = setInterval(() => {
       const dicumentHidden = utils.checkDocumentIsHidden()
       if (!dicumentHidden) {
-        utils.logger.info('当前标签｜已激活｜开始应用配置')
         clearInterval(timer)
+        utils.logger.info('当前标签｜已激活｜开始应用配置')
         modules.theMainFunction()
       } else {
         utils.logger.info('当前标签｜未激活｜等待激活')
