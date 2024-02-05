@@ -20,8 +20,6 @@
 // @supportURL        https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment-Further
 // @homepageURL       https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment-Further
 // @icon              https://www.bilibili.com/favicon.ico?v=1
-// @downloadURL https://update.greasyfork.org/scripts/415804/%E5%93%94%E5%93%A9%E5%93%94%E5%93%A9%EF%BC%88bilibilicom%EF%BC%89%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4.user.js
-// @updateURL https://update.greasyfork.org/scripts/415804/%E5%93%94%E5%93%A9%E5%93%94%E5%93%A9%EF%BC%88bilibilicom%EF%BC%89%E6%92%AD%E6%94%BE%E9%A1%B5%E8%B0%83%E6%95%B4.meta.js
 // ==/UserScript==
 (function () {
   'use strict';
