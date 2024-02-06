@@ -476,7 +476,6 @@
          * - 递归超过 10 次则返回失败
          */
         async checkScreenModeSwitchSuccess(expectScreenMode) {
-            vars.checkScreenModeSwitchSuccessDepths++
             const enterBtnMap = {
                 wide: async () => { return await elmGetter.get(selector.screenModeWideEnterButton) },
                 web: async () => { return await elmGetter.get(selector.screenModeWebEnterButton) },
@@ -490,7 +489,7 @@
                 const success = vals.player_type === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selector.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
                 if (success) return success
                 else {
-                    if (vars.checkScreenModeSwitchSuccessDepths === 10) return false
+                    if (vars.checkScreenModeSwitchSuccessDepths += 10) return false
                     await utils.sleep(300)
                     return modules.checkScreenModeSwitchSuccess(expectScreenMode)
                 }
@@ -528,7 +527,6 @@
         async autoLocationToPlayer() {
             const onAutoLocate = vals.auto_locate && ((!vals.auto_locate_video && !vals.auto_locate_bangumi) || (vals.auto_locate_video && vals.player_type === 'video') || (vals.auto_locate_bangumi && vals.player_type === 'bangumi'))
             if (!onAutoLocate || vals.selected_screen_mode === 'web') return true
-            vars.autoLocationToPlayerRetryDepths++
             modules.locationToPlayer()
             await utils.sleep(100)
             const $video = await elmGetter.get(selector.video)
@@ -544,7 +542,7 @@
                     callback: unlockbody
                 }
             } else {
-                if (vars.autoLocationToPlayerRetryDepths === 10) throw new Error('自动定位｜失败：已达到最大重试次数')
+                if (vars.autoLocationToPlayerRetryDepths += 10) throw new Error('自动定位｜失败：已达到最大重试次数')
                 utils.logger.warn(`
         自动定位失败，继续尝试
         -----------------
