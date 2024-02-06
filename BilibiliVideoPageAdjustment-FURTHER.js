@@ -673,12 +673,14 @@
         async clickVideoTimeAutoLocation() {
             await utils.sleep(100)
             const $video = await elmGetter.get('video')
+            const videoDuration = $video.duration
             const $clickTarget = vals.player_type === 'video' ? await elmGetter.get(selector.videoComment, 100) : await elmGetter.get(selector.bangumiComment, 100)
             await elmGetter.each(selector.videoTime, $clickTarget, function(target) {
                 target.onclick = function(event) {
                     event.stopPropagation()
                     utils.documentScrollTo(vals.current_screen_mode !== 'web' ? vals.player_offset_top - vals.offset_top : 0)
-                    const targetTime = vals.player_type === 'video' ? this.dataset['videoTime'] : this.dataset['time']
+                    const targetTime = vals.player_type === 'video' ? this.dataset.videoTime : this.dataset.time
+                    if(targetTime>videoDuration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
                     $video.currentTime = targetTime
                     $video.play()
                 }
