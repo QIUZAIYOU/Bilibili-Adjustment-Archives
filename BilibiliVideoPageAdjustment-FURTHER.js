@@ -2,7 +2,7 @@
 // @name              哔哩哔哩（bilibili.com）播放页调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @namespace         https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment-Further/blob/main/BilibiliVideoPageAdjustment-FURTHER.js
+// @namespace         哔哩哔哩（bilibili.com）播放页调整 - 纯原生JS版
 // @version           0.1
 // @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
