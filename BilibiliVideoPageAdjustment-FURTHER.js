@@ -387,9 +387,7 @@
          */
         async checkVideoExistence() {
             const video = await elmGetter.get(selector.video)
-            if (video) return {
-                message: '播放器｜已找到'
-            }
+            if (video) return { message: '播放器｜已找到' }
             else throw new Error('播放器｜未找到')
         },
         /**
@@ -451,6 +449,26 @@
             return $playerContainer.getAttribute('data-screen')
         },
         /**
+         * 执行自动切换屏幕模式
+         * @description
+         * - 功能未开启，不执行切换函数，直接返回成功
+         * - 功能开启，但当前屏幕已为宽屏或网页全屏，则直接返回成功
+         * - 功能开启，执行切换函数
+         */
+        async autoSelectScreenMode() {
+            if (vars.autoSelectScreenModeRunningCount += 1) {
+                if (vals.selected_screen_mode === 'close') return { message: '屏幕模式｜功能已关闭' }
+                const currentScreenMode = await modules.getCurrentScreenMode()
+                const screenModeMap = ['wide', 'web']
+                if (screenModeMap.includes(currentScreenMode)) return { message: `屏幕模式｜当前已是 ${currentScreenMode.toUpperCase()} 模式` }
+                if (screenModeMap.includes(vals.selected_screen_mode)) {
+                    const result = await modules.checkScreenModeSwitchSuccess(vals.selected_screen_mode)
+                    if (result) return { message: `屏幕模式｜${vals.selected_screen_mode.toUpperCase()}｜切换成功` }
+                    else throw new Error(`屏幕模式｜${vals.selected_screen_mode.toUpperCase()}｜切换失败`)
+                }
+            }
+        },
+        /**
          * 递归检查屏幕模式是否切换成功
          * @param {*} expectScreenMode 期望的屏幕模式
          * @description
@@ -460,12 +478,8 @@
         async checkScreenModeSwitchSuccess(expectScreenMode) {
             vars.checkScreenModeSwitchSuccessDepths++
             const enterBtnMap = {
-                wide: async () => {
-                    return await elmGetter.get(selector.screenModeWideEnterButton)
-                },
-                web: async () => {
-                    return await elmGetter.get(selector.screenModeWebEnterButton)
-                },
+                wide: async () => { return await elmGetter.get(selector.screenModeWideEnterButton) },
+                web: async () => { return await elmGetter.get(selector.screenModeWebEnterButton) },
             }
             if (enterBtnMap[expectScreenMode]) {
                 const enterBtn = await enterBtnMap[expectScreenMode]()
@@ -479,32 +493,6 @@
                     if (vars.checkScreenModeSwitchSuccessDepths === 10) return false
                     await utils.sleep(300)
                     return modules.checkScreenModeSwitchSuccess(expectScreenMode)
-                }
-            }
-        },
-        /**
-         * 执行自动切换屏幕模式
-         * @description
-         * - 功能未开启，不执行切换函数，直接返回成功
-         * - 功能开启，但当前屏幕已为宽屏或网页全屏，则直接返回成功
-         * - 功能开启，执行切换函数
-         */
-        async autoSelectScreenMode() {
-            if (vars.autoSelectScreenModeRunningCount += 1) {
-                if (vals.selected_screen_mode === 'close') return {
-                    message: '屏幕模式｜功能已关闭'
-                }
-                const currentScreenMode = await modules.getCurrentScreenMode()
-                const screenModeMap = ['wide', 'web']
-                if (screenModeMap.includes(currentScreenMode)) return {
-                    message: `屏幕模式｜当前已是 ${currentScreenMode.toUpperCase()} 模式`
-                }
-                if (screenModeMap.includes(vals.selected_screen_mode)) {
-                    const result = await modules.checkScreenModeSwitchSuccess(vals.selected_screen_mode)
-                    if (result) return {
-                        message: `屏幕模式｜${vals.selected_screen_mode.toUpperCase()}｜切换成功`
-                    }
-                    else throw new Error(`屏幕模式｜${vals.selected_screen_mode.toUpperCase()}｜切换失败`)
                 }
             }
         },
