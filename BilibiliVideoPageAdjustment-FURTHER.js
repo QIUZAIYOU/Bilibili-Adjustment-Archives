@@ -456,7 +456,8 @@
          * - 功能开启，执行切换函数
          */
         async autoSelectScreenMode() {
-            if (vars.autoSelectScreenModeRunningCount += 1) {
+
+            if (++vars.autoSelectScreenModeRunningCount === 1) {
                 if (vals.selected_screen_mode === 'close') return { message: '屏幕模式｜功能已关闭' }
                 const currentScreenMode = await modules.getCurrentScreenMode()
                 const screenModeMap = ['wide', 'web']
@@ -489,7 +490,7 @@
                 const success = vals.player_type === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selector.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
                 if (success) return success
                 else {
-                    if (vars.checkScreenModeSwitchSuccessDepths += 10) return false
+                    if (++vars.checkScreenModeSwitchSuccessDepths === 10) return false
                     await utils.sleep(300)
                     return modules.checkScreenModeSwitchSuccess(expectScreenMode)
                 }
@@ -542,7 +543,7 @@
                     callback: unlockbody
                 }
             } else {
-                if (vars.autoLocationToPlayerRetryDepths += 10) throw new Error('自动定位｜失败：已达到最大重试次数')
+                if (++vars.autoLocationToPlayerRetryDepths === 10) throw new Error('自动定位｜失败：已达到最大重试次数')
                 utils.logger.warn(`
         自动定位失败，继续尝试
         -----------------
@@ -573,7 +574,7 @@
          * 自动关闭静音
          */
         async autoCancelMute() {
-            if (vars.autoCancelMuteRunningCount += 1) {
+            if (++vars.autoCancelMuteRunningCount === 1) {
                 const [mutedButton, volumeButton] = await elmGetter.get([selector.mutedButton, selector.volumeButton])
                 // const mutedButtonDisplay = getComputedStyle(mutedButton)['display']
                 // const volumeButtonDisplay = getComputedStyle(volumeButton)['display']
@@ -597,7 +598,7 @@
          * - 16->360P 流畅；0->自动
          */
         async autoSelectVideoHighestQuality() {
-            if (vars.autoSelectVideoHighestQualityRunningCount += 1) {
+            if (++vars.autoSelectVideoHighestQualityRunningCount === 1) {
                 let message
                 const qualitySwitchButtonsMap = new Map()
                 if (!vals.auto_select_video_highest_quality) return
@@ -677,7 +678,7 @@
          * 提前执行其他脚本功能所依赖的其他函数
          */
         thePrepFunction() {
-            if (vars.thePrepFunctionRunningCount += 1) {
+            if (++vars.thePrepFunctionRunningCount === 1) {
                 utils.clearAllTimersWhenCloseTab()
                 utils.whenWindowUrlChange()
                 utils.insertStyleToDocument(styles)
@@ -691,7 +692,7 @@
          * 定义了所有功能函数将按何种规则执行
          */
         async theMainFunction() {
-            if (vars.theMainFunctionRunningCount += 1) {
+            if (++vars.theMainFunctionRunningCount === 1) {
                 const videoPlayerExists = await elmGetter.get(selector.video)
                 if (videoPlayerExists) {
                     utils.logger.info('播放器｜已找到')
