@@ -20,8 +20,9 @@
 // @supportURL        https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment-Further
 // @homepageURL       https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment-Further
 // @icon              https://www.bilibili.com/favicon.ico?v=1
+// @run-at            document-end
 // ==/UserScript==
-(function() {
+(function () {
     'use strict';
     let vars = {
         currentUrl: document.URL,
@@ -377,7 +378,7 @@
          * 判断用户是否登录
          */
         isLogin() {
-            return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || null)
+            return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || window.UserStatus.userInfo.isLogin || null)
         },
         /**
          * 检查视频元素是否存在
@@ -386,8 +387,9 @@
          * - 若不存在则抛出异常
          */
         async checkVideoExistence() {
+            const isEmbedPlayer = vals.player_type === 'video' ? window.isEmbedPlayer : true
             const video = await elmGetter.get(selector.video)
-            if (video) return { message: '播放器｜已找到' }
+            if (isEmbedPlayer && video) return { message: '播放器｜已找到' }
             else throw new Error('播放器｜未找到')
         },
         /**
@@ -404,9 +406,10 @@
                 let attempts = 100
                 let message
                 const timer = setInterval(() => {
+                    const isPlayerMediaLoaded = vals.player_type === 'video' ? window.isPlayerMediaLoaded : true
                     const $video = document.querySelector(selector.video)
                     const videoReadyState = $video.readyState
-                    if (videoReadyState === 4) {
+                    if (isPlayerMediaLoaded && videoReadyState === 4) {
                         message = '视频资源｜可以播放'
                         resolve({
                             message
@@ -456,7 +459,6 @@
          * - 功能开启，执行切换函数
          */
         async autoSelectScreenMode() {
-
             if (++vars.autoSelectScreenModeRunningCount === 1) {
                 if (vals.selected_screen_mode === 'close') return { message: '屏幕模式｜功能已关闭' }
                 const currentScreenMode = await modules.getCurrentScreenMode()
@@ -465,7 +467,7 @@
                 if (screenModeMap.includes(vals.selected_screen_mode)) {
                     const result = await modules.checkScreenModeSwitchSuccess(vals.selected_screen_mode)
                     if (result) return { message: `屏幕模式｜${vals.selected_screen_mode.toUpperCase()}｜切换成功` }
-                    else throw new Error(`屏幕模式｜${vals.selected_screen_mode.toUpperCase()}｜切换失败`)
+                    else throw new Error(`屏幕模式｜${vals.selected_screen_mode.toUpperCase()}｜切换失败：已达到最大重试次数`)
                 }
             }
         },
@@ -487,10 +489,13 @@
                 const currentScreenMode = await modules.getCurrentScreenMode(300)
                 const equal = expectScreenMode === currentScreenMode
                 // utils.logger.debug(`${expectScreenMode} ${currentScreenMode}`)
-                const success = vals.player_type === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selector.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
+                const isWide = window.isWide
+                // const success = vals.player_type === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selector.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
+                const success = equal && isWide
                 if (success) return success
                 else {
                     if (++vars.checkScreenModeSwitchSuccessDepths === 10) return false
+                    // utils.logger.warn(`屏幕模式切换失败，继续尝试丨当前：${currentScreenMode}，期望：${expectScreenMode}`)
                     await utils.sleep(300)
                     return modules.checkScreenModeSwitchSuccess(expectScreenMode)
                 }
@@ -662,12 +667,12 @@
             const $video = await elmGetter.get('video')
             const videoDuration = $video.duration
             const $clickTarget = vals.player_type === 'video' ? await elmGetter.get(selector.videoComment, 100) : await elmGetter.get(selector.bangumiComment, 100)
-            await elmGetter.each(selector.videoTime, $clickTarget, function(target) {
-                target.onclick = function(event) {
+            await elmGetter.each(selector.videoTime, $clickTarget, function (target) {
+                target.onclick = function (event) {
                     event.stopPropagation()
                     utils.documentScrollTo(vals.current_screen_mode !== 'web' ? vals.player_offset_top - vals.offset_top : 0)
                     const targetTime = vals.player_type === 'video' ? this.dataset.videoTime : this.dataset.time
-                    if(targetTime>videoDuration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
+                    if (targetTime > videoDuration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
                     $video.currentTime = targetTime
                     $video.play()
                 }
@@ -726,7 +731,6 @@
             }
         }
     }
-
     if (modules.isLogin()) {
         document.body.style.overflow = 'hidden'
         modules.thePrepFunction()
