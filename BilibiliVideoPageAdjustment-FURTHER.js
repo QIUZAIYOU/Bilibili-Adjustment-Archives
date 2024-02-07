@@ -406,10 +406,9 @@
                 let attempts = 100
                 let message
                 const timer = setInterval(() => {
-                    const isPlayerMediaLoaded = vals.player_type === 'video' ? window.isPlayerMediaLoaded : true
                     const $video = document.querySelector(selector.video)
                     const videoReadyState = $video.readyState
-                    if (isPlayerMediaLoaded && videoReadyState === 4) {
+                    if (videoReadyState === 4) {
                         message = '视频资源｜可以播放'
                         resolve({
                             message
