@@ -44,8 +44,11 @@
         skipNodesRecords: []
     }
     const selector = {
+        app: '#app',
         header: '#biliMainHeader',
         player: '#bilibili-player',
+        playerWrap: '#playerWrap',
+        playerWebscreen: '#bilibili-player.mode-webscreen',
         playerContainer: '#bilibili-player .bpx-player-container',
         playerControler: '#bilibili-player .bpx-player-ctrl-btn',
         volumeButton: '.bpx-player-ctrl-volume-icon',
@@ -62,6 +65,8 @@
         qualitySwitchButtons: '.bpx-player-ctrl-quality-menu-item',
         screenModeWideEnterButton: '.bpx-player-ctrl-wide-enter',
         screenModeWebEnterButton: '.bpx-player-ctrl-web-enter',
+        screenModeWebLeaveButton: '.bpx-player-ctrl-web-leave',
+        screenModeFullControlButton: '.bpx-player-ctrl-full',
         danmukuBox: '#danmukuBox',
     }
     const utils = {
@@ -101,7 +106,7 @@
                 value: 'normal',
             }, {
                 name: 'selected_screen_mode',
-                value: 'wide',
+                value: 'web',
             }, {
                 name: 'auto_select_video_highest_quality',
                 value: true,
@@ -113,7 +118,7 @@
                 value: false,
             }, {
                 name: 'webfull_unlock',
-                value: false,
+                value: true,
             }, {
                 name: 'auto_reload',
                 value: false,
@@ -122,7 +127,7 @@
                 value: false,
             }]
             value.forEach(v => {
-                if (utils.getValue(v.name) === undefined) {
+                if (utils.getValue(v.name) !== undefined) {
                     utils.setValue(v.name, v.value)
                 }
             })
@@ -156,8 +161,9 @@
          * @param {String} id 样式表id
          * @param {String} css 样式内容
          */
-        insertStyleToDocument(css) {
-            GM_addStyle(css)
+        insertStyleToDocument(id, css) {
+            const styleElement = GM_addStyle(css)
+            styleElement.id = id
         },
         /**
          * 自定义日志打印
@@ -358,7 +364,12 @@
         auto_reload: utils.getValue('auto_reload'),
         auto_skip: utils.getValue('auto_skip')
     }
-    const styles = `.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}`
+    const styles = {
+        AdjustmentStyle: `.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}`,
+        BodyHidden: 'body{overflow:hidden!important}',
+        ResetPlayerLayoutStyle: `body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}`,
+        UnlockWebscreenStlye: `body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}`
+    }
     const modules = {
         /**
          * 获取当前视频类型(video/bangumi)
@@ -488,9 +499,7 @@
                 const currentScreenMode = await modules.getCurrentScreenMode(300)
                 const equal = expectScreenMode === currentScreenMode
                 // utils.logger.debug(`${expectScreenMode} ${currentScreenMode}`)
-                const isWide = window.isWide
-                // const success = vals.player_type === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selector.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
-                const success = equal && isWide
+                const success = vals.player_type === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selector.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
                 if (success) return success
                 else {
                     if (++vars.checkScreenModeSwitchSuccessDepths === 10) return false
@@ -517,7 +526,8 @@
             }
             // utils.logger.debug(videoOffsetTop)
             utils.setValue('player_offset_top', videoOffsetTop)
-            utils.documentScrollTo(videoOffsetTop - vals.offset_top)
+            vals.current_screen_mode === 'wide' ? utils.documentScrollTo(videoOffsetTop - vals.offset_top) : utils.documentScrollTo(0)
+            utils.logger.debug('回到播放器！')
         },
         /**
          * 自动定位至播放器并检查是否成功
@@ -530,8 +540,11 @@
          * - 文档滚动距离：videoOffsetTop - targetOffset
          */
         async autoLocationToPlayer() {
+            const unlockbody = () => {
+                document.getElementById('BodyHidden').remove()
+            }
             const onAutoLocate = vals.auto_locate && ((!vals.auto_locate_video && !vals.auto_locate_bangumi) || (vals.auto_locate_video && vals.player_type === 'video') || (vals.auto_locate_bangumi && vals.player_type === 'bangumi'))
-            if (!onAutoLocate || vals.selected_screen_mode === 'web') return true
+            if (!onAutoLocate || vals.selected_screen_mode === 'web') return { callback: unlockbody }
             modules.locationToPlayer()
             await utils.sleep(100)
             const $video = await elmGetter.get(selector.video)
@@ -539,9 +552,6 @@
             const videoClientTop = Math.trunc($video.getBoundingClientRect().top)
             if ((videoClientTop === vals.offset_top) || (Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset) < 5))) {
                 // utils.logger.info('自动定位｜成功')
-                const unlockbody = () => {
-                    document.body.style.overflow = 'auto'
-                }
                 return {
                     message: '自动定位｜成功',
                     callback: unlockbody
@@ -678,14 +688,58 @@
             })
         },
         /**
+         * 网页全屏模式解锁
+         */
+        async webfullScreenModeUnlock() {
+            if (vals.webfull_unlock && vals.selected_screen_mode === 'web' && ++vars.webfullUnlockRunningCount === 1) {
+                const [app, playerWrap, player, playerWebscreen, wideEnterButton, webEnterButton, webLeaveButton, fullControlButton] = await elmGetter.get([selector.app, selector.playerWrap, selector.player, selector.playerWebscreen, selector.screenModeWideEnterButton, selector.screenModeWebEnterButton, selector.screenModeWebLeaveButton, selector.screenModeFullControlButton])
+                const resetPlayerLayout = async () => {
+                    if (document.getElementById('UnlockWebscreenStlye')) document.getElementById('UnlockWebscreenStlye').remove()
+                    if (!document.getElementById('ResetPlayerLayoutStyle')) utils.insertStyleToDocument('ResetPlayerLayoutStyle', styles.ResetPlayerLayoutStyle)
+                    playerWrap.append(player)
+                    // 临时设置默认屏幕模式为宽屏用以触发执行自动定位至播放器，定位完后再重新改为网页全屏
+                    utils.setValue('selected_screen_mode', 'wide')
+                    const currentScreenMode = await modules.getCurrentScreenMode()
+                    /**
+                     * @todo 待解决：重置样式后不能自动定位至播放器的问题
+                     * 
+                     */
+                    if (currentScreenMode !== 'full') await modules.autoLocationToPlayer()
+                    utils.setValue('selected_screen_mode', 'web')
+                }
+                const bodyHeight = utils.getBodyHeight()
+                utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreenStlye.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
+                app.prepend(playerWebscreen)
+                webLeaveButton.addEventListener('click', async () => {
+                    await resetPlayerLayout()
+                })
+                webEnterButton.addEventListener('click', async () => {
+                    if (!document.getElementById('UnlockWebscreenStlye')) utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreenStlye.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
+                    app.prepend(playerWebscreen)
+                })
+                wideEnterButton.addEventListener('click', async () => {
+                    await resetPlayerLayout()
+                })
+                fullControlButton.addEventListener('click', async () => {
+                    await resetPlayerLayout()
+
+                })
+                return {
+                    message: '网页全屏解锁｜成功'
+                }
+
+            }
+        },
+        /**
          * 前期准备函数
          * 提前执行其他脚本功能所依赖的其他函数
          */
         thePrepFunction() {
             if (++vars.thePrepFunctionRunningCount === 1) {
+                utils.insertStyleToDocument('BodyHidden', styles.BodyHidden)
                 utils.clearAllTimersWhenCloseTab()
                 utils.whenWindowUrlChange()
-                utils.insertStyleToDocument(styles)
+                utils.insertStyleToDocument('AdjustmentStyle', styles.AdjustmentStyle)
                 utils.initValue()
                 modules.getCurrentPlayerType()
                 modules.observerPlayerDataScreenChanges()
@@ -731,7 +785,6 @@
         }
     }
     if (modules.isLogin()) {
-        document.body.style.overflow = 'hidden'
         modules.thePrepFunction()
         const timer = setInterval(async () => {
             const dicumentHidden = utils.checkDocumentIsHidden()
@@ -743,6 +796,7 @@
                     modules.checkVideoExistence,
                     modules.checkVideoCanPlayThrough,
                     modules.autoSelectScreenMode,
+                    modules.webfullScreenModeUnlock,
                     modules.autoLocationToPlayer,
                     modules.autoCancelMute,
                     modules.autoSelectVideoHighestQuality,
