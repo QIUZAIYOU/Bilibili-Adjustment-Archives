@@ -25,7 +25,6 @@
 (function () {
     'use strict';
     let vars = {
-        currentUrl: document.URL,
         theMainFunctionRunningCount: 0,
         thePrepFunctionRunningCount: 0,
         autoSelectScreenModeRunningCount: 0,
@@ -129,7 +128,7 @@
                 value: false,
             }]
             value.forEach(v => {
-                if (utils.getValue(v.name) !== undefined) {
+                if (utils.getValue(v.name) === undefined) {
                     utils.setValue(v.name, v.value)
                 }
             })
@@ -378,14 +377,17 @@
          * 如果都没匹配上则弹窗报错
          * @returns 当前视频类型
          */
-        getCurrentPlayerType() {
-            const playerType = (vars.currentUrl.includes('www.bilibili.com/video') || vars.currentUrl.includes('www.bilibili.com/list/')) ? 'video' : vars.currentUrl.includes('www.bilibili.com/bangumi') ? 'bangumi' : false
+        async getCurrentPlayerType() {
+            const playerType = (document.URL.includes('www.bilibili.com/video') || document.URL.includes('www.bilibili.com/list/')) ? 'video' : document.URL.includes('www.bilibili.com/bangumi') ? 'bangumi' : false
             if (!playerType) {
                 utils.logger.debug('视频类型丨未匹配')
                 alert('未匹配到当前视频类型，请反馈当前地址栏链接。')
             }
             utils.setValue('player_type', playerType)
-            return playerType
+            await utils.sleep(100)
+            utils.logger.debug(`${playerType} ${vals.player_type}`)
+            if (vals.player_type === playerType) return { message: `视频类型丨${playerType}` }
+            else modules.getCurrentPlayerType()
         },
         /**
          * 判断用户是否登录
@@ -478,6 +480,7 @@
                 if (screenModeMap.includes(currentScreenMode)) return { message: `屏幕模式｜当前已是 ${currentScreenMode.toUpperCase()} 模式` }
                 if (screenModeMap.includes(vals.selected_screen_mode)) {
                     const result = await modules.checkScreenModeSwitchSuccess(vals.selected_screen_mode)
+                    utils.logger.debug(`${result}`)
                     if (result) return { message: `屏幕模式｜${vals.selected_screen_mode.toUpperCase()}｜切换成功` }
                     else throw new Error(`屏幕模式｜${vals.selected_screen_mode.toUpperCase()}｜切换失败：已达到最大重试次数`)
                 }
@@ -500,8 +503,8 @@
                 enterBtn.click()
                 const currentScreenMode = await modules.getCurrentScreenMode(300)
                 const equal = expectScreenMode === currentScreenMode
-                // utils.logger.debug(`${expectScreenMode} ${currentScreenMode}`)
                 const success = vals.player_type === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selector.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
+                utils.logger.debug(`${vals.player_type} ${expectScreenMode} ${currentScreenMode} ${equal} ${success}`)
                 if (success) return success
                 else {
                     if (++vars.checkScreenModeSwitchSuccessDepths === 10) return false
@@ -552,7 +555,8 @@
             const $video = await elmGetter.get(selector.video)
             const videoOffsetTop = utils.getElementOffsetToDocument($video).top
             const videoClientTop = Math.trunc($video.getBoundingClientRect().top)
-            if ((videoClientTop === vals.offset_top) || (Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset) < 5))) {
+            utils.logger.debug(`${videoOffsetTop} ${videoClientTop} ${vals.offset_top} ${Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset))}`)
+            if ((videoClientTop === vals.offset_top) || (Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)) < 5)) {
                 // utils.logger.info('自动定位｜成功')
                 return {
                     message: '自动定位｜成功',
@@ -760,7 +764,6 @@
                 utils.whenWindowUrlChange()
                 utils.insertStyleToDocument('AdjustmentStyle', styles.AdjustmentStyle)
                 utils.initValue()
-                modules.getCurrentPlayerType()
                 modules.observerPlayerDataScreenChanges()
             }
         },
@@ -812,6 +815,7 @@
                 utils.logger.info('当前标签｜已激活｜开始应用配置')
                 // modules.theMainFunction()
                 const functions = [
+                    modules.getCurrentPlayerType,
                     modules.checkVideoExistence,
                     modules.checkVideoCanPlayThrough,
                     modules.autoSelectScreenMode,
