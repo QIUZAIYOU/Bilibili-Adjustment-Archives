@@ -32,7 +32,7 @@
         autoCancelMuteRunningCount: 0,
         webfullUnlockRunningCount: 0,
         autoSelectVideoHighestQualityRunningCount: 0,
-        insertGoToCommentsButtonCount: 0,
+        insertGoToCommentButtonCount: 0,
         insertSetSkipTimeNodesButtonCount: 0,
         insertSkipTimeNodesSwitchButtonCount: 0,
         functionExecutionsCount: 0,
@@ -51,6 +51,7 @@
         playerWebscreen: '#bilibili-player.mode-webscreen',
         playerContainer: '#bilibili-player .bpx-player-container',
         playerControler: '#bilibili-player .bpx-player-ctrl-btn',
+        playerControlerBottomRight: '.bpx-player-control-bottom-right',
         volumeButton: '.bpx-player-ctrl-volume-icon',
         mutedButton: '.bpx-player-ctrl-muted-icon',
         video: '#bilibili-player video',
@@ -64,6 +65,7 @@
         bangumiMainContainer: '.main-container',
         qualitySwitchButtons: '.bpx-player-ctrl-quality-menu-item',
         screenModeWideEnterButton: '.bpx-player-ctrl-wide-enter',
+        screenModeWideLeaveButton: '.bpx-player-ctrl-wide-leave',
         screenModeWebEnterButton: '.bpx-player-ctrl-web-enter',
         screenModeWebLeaveButton: '.bpx-player-ctrl-web-leave',
         screenModeFullControlButton: '.bpx-player-ctrl-full',
@@ -106,7 +108,7 @@
                 value: 'normal',
             }, {
                 name: 'selected_screen_mode',
-                value: 'web',
+                value: 'wide',
             }, {
                 name: 'auto_select_video_highest_quality',
                 value: true,
@@ -118,7 +120,7 @@
                 value: false,
             }, {
                 name: 'webfull_unlock',
-                value: true,
+                value: false,
             }, {
                 name: 'auto_reload',
                 value: false,
@@ -365,7 +367,7 @@
         auto_skip: utils.getValue('auto_skip')
     }
     const styles = {
-        AdjustmentStyle: `.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}`,
+        AdjustmentStyle: `.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen="full"] #goToComments{pointer-events:none;cursor:not-allowed;opacity:.6}`,
         BodyHidden: 'body{overflow:hidden!important}',
         ResetPlayerLayoutStyle: `body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}`,
         UnlockWebscreenStlye: `body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}`
@@ -398,9 +400,8 @@
          * - 若不存在则抛出异常
          */
         async checkVideoExistence() {
-            const isEmbedPlayer = vals.player_type === 'video' ? window.isEmbedPlayer : true
-            const video = await elmGetter.get(selector.video)
-            if (isEmbedPlayer && video) return { message: '播放器｜已找到' }
+            const $video = await elmGetter.get(selector.video)
+            if ($video) return { message: '播放器｜已找到' }
             else throw new Error('播放器｜未找到')
         },
         /**
@@ -445,7 +446,8 @@
             const observer = new MutationObserver(mutations => {
                 const playerDataScreen = $playerContainer.getAttribute('data-screen')
                 utils.setValue('current_screen_mode', playerDataScreen)
-            }).observe($playerContainer, {
+            })
+            observer.observe($playerContainer, {
                 attributes: true,
                 attributeFilter: ['data-screen'],
             })
@@ -516,10 +518,10 @@
             let videoOffsetTop
             if (getOffestMethod === 'elements') {
                 const $header = await elmGetter.get(selector.header, 100)
-                const placeholderElement = await elmGetter.get(selector.videoTitleArea, 100) || await elmGetter.get(selector.bangumiMainContainer, 100)
+                const $placeholderElement = await elmGetter.get(selector.videoTitleArea, 100) || await elmGetter.get(selector.bangumiMainContainer, 100)
                 const headerHeight = $header.getBoundingClientRect().height
-                const placeholderElementHeight = placeholderElement.getBoundingClientRect().height
-                videoOffsetTop = vals.player_type === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle(placeholderElement)['margin-top'].slice(0, -2)
+                const placeholderElementHeight = $placeholderElement.getBoundingClientRect().height
+                videoOffsetTop = vals.player_type === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle($placeholderElement)['margin-top'].slice(0, -2)
             }
             if (getOffestMethod === 'function') {
                 videoOffsetTop = utils.getElementOffsetToDocument($video).top
@@ -527,7 +529,7 @@
             // utils.logger.debug(videoOffsetTop)
             utils.setValue('player_offset_top', videoOffsetTop)
             vals.current_screen_mode === 'wide' ? utils.documentScrollTo(videoOffsetTop - vals.offset_top) : utils.documentScrollTo(0)
-            utils.logger.debug('回到播放器！')
+            // utils.logger.debug('定位至播放器！')
         },
         /**
          * 自动定位至播放器并检查是否成功
@@ -559,13 +561,13 @@
             } else {
                 if (++vars.autoLocationToPlayerRetryDepths === 10) throw new Error('自动定位｜失败：已达到最大重试次数')
                 utils.logger.warn(`
-        自动定位失败，继续尝试
-        -----------------
-        当前文档顶部偏移量：${Math.trunc(window.pageYOffset)}
-        期望文档顶部偏移量：${videoOffsetTop - vals.offset_top}
-        偏移量误差：${(videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)}
-        播放器顶部偏移量：${videoClientTop}
-        设置偏移量：${vals.offset_top}`)
+                    自动定位失败，继续尝试
+                    -----------------
+                    当前文档顶部偏移量：${Math.trunc(window.pageYOffset)}
+                    期望文档顶部偏移量：${videoOffsetTop - vals.offset_top}
+                    偏移量误差：${(videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)}
+                    播放器顶部偏移量：${videoClientTop}
+                    设置偏移量：${vals.offset_top}`)
                 await utils.sleep(100)
                 utils.documentScrollTo(0)
                 return modules.autoLocationToPlayer()
@@ -577,11 +579,11 @@
         async clickPlayerAutoLocation() {
             if (vals.click_player_auto_locate) {
                 const $video = await elmGetter.get(selector.video)
-                $video.onclick = async () => {
+                $video.addEventListener('click', async () => {
                     const currentScreenMode = await modules.getCurrentScreenMode()
-                    if (['web', 'full', 'mini'].includes(currentScreenMode)) return
+                    if (['full', 'mini'].includes(currentScreenMode)) return
                     modules.locationToPlayer()
-                }
+                })
             }
         },
         /**
@@ -589,13 +591,13 @@
          */
         async autoCancelMute() {
             if (++vars.autoCancelMuteRunningCount === 1) {
-                const [mutedButton, volumeButton] = await elmGetter.get([selector.mutedButton, selector.volumeButton])
+                const [$mutedButton, $volumeButton] = await elmGetter.get([selector.mutedButton, selector.volumeButton])
                 // const mutedButtonDisplay = getComputedStyle(mutedButton)['display']
                 // const volumeButtonDisplay = getComputedStyle(volumeButton)['display']
-                const mutedButtonDisplay = mutedButton.style.display
-                const volumeButtonDisplay = volumeButton.style.display
+                const mutedButtonDisplay = $mutedButton.style.display
+                const volumeButtonDisplay = $volumeButton.style.display
                 if (mutedButtonDisplay === 'block' || volumeButtonDisplay === 'none') {
-                    mutedButton.click()
+                    $mutedButton.click()
                     // utils.logger.info('静音丨已关闭')
                     return {
                         message: '静音丨已关闭'
@@ -654,19 +656,19 @@
         async insertFloatSideNavToolsButton() {
             const $floatNav = vals.player_type === 'video' ? await elmGetter.get(selector.videoFloatNav) : await elmGetter.get(selector.bangumiFloatNav, 100)
             const dataV = $floatNav.lastChild.attributes[1].name
-            let locateButton
+            let $locateButton
             if (vals.player_type === 'video') {
                 const locateButtonHtml = '<div class="fixed-sidenav-storage-item locate" title="定位至播放器"><svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg>定位</div>'.replace('title="定位至播放器"', `title="定位至播放器" ${dataV}`)
-                locateButton = utils.createElementAndInsert(locateButtonHtml, $floatNav.lastChild, 'prepend')
+                $locateButton = utils.createElementAndInsert(locateButtonHtml, $floatNav.lastChild, 'prepend')
             }
             if (vals.player_type === 'bangumi') {
                 const floatNavMenuItemClass = $floatNav.lastChild.lastChild.getAttribute('class')
                 const locateButtonHtml = `<div class="${floatNavMenuItemClass} locate" style="height:40px;padding:0" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>`
-                locateButton = utils.createElementAndInsert(locateButtonHtml, $floatNav.lastChild, 'before')
+                $locateButton = utils.createElementAndInsert(locateButtonHtml, $floatNav.lastChild, 'before')
             }
-            locateButton.onclick = () => {
+            $locateButton.addEventListener('click', () => {
                 utils.documentScrollTo(vals.current_screen_mode !== 'web' ? vals.player_offset_top - vals.offset_top : 0)
-            }
+            })
         },
         /**
          * 点击时间锚点自动返回播放器
@@ -692,42 +694,59 @@
          */
         async webfullScreenModeUnlock() {
             if (vals.webfull_unlock && vals.selected_screen_mode === 'web' && ++vars.webfullUnlockRunningCount === 1) {
-                const [app, playerWrap, player, playerWebscreen, wideEnterButton, webEnterButton, webLeaveButton, fullControlButton] = await elmGetter.get([selector.app, selector.playerWrap, selector.player, selector.playerWebscreen, selector.screenModeWideEnterButton, selector.screenModeWebEnterButton, selector.screenModeWebLeaveButton, selector.screenModeFullControlButton])
+                if (vals.player_type === 'bangumi') return
+                const [$app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton] = await elmGetter.get([selector.app, selector.playerWrap, selector.player, selector.playerWebscreen, selector.screenModeWideEnterButton, selector.screenModeWideLeaveButton, selector.screenModeWebEnterButton, selector.screenModeWebLeaveButton, selector.screenModeFullControlButton])
                 const resetPlayerLayout = async () => {
                     if (document.getElementById('UnlockWebscreenStlye')) document.getElementById('UnlockWebscreenStlye').remove()
                     if (!document.getElementById('ResetPlayerLayoutStyle')) utils.insertStyleToDocument('ResetPlayerLayoutStyle', styles.ResetPlayerLayoutStyle)
-                    playerWrap.append(player)
-                    // 临时设置默认屏幕模式为宽屏用以触发执行自动定位至播放器，定位完后再重新改为网页全屏
-                    utils.setValue('selected_screen_mode', 'wide')
-                    const currentScreenMode = await modules.getCurrentScreenMode()
-                    /**
-                     * @todo 待解决：重置样式后不能自动定位至播放器的问题
-                     * 
-                     */
-                    if (currentScreenMode !== 'full') await modules.autoLocationToPlayer()
-                    utils.setValue('selected_screen_mode', 'web')
+                    $playerWrap.append($player)
+                    utils.setValue('current_screen_mode', 'wide')
+                    await utils.sleep(300)
+                    modules.locationToPlayer()
                 }
                 const bodyHeight = utils.getBodyHeight()
                 utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreenStlye.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
-                app.prepend(playerWebscreen)
-                webLeaveButton.addEventListener('click', async () => {
+                $app.prepend($playerWebscreen)
+                $webLeaveButton.addEventListener('click', async () => {
+                    await utils.sleep(100)
                     await resetPlayerLayout()
                 })
-                webEnterButton.addEventListener('click', async () => {
+                $webEnterButton.addEventListener('click', async () => {
                     if (!document.getElementById('UnlockWebscreenStlye')) utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreenStlye.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
-                    app.prepend(playerWebscreen)
+                    $app.prepend($playerWebscreen)
+                    modules.locationToPlayer()
                 })
-                wideEnterButton.addEventListener('click', async () => {
+                $wideEnterButton.addEventListener('click', async () => {
+                    await utils.sleep(100)
                     await resetPlayerLayout()
                 })
-                fullControlButton.addEventListener('click', async () => {
+                $wideLeaveButton.addEventListener('click', async () => {
+                    await utils.sleep(100)
                     await resetPlayerLayout()
-
+                })
+                $fullControlButton.addEventListener('click', async () => {
+                    await utils.sleep(100)
+                    await resetPlayerLayout()
                 })
                 return {
-                    message: '网页全屏解锁｜成功'
+                    message: '网页全屏解锁｜成功',
+                    callback: modules.insertGoToCommentButton
                 }
-
+            }
+        },
+        /**
+         * 网页全屏模式解锁后插入跳转评论按钮
+         */
+        async insertGoToCommentButton() {
+            if (vals.player_type === 'video' && vals.webfull_unlock && ++vars.insertGoToCommentButtonCount === 1) {
+                const [$comment, $playerControlerBottomRight] = await elmGetter.get([selector.videoComment, selector.playerControlerBottomRight])
+                const goToCommentBtnHtml = '<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>'
+                const $goToCommentButton = utils.createElementAndInsert(goToCommentBtnHtml, $playerControlerBottomRight, 'append')
+                $goToCommentButton.addEventListener('click', (event) => {
+                    event.stopPropagation()
+                    utils.documentScrollTo(utils.getElementOffsetToDocument($comment).top - 10)
+                    // utils.logger.info('到达评论区')
+                })
             }
         },
         /**
