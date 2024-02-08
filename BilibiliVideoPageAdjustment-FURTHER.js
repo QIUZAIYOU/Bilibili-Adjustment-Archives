@@ -378,13 +378,12 @@
          * @returns 当前视频类型
          */
         async getCurrentPlayerType() {
-            const playerType = (document.URL.includes('www.bilibili.com/video') || document.URL.includes('www.bilibili.com/list/')) ? 'video' : document.URL.includes('www.bilibili.com/bangumi') ? 'bangumi' : false
+            const playerType = (document.URL.startsWith('https://www.bilibili.com/video') || document.URL.startsWith('https://www.bilibili.com/list/')) ? 'video' : document.URL.startsWith('https://www.bilibili.com/bangumi') ? 'bangumi' : false
             if (!playerType) {
                 utils.logger.debug('视频类型丨未匹配')
                 alert('未匹配到当前视频类型，请反馈当前地址栏链接。')
             }
             utils.setValue('player_type', playerType)
-            await utils.sleep(100)
             utils.logger.debug(`${playerType} ${vals.player_type}`)
             if (vals.player_type === playerType) return { message: `视频类型丨${playerType}` }
             else modules.getCurrentPlayerType()
