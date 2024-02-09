@@ -1,27 +1,3 @@
-// ==UserScript==
-// @name              哔哩哔哩（bilibili.com）播放页调整 - 纯原生JS版
-// @copyright         QIAN
-// @license           GPL-3.0 License
-// @namespace         哔哩哔哩（bilibili.com）播放页调整 - 纯原生JS版
-// @version           0.1
-// @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
-// @author            QIAN
-// @match             *://*.bilibili.com/video/*
-// @match             *://*.bilibili.com/bangumi/play/*
-// @match             *://*.bilibili.com/list/*
-// @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
-// @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
-// @require           https://scriptcat.org/lib/513/2.0.0/ElementGetter.js#sha256=KbLWud5OMbbXZHRoU/GLVgvIgeosObRYkDEbE/YanRU=
-// @grant             GM_setValue
-// @grant             GM_getValue
-// @grant             GM_addStyle
-// @grant             GM_registerMenuCommand
-// @grant             window.onurlchange
-// @supportURL        https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment-Further
-// @homepageURL       https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment-Further
-// @icon              https://www.bilibili.com/favicon.ico?v=1
-// @run-at            document-end
-// ==/UserScript==
 (function () {
     'use strict';
     let vars = {
@@ -235,9 +211,9 @@
          */
         whenWindowUrlChange() {
             if (window.onurlchange === null) {
-                // 支持该功能
-                window.addEventListener('urlchange', () => {
-                    modules.locationToPlayer()
+                window.addEventListener('urlchange', async () => {
+                    await modules.locationToPlayer()
+                    // utils.logger.debug('URL改变了！')
                 })
             }
         },
@@ -348,7 +324,7 @@
     }
     const vals = {
         is_vip: utils.getValue('is_vip'),
-        player_type: utils.getValue('player_type'),
+        player_type: (document.URL.startsWith('https://www.bilibili.com/video') || document.URL.startsWith('https://www.bilibili.com/list/')) ? 'video' : document.URL.startsWith('https://www.bilibili.com/bangumi') ? 'bangumi' : false,
         offset_top: Math.trunc(utils.getValue('offset_top')),
         auto_locate: utils.getValue('auto_locate'),
         get_offest_method: utils.getValue('get_offest_method'),
@@ -384,7 +360,7 @@
                 alert('未匹配到当前视频类型，请反馈当前地址栏链接。')
             }
             utils.setValue('player_type', playerType)
-            utils.logger.debug(`${playerType} ${vals.player_type}`)
+            // utils.logger.debug(`${playerType} ${vals.player_type}`)
             if (vals.player_type === playerType) return { message: `视频类型丨${playerType}` }
             else modules.getCurrentPlayerType()
         },
@@ -479,7 +455,7 @@
                 if (screenModeMap.includes(currentScreenMode)) return { message: `屏幕模式｜当前已是 ${currentScreenMode.toUpperCase()} 模式` }
                 if (screenModeMap.includes(vals.selected_screen_mode)) {
                     const result = await modules.checkScreenModeSwitchSuccess(vals.selected_screen_mode)
-                    utils.logger.debug(`${result}`)
+                    // utils.logger.debug(`${result}`)
                     if (result) return { message: `屏幕模式｜${vals.selected_screen_mode.toUpperCase()}｜切换成功` }
                     else throw new Error(`屏幕模式｜${vals.selected_screen_mode.toUpperCase()}｜切换失败：已达到最大重试次数`)
                 }
@@ -503,7 +479,7 @@
                 const currentScreenMode = await modules.getCurrentScreenMode(300)
                 const equal = expectScreenMode === currentScreenMode
                 const success = vals.player_type === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selector.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
-                utils.logger.debug(`${vals.player_type} ${expectScreenMode} ${currentScreenMode} ${equal} ${success}`)
+                // utils.logger.debug(`${vals.player_type} ${expectScreenMode} ${currentScreenMode} ${equal} ${success}`)
                 if (success) return success
                 else {
                     if (++vars.checkScreenModeSwitchSuccessDepths === 10) return false
@@ -531,6 +507,7 @@
             // utils.logger.debug(videoOffsetTop)
             utils.setValue('player_offset_top', videoOffsetTop)
             vals.current_screen_mode === 'wide' ? utils.documentScrollTo(videoOffsetTop - vals.offset_top) : utils.documentScrollTo(0)
+            return
             // utils.logger.debug('定位至播放器！')
         },
         /**
@@ -549,12 +526,12 @@
             }
             const onAutoLocate = vals.auto_locate && ((!vals.auto_locate_video && !vals.auto_locate_bangumi) || (vals.auto_locate_video && vals.player_type === 'video') || (vals.auto_locate_bangumi && vals.player_type === 'bangumi'))
             if (!onAutoLocate || vals.selected_screen_mode === 'web') return { callback: unlockbody }
-            modules.locationToPlayer()
+            await modules.locationToPlayer()
             await utils.sleep(100)
             const $video = await elmGetter.get(selector.video)
             const videoOffsetTop = utils.getElementOffsetToDocument($video).top
             const videoClientTop = Math.trunc($video.getBoundingClientRect().top)
-            utils.logger.debug(`${videoOffsetTop} ${videoClientTop} ${vals.offset_top} ${Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset))}`)
+            // utils.logger.debug(`${videoOffsetTop} ${videoClientTop} ${vals.offset_top} ${Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset))}`)
             if ((videoClientTop === vals.offset_top) || (Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)) < 5)) {
                 // utils.logger.info('自动定位｜成功')
                 return {
@@ -566,9 +543,9 @@
                 utils.logger.warn(`
                     自动定位失败，继续尝试
                     -----------------
-                    当前文档顶部偏移量：${Math.trunc(window.pageYOffset)}
-                    期望文档顶部偏移量：${videoOffsetTop - vals.offset_top}
-                    偏移量误差：${(videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)}
+                    期望文档滚动偏移量：${videoOffsetTop - vals.offset_top}
+                    当前文档滚动偏移量：${Math.trunc(window.pageYOffset)}
+                    文档滚动偏移量误差：${(videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)}
                     播放器顶部偏移量：${videoClientTop}
                     设置偏移量：${vals.offset_top}`)
                 await utils.sleep(100)
@@ -585,7 +562,7 @@
                 $video.addEventListener('click', async () => {
                     const currentScreenMode = await modules.getCurrentScreenMode()
                     if (['full', 'mini'].includes(currentScreenMode)) return
-                    modules.locationToPlayer()
+                    await modules.locationToPlayer()
                 })
             }
         },
@@ -621,7 +598,7 @@
                 let message
                 const qualitySwitchButtonsMap = new Map()
                 if (!vals.auto_select_video_highest_quality) return
-                const qualitySwitchButtons = await elmGetter.each(selector.qualitySwitchButtons, document, button => {
+                await elmGetter.each(selector.qualitySwitchButtons, document, button => {
                     qualitySwitchButtonsMap.set(button.dataset.value, button)
                 })
                 await utils.sleep(100)
@@ -705,7 +682,7 @@
                     $playerWrap.append($player)
                     utils.setValue('current_screen_mode', 'wide')
                     await utils.sleep(300)
-                    modules.locationToPlayer()
+                    await modules.locationToPlayer()
                 }
                 const bodyHeight = utils.getBodyHeight()
                 utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreenStlye.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
@@ -717,7 +694,7 @@
                 $webEnterButton.addEventListener('click', async () => {
                     if (!document.getElementById('UnlockWebscreenStlye')) utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreenStlye.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
                     $app.prepend($playerWebscreen)
-                    modules.locationToPlayer()
+                    await modules.locationToPlayer()
                 })
                 $wideEnterButton.addEventListener('click', async () => {
                     await utils.sleep(100)
