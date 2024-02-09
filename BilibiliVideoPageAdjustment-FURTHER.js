@@ -1,3 +1,26 @@
+// ==UserScript==
+// @name              哔哩哔哩（bilibili.com）播放页调整 - 纯原生JS版
+// @namespace         哔哩哔哩（bilibili.com）播放页调整 - 纯原生JS版
+// @copyright         QIAN
+// @license           GPL-3.0 License
+// @version           0.1
+// @description       1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
+// @author            QIAN
+// @match             *://*.bilibili.com/video/*
+// @match             *://*.bilibili.com/bangumi/play/*
+// @match             *://*.bilibili.com/list/*
+// @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
+// @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
+// @require           https://scriptcat.org/lib/513/2.0.0/ElementGetter.js#sha256=KbLWud5OMbbXZHRoU/GLVgvIgeosObRYkDEbE/YanRU=
+// @grant             GM_setValue
+// @grant             GM_getValue
+// @grant             GM_addStyle
+// @grant             GM_registerMenuCommand
+// @grant             window.onurlchange
+// @supportURL        https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment-Further
+// @homepageURL       https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment-Further
+// @icon              https://www.bilibili.com/favicon.ico?v=1
+// ==/UserScript==
 (function () {
     'use strict';
     let vars = {
