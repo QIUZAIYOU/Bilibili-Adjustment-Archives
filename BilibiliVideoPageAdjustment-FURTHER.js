@@ -529,7 +529,7 @@
             }
             // utils.logger.debug(videoOffsetTop)
             utils.setValue('player_offset_top', videoOffsetTop)
-            vals.current_screen_mode === 'wide' ? utils.documentScrollTo(videoOffsetTop - vals.offset_top) : utils.documentScrollTo(0)
+            await modules.getCurrentScreenMode() === 'wide' ? utils.documentScrollTo(videoOffsetTop - vals.offset_top) : utils.documentScrollTo(0)
             return
             // utils.logger.debug('定位至播放器！')
         },
@@ -553,16 +553,28 @@
             await utils.sleep(100)
             const $video = await elmGetter.get(selector.video)
             const videoOffsetTop = utils.getElementOffsetToDocument($video).top
+            const result = await modules.checkAutoLocationSuccess(videoOffsetTop - vals.offset_top)
+            if (result) return { message: '自动定位｜成功', callback: unlockbody }
+            else return modules.checkAutoLocationSuccess(videoOffsetTop - vals.offset_top)
+        },
+        /**
+         * 递归检查屏自动定位是否成功
+         * @param {*} expectOffest 期望文档滚动偏移量
+         * @description
+         * - 未成功自动重试
+         * - 递归超过 10 次则返回失败
+         */
+        async checkAutoLocationSuccess(expectOffest) {
+            const $video = await elmGetter.get(selector.video)
+            const videoOffsetTop = utils.getElementOffsetToDocument($video).top
+            utils.documentScrollTo(expectOffest)
+            await utils.sleep(300)
             const videoClientTop = Math.trunc($video.getBoundingClientRect().top)
-            // utils.logger.debug(`${videoOffsetTop} ${videoClientTop} ${vals.offset_top} ${Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset))}`)
-            if ((videoClientTop === vals.offset_top) || (Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)) < 5)) {
-                // utils.logger.info('自动定位｜成功')
-                return {
-                    message: '自动定位｜成功',
-                    callback: unlockbody
-                }
-            } else {
-                if (++vars.autoLocationToPlayerRetryDepths === 10) throw new Error('自动定位｜失败：已达到最大重试次数')
+            const success = (expectOffest === videoClientTop === vals.offset_top) || (Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)) < 5)
+            if (success) return success
+            else {
+                if (++vars.autoLocationToPlayerRetryDepths === 10) return false
+                // utils.logger.debug(`${videoOffsetTop} ${videoClientTop} ${vals.offset_top} ${Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset))}`)
                 utils.logger.warn(`
                     自动定位失败，继续尝试
                     -----------------
@@ -571,9 +583,8 @@
                     文档滚动偏移量误差：${(videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)}
                     播放器顶部偏移量：${videoClientTop}
                     设置偏移量：${vals.offset_top}`)
-                await utils.sleep(100)
                 utils.documentScrollTo(0)
-                return modules.autoLocationToPlayer()
+                return modules.checkAutoLocationSuccess(expectOffest)
             }
         },
         /**
@@ -585,7 +596,8 @@
                 $video.addEventListener('click', async () => {
                     const currentScreenMode = await modules.getCurrentScreenMode()
                     if (['full', 'mini'].includes(currentScreenMode)) return
-                    await modules.locationToPlayer()
+                    // await modules.locationToPlayer()
+                    utils.documentScrollTo(vals.current_screen_mode !== 'web' ? vals.player_offset_top - vals.offset_top : 0)
                 })
             }
         },
