@@ -597,7 +597,7 @@
                     const currentScreenMode = await modules.getCurrentScreenMode()
                     if (['full', 'mini'].includes(currentScreenMode)) return
                     // await modules.locationToPlayer()
-                    utils.documentScrollTo(vals.current_screen_mode !== 'web' ? vals.player_offset_top - vals.offset_top : 0)
+                    utils.documentScrollTo(currentScreenMode !== 'web' ? vals.player_offset_top - vals.offset_top : 0)
                 })
             }
         },
@@ -681,8 +681,8 @@
                 const locateButtonHtml = `<div class="${floatNavMenuItemClass} locate" style="height:40px;padding:0" title="定位至播放器">\n<svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg></div>`
                 $locateButton = utils.createElementAndInsert(locateButtonHtml, $floatNav.lastChild, 'before')
             }
-            $locateButton.addEventListener('click', () => {
-                utils.documentScrollTo(vals.current_screen_mode !== 'web' ? vals.player_offset_top - vals.offset_top : 0)
+            $locateButton.addEventListener('click', async () => {
+                utils.documentScrollTo(await modules.getCurrentScreenMode() !== 'web' ? vals.player_offset_top - vals.offset_top : 0)
             })
         },
         /**
@@ -693,15 +693,15 @@
             const $video = await elmGetter.get('video')
             const videoDuration = $video.duration
             const $clickTarget = vals.player_type === 'video' ? await elmGetter.get(selector.videoComment, 100) : await elmGetter.get(selector.bangumiComment, 100)
-            await elmGetter.each(selector.videoTime, $clickTarget, function (target) {
-                target.onclick = function (event) {
+            await elmGetter.each(selector.videoTime, $clickTarget, async (target) => {
+                target.addEventListener('click', async (event) => {
                     event.stopPropagation()
-                    utils.documentScrollTo(vals.current_screen_mode !== 'web' ? vals.player_offset_top - vals.offset_top : 0)
-                    const targetTime = vals.player_type === 'video' ? this.dataset.videoTime : this.dataset.time
+                    utils.documentScrollTo(await modules.getCurrentScreenMode() !== 'web' ? vals.player_offset_top - vals.offset_top : 0)
+                    const targetTime = vals.player_type === 'video' ? target.dataset.videoTime : target.dataset.time
                     if (targetTime > videoDuration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
                     $video.currentTime = targetTime
                     $video.play()
-                }
+                })
             })
         },
         /**
@@ -838,6 +838,7 @@
                     modules.insertFloatSideNavToolsButton,
                     modules.clickVideoTimeAutoLocation
                 ]
+                await utils.sleep(3000)
                 utils.executeFunctionsSequentially(functions)
             } else {
                 utils.logger.info('当前标签｜未激活｜等待激活')
