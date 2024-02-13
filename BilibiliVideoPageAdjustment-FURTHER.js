@@ -541,8 +541,7 @@
          * - videoOffsetTop：播放器相对文档顶部距离，大小不随页面滚动变化
          * - videoClientTop：播放器相对浏览器视口顶部距离，大小随页面滚动变化
          * - targetOffset：用户期望的播放器相对浏览器视口顶部距离，由用户自定义
-         * - 文档滚动距离：videoOffsetTop - targetOffset
-         */
+         * - 文档滚动距离：videoOffsetTop - targetOffset        */
         async autoLocationToPlayer() {
             const unlockbody = () => {
                 document.getElementById('BodyHidden').remove()
@@ -555,7 +554,7 @@
             const videoOffsetTop = utils.getElementOffsetToDocument($video).top
             const result = await modules.checkAutoLocationSuccess(videoOffsetTop - vals.offset_top)
             if (result) return { message: '自动定位｜成功', callback: unlockbody }
-            else return modules.checkAutoLocationSuccess(videoOffsetTop - vals.offset_top)
+            else throw new Error(`自动定位｜失败：已达到最大重试次数`)
         },
         /**
          * 递归检查屏自动定位是否成功
@@ -570,7 +569,7 @@
             utils.documentScrollTo(expectOffest)
             await utils.sleep(300)
             const videoClientTop = Math.trunc($video.getBoundingClientRect().top)
-            const success = (expectOffest === videoClientTop === vals.offset_top) || (Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)) < 5)
+            const success = (expectOffest === videoClientTop) || (Math.abs((videoOffsetTop - vals.offset_top) - Math.trunc(window.pageYOffset)) < 5) 
             if (success) return success
             else {
                 if (++vars.autoLocationToPlayerRetryDepths === 10) return false
@@ -838,7 +837,7 @@
                     modules.insertFloatSideNavToolsButton,
                     modules.clickVideoTimeAutoLocation
                 ]
-                await utils.sleep(3000)
+                await utils.sleep(2000)
                 utils.executeFunctionsSequentially(functions)
             } else {
                 utils.logger.info('当前标签｜未激活｜等待激活')
