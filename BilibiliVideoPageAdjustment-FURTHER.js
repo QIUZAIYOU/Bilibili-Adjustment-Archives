@@ -88,8 +88,11 @@
                 name: 'offset_top',
                 value: 5,
             }, {
-                name: 'player_offset_top',
+                name: 'video_player_offset_top',
                 value: 168,
+            }, {
+                name: 'bangumi_player_offset_top',
+                value: 104,
             }, {
                 name: 'auto_locate',
                 value: true,
@@ -357,7 +360,8 @@
         auto_locate_video: () => { return utils.getValue('auto_locate_video') },
         auto_locate_bangumi: () => { return utils.getValue('auto_locate_bangumi') },
         click_player_auto_locate: () => { return utils.getValue('click_player_auto_locate') },
-        player_offset_top: () => { return Math.trunc(utils.getValue('player_offset_top')) },
+        video_player_offset_top: () => { return Math.trunc(utils.getValue('video_player_offset_top')) },
+        bangumi_player_offset_top: () => { return Math.trunc(utils.getValue('bangumi_player_offset_top')) },
         current_screen_mode: () => { return utils.getValue('current_screen_mode') },
         selected_screen_mode: () => { return utils.getValue('selected_screen_mode') },
         auto_select_video_highest_quality: () => { return utils.getValue('auto_select_video_highest_quality') },
@@ -403,11 +407,7 @@
          */
         async checkVideoExistence() {
             const $video = await elmGetter.get(selector.video)
-            if ($video) {
-
-                // utils.logger.debug(`最初记录：${vals.player_offset_top()}`)
-                return { message: '播放器｜已找到' }
-            }
+            if ($video) return { message: '播放器｜已找到' }
             else throw new Error('播放器｜未找到')
         },
         /**
@@ -533,7 +533,7 @@
                 playerOffsetTop = utils.getElementOffsetToDocument($player).top
 
             }
-            utils.setValue('player_offset_top', playerOffsetTop)
+            vals.player_type === 'video' ? utils.setValue('video_player_offset_top', playerOffsetTop) : utils.setValue('bangumi_player_offset_top', playerOffsetTop)
             await modules.getCurrentScreenMode() === 'wide' ? utils.documentScrollTo(playerOffsetTop - vals.offset_top()) : utils.documentScrollTo(0)
             return
             // utils.logger.debug('定位至播放器！')
@@ -549,8 +549,8 @@
             if (!onAutoLocate || vals.selected_screen_mode() === 'web') return { callback: unlockbody }
             await modules.locationToPlayer()
             await utils.sleep(100)
-            // utils.logger.debug(`${vals.player_offset_top()} ${vals.offset_top()} ${vals.player_offset_top() - vals.offset_top()}`)
-            const result = await modules.checkAutoLocationSuccess(vals.player_offset_top() - vals.offset_top())
+            const playerOffsetTop = vals.player_type === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
+            const result = await modules.checkAutoLocationSuccess(playerOffsetTop - vals.offset_top())
             if (result) return { message: '自动定位｜成功', callback: unlockbody }
             else throw new Error(`自动定位｜失败：已达到最大重试次数`)
         },
@@ -570,6 +570,7 @@
             await utils.sleep(300)
             const videoClientTop = Math.trunc($video.getBoundingClientRect().top)
             const success = (videoClientTop === vals.offset_top()) || (Math.abs(videoClientTop - vals.offset_top()) < 5)
+            const playerOffsetTop = vals.player_type === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
             if (success) return success
             else {
                 if (++vars.autoLocationToPlayerRetryDepths === 10) return false
@@ -577,9 +578,9 @@
                 utils.logger.warn(`
                     自动定位失败，继续尝试
                     -----------------
-                    期望文档滚动偏移量：${vals.player_offset_top() - vals.offset_top()}
+                    期望文档滚动偏移量：${playerOffsetTop - vals.offset_top()}
                     当前文档滚动偏移量：${Math.trunc(window.pageYOffset)}
-                    文档滚动偏移量误差：${(vals.player_offset_top() - vals.offset_top()) - Math.trunc(window.pageYOffset)}
+                    文档滚动偏移量误差：${(playerOffsetTop - vals.offset_top()) - Math.trunc(window.pageYOffset)}
                     播放器顶部偏移量：${videoClientTop}
                     设置偏移量：${vals.offset_top()}`)
                 utils.documentScrollTo(0)
@@ -592,12 +593,14 @@
          */
         async clickPlayerAutoLocation() {
             if (vals.click_player_auto_locate()) {
+                const playerOffsetTop = vals.player_type === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
                 const $video = await elmGetter.get(selector.video)
                 $video.addEventListener('click', async () => {
                     const currentScreenMode = await modules.getCurrentScreenMode()
+
                     if (['full', 'mini'].includes(currentScreenMode)) return
                     // await modules.locationToPlayer()
-                    utils.documentScrollTo(currentScreenMode !== 'web' ? vals.player_offset_top() - vals.offset_top() : 0)
+                    utils.documentScrollTo(currentScreenMode !== 'web' ? playerOffsetTop - vals.offset_top() : 0)
                 })
             }
         },
@@ -670,6 +673,7 @@
         async insertFloatSideNavToolsButton() {
             const $floatNav = vals.player_type() === 'video' ? await elmGetter.get(selector.videoFloatNav) : await elmGetter.get(selector.bangumiFloatNav, 100)
             const dataV = $floatNav.lastChild.attributes[1].name
+            const playerOffsetTop = vals.player_type === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
             let $locateButton
             if (vals.player_type() === 'video') {
                 const locateButtonHtml = '<div class="fixed-sidenav-storage-item locate" title="定位至播放器"><svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg>定位</div>'.replace('title="定位至播放器"', `title="定位至播放器" ${dataV}`)
@@ -681,7 +685,8 @@
                 $locateButton = utils.createElementAndInsert(locateButtonHtml, $floatNav.lastChild, 'before')
             }
             $locateButton.addEventListener('click', async () => {
-                utils.documentScrollTo(await modules.getCurrentScreenMode() !== 'web' ? vals.player_offset_top() - vals.offset_top() : 0)
+
+                utils.documentScrollTo(await modules.getCurrentScreenMode() !== 'web' ? playerOffsetTop - vals.offset_top() : 0)
             })
         },
         /**
@@ -692,10 +697,11 @@
             const $video = await elmGetter.get('video')
             const videoDuration = $video.duration
             const $clickTarget = vals.player_type() === 'video' ? await elmGetter.get(selector.videoComment, 100) : await elmGetter.get(selector.bangumiComment, 100)
+            const playerOffsetTop = vals.player_type === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
             await elmGetter.each(selector.videoTime, $clickTarget, async (target) => {
                 target.addEventListener('click', async (event) => {
                     event.stopPropagation()
-                    utils.documentScrollTo(await modules.getCurrentScreenMode() !== 'web' ? vals.player_offset_top() - vals.offset_top() : 0)
+                    utils.documentScrollTo(await modules.getCurrentScreenMode() !== 'web' ? playerOffsetTop - vals.offset_top() : 0)
                     const targetTime = vals.player_type() === 'video' ? target.dataset.videoTime : target.dataset.time
                     if (targetTime > videoDuration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
                     $video.currentTime = targetTime
