@@ -171,7 +171,6 @@
         },
         /**
          * 自定义日志打印
-         * @description
          * - info->信息；warn->警告
          * - error->错误；debug->调试
          */
@@ -240,6 +239,7 @@
             if (window.onurlchange === null) {
                 window.addEventListener('urlchange', async () => {
                     await modules.locationToPlayer()
+                    await modules.insertVideoDescriptionToComment()
                     // utils.logger.debug('URL改变了！')
                 })
             }
@@ -324,8 +324,7 @@
         },
         /**
          * 按顺序依次执行函数数组中的函数
-         * @param {Array} functions
-         * @description
+         * @param {Array} functions 待执行的函数数组
          * - 只有当前一个函数执行完毕时才会继续执行下一个函数
          */
         async executeFunctionsSequentially(functions) {
@@ -369,7 +368,7 @@
         auto_skip: () => { return utils.getValue('auto_skip') }
     }
     const styles = {
-        AdjustmentStyle: `.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen="full"] #goToComments{pointer-events:none;cursor:not-allowed;opacity:.6}.comment-description{padding:0 5px;height:22px;border:1px solid;border-radius:4px;text-align:center;line-height:22px}`,
+        AdjustmentStyle: `.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen="full"] #goToComments{pointer-events:none;cursor:not-allowed;opacity:.6}#comment-description .user-name{display:flex;align-items:center;justify-content:center;padding:0 5px;height:22px;border:1px solid;border-radius:4px`,
         BodyHidden: 'body{overflow:hidden!important}',
         ResetPlayerLayoutStyle: `body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}`,
         UnlockWebscreenStlye: `body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}`
@@ -399,16 +398,13 @@
         },
         /**
          * 检查视频元素是否存在
-         * @description
          * - 若存在返回成功消息
          * - 若不存在则抛出异常
          */
         async checkVideoExistence() {
-            const [$player, $video] = await elmGetter.get([selector.player, selector.video])
+            const $video = await elmGetter.get(selector.video)
             if ($video) {
-                const playerOffsetTop = utils.getElementOffsetToDocument($player).top
-                // utils.logger.debug(`最初：${playerOffsetTop}`)
-                utils.setValue('player_offset_top', playerOffsetTop)
+
                 // utils.logger.debug(`最初记录：${vals.player_offset_top()}`)
                 return { message: '播放器｜已找到' }
             }
@@ -475,7 +471,7 @@
         },
         /**
          * 执行自动切换屏幕模式
-         * @description
+         
          * - 功能未开启，不执行切换函数，直接返回成功
          * - 功能开启，但当前屏幕已为宽屏或网页全屏，则直接返回成功
          * - 功能开启，执行切换函数
@@ -497,7 +493,6 @@
         /**
          * 递归检查屏幕模式是否切换成功
          * @param {*} expectScreenMode 期望的屏幕模式
-         * @description
          * - 未成功自动重试
          * - 递归超过 10 次则返回失败
          */
@@ -525,18 +520,21 @@
         // 文档滚动至播放器
         async locationToPlayer() {
             const getOffestMethod = vals.get_offest_method()
-            let videoOffsetTop
+            let playerOffsetTop
             if (getOffestMethod === 'elements') {
                 const $header = await elmGetter.get(selector.header, 100)
                 const $placeholderElement = await elmGetter.get(selector.videoTitleArea, 100) || await elmGetter.get(selector.bangumiMainContainer, 100)
                 const headerHeight = $header.getBoundingClientRect().height
                 const placeholderElementHeight = $placeholderElement.getBoundingClientRect().height
-                videoOffsetTop = vals.player_type() === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle($placeholderElement)['margin-top'].slice(0, -2)
+                playerOffsetTop = vals.player_type() === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle($placeholderElement)['margin-top'].slice(0, -2)
             }
             if (getOffestMethod === 'function') {
-                videoOffsetTop = vals.player_offset_top()
+                const $player = await elmGetter.get(selector.player)
+                playerOffsetTop = utils.getElementOffsetToDocument($player).top
+
             }
-            await modules.getCurrentScreenMode() === 'wide' ? utils.documentScrollTo(videoOffsetTop - vals.offset_top()) : utils.documentScrollTo(0)
+            utils.setValue('player_offset_top', playerOffsetTop)
+            await modules.getCurrentScreenMode() === 'wide' ? utils.documentScrollTo(playerOffsetTop - vals.offset_top()) : utils.documentScrollTo(0)
             return
             // utils.logger.debug('定位至播放器！')
         },
@@ -559,7 +557,6 @@
         /**
          * 递归检查屏自动定位是否成功
          * @param {*} expectOffest 期望文档滚动偏移量
-         * @description
          * - 未定位成功自动重试，递归超过 10 次则返回失败
          * - 基础数据：
          * - videoOffsetTop：播放器相对文档顶部距离，大小不随页面滚动变化
@@ -625,8 +622,7 @@
         },
         /**
          * 自动选择最高画质
-         * @description
-         * 质量代码：
+         * - 质量代码：
          * - 127->8K 超高清;120->4K 超清;116->1080P 60帧;
          * - 80->1080P 高清；64->720P 高清；32->480P 清晰；
          * - 16->360P 流畅；0->自动
@@ -769,17 +765,39 @@
         },
         /**
          * 将视频简介内容插入评论区
+         * - 视频简介存在且内容过长，则将视频简介内容插入评论区
+         * - 若视频简介中包含型如 "00:00:00" 的时间内容，则将其转换为可点击的时间锚点元素
+         * - 若视频简介中包含 URL 链接，则将其转换为跳转链接
+         * - 若视频简介中包含视频 BV 号，则将其转换为跳转链接
          */
         async insertVideoDescriptionToComment() {
+            const $commentDescription = document.getElementById('comment-description')
+            if ($commentDescription) $commentDescription.remove()
             const [$upAvator, $videoDescription, $videoDescriptionText, $videoCommentReplyList] = await elmGetter.get([selector.upAvator, selector.videoDescription, selector.videoDescriptionText, selector.videoCommentReplyList])
-            // 如果视频简介存在且内容过长，将视频简介内容插入评论区
+            const getTotalSecondsFromTimeString = (timeString) => {
+                if (timeString.length === 5) timeString = '00:' + timeString
+                const [hours, minutes, seconds] = timeString.split(':').map(Number)
+                const totalSeconds = hours * 3600 + minutes * 60 + seconds
+                return totalSeconds
+            }
             if ($videoDescription.childElementCount > 1 && $videoDescriptionText) {
-                const replyTemp = `
-                <div data-v-eb69efad="" data-v-bad1995c="" class="reply-item">
+
+                const timeStringRegexp = /(\d\d:\d\d(:\d\d)*)/g
+                const urlRegexp = /(http|https|ftp):\/\/[\w\-]+(\.[\w\-]+)*([\w\-\.\,\@\?\^\=\%\&\:\/\~\+\#]*[\w\-\@?\^\=\%\&\/~\+#])?/g
+                const videoIdRegexp = /(BV)([A-Za-z0-9]){10}/g
+                const videoDescriptionText = $videoDescriptionText.textContent.replace(timeStringRegexp, (match) => {
+                    return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
+                }).replace(urlRegexp, (match) => {
+                    return `<a href="${match}" target="_blank">${match}</a>`
+                }).replace(videoIdRegexp, (match) => {
+                    return `<a href="https://www.bilibili.com/video/${match}" target="_blank">${match}</a>`
+                })
+                const replyTemplate = `
+                <div data-v-eb69efad="" data-v-bad1995c="" id="comment-description" class="reply-item">
                     <div data-v-eb69efad="" class="root-reply-container">
                         <div data-v-eb69efad="" class="root-reply-avatar" >
                             <div data-v-eb69efad="" class="avatar">
-                                <div class="bili-avatar" style="width: 40px;height:40px;">
+                                <div class="bili-avatar" style="width:40px;height:40px">
                                     <img class="bili-avatar-img bili-avatar-face bili-avatar-img-radius" data-src="${$upAvator.dataset.src}" src="${$upAvator.dataset.src}">
                                     <span class="bili-avatar-icon bili-avatar-right-icon  bili-avatar-size-40"></span>
                                 </div>
@@ -787,11 +805,11 @@
                         </div>
                         <div data-v-eb69efad="" class="content-warp">
                             <div data-v-eb69efad="" class="user-info">
-                                <div data-v-eb69efad="" class="user-name comment-description" style="color:#fb7299!important">视频简介丨播放页调整</div>
+                                <div data-v-eb69efad="" class="user-name" style="color:#00a1d6!important">视频简介丨播放页调整</div>
                             </div>
                             <div data-v-eb69efad="" class="root-reply">
                                 <span data-v-eb69efad="" class="reply-content-container root-reply">
-                                    <span class="reply-content">${decodeURIComponent($videoDescriptionText.textContent)}</span>
+                                    <span class="reply-content">${decodeURIComponent(videoDescriptionText)}</span>
                                 </span>
                             </div>
                         </div>
@@ -799,7 +817,7 @@
                     <div data-v-eb69efad="" class="bottom-line"></div>
                 </div>
                 `
-                utils.createElementAndInsert(replyTemp, $videoCommentReplyList, 'prepend')
+                utils.createElementAndInsert(replyTemplate, $videoCommentReplyList, 'prepend')
             }
         },
         /**
