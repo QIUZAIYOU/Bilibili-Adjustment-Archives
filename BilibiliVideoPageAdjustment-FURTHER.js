@@ -41,7 +41,7 @@
         intervalIds: [],
         skipNodesRecords: []
     }
-    const selector = {
+    const selectors = {
         app: '#app',
         header: '#biliMainHeader',
         player: '#bilibili-player',
@@ -372,10 +372,10 @@
         auto_skip: () => { return utils.getValue('auto_skip') }
     }
     const styles = {
-        AdjustmentStyle: `.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen="full"] #goToComments{pointer-events:none;cursor:not-allowed;opacity:.6}#comment-description .user-name{display:flex;align-items:center;justify-content:center;padding:0 5px;height:22px;border:1px solid;border-radius:4px`,
+        AdjustmentStyle: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen="full"] #goToComments{pointer-events:none;cursor:not-allowed;opacity:.6}#comment-description .user-name{display:flex;align-items:center;justify-content:center;padding:0 5px;height:22px;border:1px solid;border-radius:4px',
         BodyHidden: 'body{overflow:hidden!important}',
-        ResetPlayerLayoutStyle: `body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}`,
-        UnlockWebscreenStlye: `body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}`
+        ResetPlayerLayoutStyle: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
+        UnlockWebscreenStlye: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}'
     }
     const modules = {
         /**
@@ -406,7 +406,7 @@
          * - 若不存在则抛出异常
          */
         async checkVideoExistence() {
-            const $video = await elmGetter.get(selector.video)
+            const $video = await elmGetter.get(selectors.video)
             if ($video) return { message: '播放器｜已找到' }
             else throw new Error('播放器｜未找到')
         },
@@ -414,7 +414,7 @@
          * 检查视频是否可以播放
          */
         async checkVideoCanPlayThrough() {
-            // const BwpVideoPlayerExists = await utils.checkElementExistence(selector.videoBwp, 10, 10)
+            // const BwpVideoPlayerExists = await utils.checkElementExistence(selectors.videoBwp, 10, 10)
             // if (BwpVideoPlayerExists) {
             //   return new Promise(resolve => {
             //     resolve(true)
@@ -424,7 +424,7 @@
                 let attempts = 100
                 let message
                 const timer = setInterval(() => {
-                    const $video = document.querySelector(selector.video)
+                    const $video = document.querySelector(selectors.video)
                     const videoReadyState = $video.readyState
                     if (videoReadyState === 4) {
                         message = '视频资源｜可以播放'
@@ -448,7 +448,7 @@
          * 监听屏幕模式变化(normal/wide/web/full)
          */
         async observerPlayerDataScreenChanges() {
-            const $playerContainer = await elmGetter.get(selector.playerContainer, 100)
+            const $playerContainer = await elmGetter.get(selectors.playerContainer, 100)
             const observer = new MutationObserver(() => {
                 const playerDataScreen = $playerContainer.getAttribute('data-screen')
                 utils.setValue('current_screen_mode', playerDataScreen)
@@ -465,7 +465,7 @@
          */
         async getCurrentScreenMode(delay = 0) {
             // if (vals.player_type() === 'bangumi') await utils.sleep(1000)
-            const $playerContainer = await elmGetter.get(selector.playerContainer, delay)
+            const $playerContainer = await elmGetter.get(selectors.playerContainer, delay)
             // utils.logger.debug($playerContainer)
             return $playerContainer.getAttribute('data-screen')
         },
@@ -498,15 +498,15 @@
          */
         async checkScreenModeSwitchSuccess(expectScreenMode) {
             const enterBtnMap = {
-                wide: async () => { return await elmGetter.get(selector.screenModeWideEnterButton) },
-                web: async () => { return await elmGetter.get(selector.screenModeWebEnterButton) },
+                wide: async () => { return await elmGetter.get(selectors.screenModeWideEnterButton) },
+                web: async () => { return await elmGetter.get(selectors.screenModeWebEnterButton) },
             }
             if (enterBtnMap[expectScreenMode]) {
                 const enterBtn = await enterBtnMap[expectScreenMode]()
                 enterBtn.click()
                 const currentScreenMode = await modules.getCurrentScreenMode(300)
                 const equal = expectScreenMode === currentScreenMode
-                const success = vals.player_type() === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selector.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
+                const success = vals.player_type() === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selectors.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
                 // utils.logger.debug(`${vals.player_type()} ${expectScreenMode} ${currentScreenMode} ${equal} ${success}`)
                 if (success) return success
                 else {
@@ -522,14 +522,14 @@
             const getOffestMethod = vals.get_offest_method()
             let playerOffsetTop
             if (getOffestMethod === 'elements') {
-                const $header = await elmGetter.get(selector.header, 100)
-                const $placeholderElement = await elmGetter.get(selector.videoTitleArea, 100) || await elmGetter.get(selector.bangumiMainContainer, 100)
+                const $header = await elmGetter.get(selectors.header, 100)
+                const $placeholderElement = await elmGetter.get(selectors.videoTitleArea, 100) || await elmGetter.get(selectors.bangumiMainContainer, 100)
                 const headerHeight = $header.getBoundingClientRect().height
                 const placeholderElementHeight = $placeholderElement.getBoundingClientRect().height
                 playerOffsetTop = vals.player_type() === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle($placeholderElement)['margin-top'].slice(0, -2)
             }
             if (getOffestMethod === 'function') {
-                const $player = await elmGetter.get(selector.player)
+                const $player = await elmGetter.get(selectors.player)
                 playerOffsetTop = utils.getElementOffsetToDocument($player).top
 
             }
@@ -565,7 +565,7 @@
          * - 文档滚动距离：videoOffsetTop - targetOffset   
          */
         async checkAutoLocationSuccess(expectOffest) {
-            const $video = await elmGetter.get(selector.video)
+            const $video = await elmGetter.get(selectors.video)
             utils.documentScrollTo(expectOffest)
             await utils.sleep(300)
             const videoClientTop = Math.trunc($video.getBoundingClientRect().top)
@@ -594,7 +594,7 @@
         async clickPlayerAutoLocation() {
             if (vals.click_player_auto_locate()) {
                 const playerOffsetTop = vals.player_type === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
-                const $video = await elmGetter.get(selector.video)
+                const $video = await elmGetter.get(selectors.video)
                 $video.addEventListener('click', async () => {
                     const currentScreenMode = await modules.getCurrentScreenMode()
 
@@ -609,7 +609,7 @@
          */
         async autoCancelMute() {
             if (++vars.autoCancelMuteRunningCount === 1) {
-                const [$mutedButton, $volumeButton] = await elmGetter.get([selector.mutedButton, selector.volumeButton])
+                const [$mutedButton, $volumeButton] = await elmGetter.get([selectors.mutedButton, selectors.volumeButton])
                 // const mutedButtonDisplay = getComputedStyle(mutedButton)['display']
                 // const volumeButtonDisplay = getComputedStyle(volumeButton)['display']
                 const mutedButtonDisplay = $mutedButton.style.display
@@ -635,7 +635,7 @@
                 let message
                 const qualitySwitchButtonsMap = new Map()
                 if (!vals.auto_select_video_highest_quality()) return
-                await elmGetter.each(selector.qualitySwitchButtons, document, button => {
+                await elmGetter.each(selectors.qualitySwitchButtons, document, button => {
                     qualitySwitchButtonsMap.set(button.dataset.value, button)
                 })
                 await utils.sleep(100)
@@ -671,7 +671,7 @@
          * - 快速返回至播放器
          */
         async insertFloatSideNavToolsButton() {
-            const $floatNav = vals.player_type() === 'video' ? await elmGetter.get(selector.videoFloatNav) : await elmGetter.get(selector.bangumiFloatNav, 100)
+            const $floatNav = vals.player_type() === 'video' ? await elmGetter.get(selectors.videoFloatNav) : await elmGetter.get(selectors.bangumiFloatNav, 100)
             const dataV = $floatNav.lastChild.attributes[1].name
             const playerOffsetTop = vals.player_type === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
             let $locateButton
@@ -696,9 +696,9 @@
             await utils.sleep(100)
             const $video = await elmGetter.get('video')
             const videoDuration = $video.duration
-            const $clickTarget = vals.player_type() === 'video' ? await elmGetter.get(selector.videoComment, 100) : await elmGetter.get(selector.bangumiComment, 100)
+            const $clickTarget = vals.player_type() === 'video' ? await elmGetter.get(selectors.videoComment, 100) : await elmGetter.get(selectors.bangumiComment, 100)
             const playerOffsetTop = vals.player_type === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
-            await elmGetter.each(selector.videoTime, $clickTarget, async (target) => {
+            await elmGetter.each(selectors.videoTime, $clickTarget, async (target) => {
                 target.addEventListener('click', async (event) => {
                     event.stopPropagation()
                     utils.documentScrollTo(await modules.getCurrentScreenMode() !== 'web' ? playerOffsetTop - vals.offset_top() : 0)
@@ -715,7 +715,7 @@
         async webfullScreenModeUnlock() {
             if (vals.webfull_unlock() && vals.selected_screen_mode() === 'web' && ++vars.webfullUnlockRunningCount === 1) {
                 if (vals.player_type() === 'bangumi') return
-                const [$app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton] = await elmGetter.get([selector.app, selector.playerWrap, selector.player, selector.playerWebscreen, selector.screenModeWideEnterButton, selector.screenModeWideLeaveButton, selector.screenModeWebEnterButton, selector.screenModeWebLeaveButton, selector.screenModeFullControlButton])
+                const [$app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton] = await elmGetter.get([selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton])
                 const resetPlayerLayout = async () => {
                     if (document.getElementById('UnlockWebscreenStlye')) document.getElementById('UnlockWebscreenStlye').remove()
                     if (!document.getElementById('ResetPlayerLayoutStyle')) utils.insertStyleToDocument('ResetPlayerLayoutStyle', styles.ResetPlayerLayoutStyle)
@@ -759,7 +759,7 @@
          */
         async insertGoToCommentButton() {
             if (vals.player_type() === 'video' && vals.webfull_unlock() && ++vars.insertGoToCommentButtonCount === 1) {
-                const [$comment, $playerControlerBottomRight] = await elmGetter.get([selector.videoComment, selector.playerControlerBottomRight])
+                const [$comment, $playerControlerBottomRight] = await elmGetter.get([selectors.videoComment, selectors.playerControlerBottomRight])
                 const goToCommentBtnHtml = '<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>'
                 const $goToCommentButton = utils.createElementAndInsert(goToCommentBtnHtml, $playerControlerBottomRight, 'append')
                 $goToCommentButton.addEventListener('click', (event) => {
@@ -779,7 +779,7 @@
         async insertVideoDescriptionToComment() {
             const $commentDescription = document.getElementById('comment-description')
             if ($commentDescription) $commentDescription.remove()
-            const [$upAvator, $videoDescription, $videoDescriptionText, $videoCommentReplyList] = await elmGetter.get([selector.upAvator, selector.videoDescription, selector.videoDescriptionText, selector.videoCommentReplyList])
+            const [$upAvator, $videoDescription, $videoDescriptionText, $videoCommentReplyList] = await elmGetter.get([selectors.upAvator, selectors.videoDescription, selectors.videoDescriptionText, selectors.videoCommentReplyList])
             const getTotalSecondsFromTimeString = (timeString) => {
                 if (timeString.length === 5) timeString = '00:' + timeString
                 const [hours, minutes, seconds] = timeString.split(':').map(Number)
@@ -791,7 +791,8 @@
                 const timeStringRegexp = /(\d\d:\d\d(:\d\d)*)/g
                 const urlRegexp = /(http|https|ftp):\/\/[\w\-]+(\.[\w\-]+)*([\w\-\.\,\@\?\^\=\%\&\:\/\~\+\#]*[\w\-\@?\^\=\%\&\/~\+#])?/g
                 const videoIdRegexp = /(BV)([A-Za-z0-9]){10}/g
-                const videoDescriptionText = $videoDescriptionText.textContent.replace(timeStringRegexp, (match) => {
+                const blankRegexp = /^\s*[\r\n]/gm
+                const videoDescriptionText = $videoDescriptionText.textContent.replace(blankRegexp,'').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
                 }).replace(urlRegexp, (match) => {
                     return `<a href="${match}" target="_blank">${match}</a>`
@@ -846,11 +847,11 @@
          */
         async theMainFunction() {
             if (++vars.theMainFunctionRunningCount === 1) {
-                const videoPlayerExists = await elmGetter.get(selector.video)
+                const videoPlayerExists = await elmGetter.get(selectors.video)
                 if (videoPlayerExists) {
                     utils.logger.info('播放器｜已找到')
                     const isCanPlayThrough = await modules.checkVideoCanPlayThrough()
-                    const videoControlerBtnExists = await elmGetter.get(selector.playerControler)
+                    const videoControlerBtnExists = await elmGetter.get(selectors.playerControler)
                     if (isCanPlayThrough || (!isCanPlayThrough && videoControlerBtnExists)) {
                         utils.logger.info('视频资源｜可以播放')
                         const selectedScreenMode = await modules.autoSelectScreenMode()
