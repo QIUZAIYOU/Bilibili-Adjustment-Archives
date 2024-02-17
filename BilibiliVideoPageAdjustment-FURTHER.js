@@ -61,6 +61,7 @@
         videoCommentReplyList: '#comment .reply-list',
         videoTime: '.video-time,.video-seek',
         videoDescription: '#v_desc',
+        videoDescriptionInfo: '#v_desc .basic-desc-info',
         videoDescriptionText: '#v_desc .desc-info-text',
         bangumiComment: '#comment_module',
         bangumiFloatNav: '[class*="navTools_floatNavExp"] [class*="navTools_navMenu"]',
@@ -72,7 +73,9 @@
         screenModeWebLeaveButton: '.bpx-player-ctrl-web-leave',
         screenModeFullControlButton: '.bpx-player-ctrl-full',
         danmukuBox: '#danmukuBox',
-        upAvator: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-img',
+        upAvatorFace: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-face',
+        upAvatorDecoration: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-pendent-dom .bili-avatar-img',
+        upAvatorIcon: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-icon',
         setSkipTimeNodesPopover: '#setSkipTimeNodesPopover',
         setSkipTimeNodesPopoverHeaderExtra: '#setSkipTimeNodesPopover .header .extra',
         setSkipTimeNodesPopoverTips: '#setSkipTimeNodesPopover .tips',
@@ -713,7 +716,6 @@
         async clickVideoTimeAutoLocation() {
             await utils.sleep(100)
             const $video = await elmGetter.get('video')
-            const videoDuration = $video.duration
             const $clickTarget = vals.player_type() === 'video' ? await elmGetter.get(selectors.videoComment, 100) : await elmGetter.get(selectors.bangumiComment, 100)
             const playerOffsetTop = vals.player_type === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
             await elmGetter.each(selectors.videoTime, $clickTarget, async (target) => {
@@ -721,7 +723,7 @@
                     event.stopPropagation()
                     utils.documentScrollTo(await modules.getCurrentScreenMode() !== 'web' ? playerOffsetTop - vals.offset_top() : 0)
                     const targetTime = vals.player_type() === 'video' ? target.dataset.videoTime : target.dataset.time
-                    if (targetTime > videoDuration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
+                    if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
                     $video.currentTime = targetTime
                     $video.play()
                 })
@@ -797,33 +799,39 @@
         async insertVideoDescriptionToComment() {
             const $commentDescription = document.getElementById('comment-description')
             if ($commentDescription) $commentDescription.remove()
-            const [$upAvator, $videoDescription, $videoDescriptionText, $videoCommentReplyList] = await elmGetter.get([selectors.upAvator, selectors.videoDescription, selectors.videoDescriptionText, selectors.videoCommentReplyList])
+            const [$upAvatorFace, $upAvatorIcon, $videoDescription, $videoDescriptionInfo, $videoCommentReplyList] = await elmGetter.get([selectors.upAvatorFace, selectors.upAvatorIcon, selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList])
             const getTotalSecondsFromTimeString = (timeString) => {
                 if (timeString.length === 5) timeString = '00:' + timeString
                 const [hours, minutes, seconds] = timeString.split(':').map(Number)
                 const totalSeconds = hours * 3600 + minutes * 60 + seconds
                 return totalSeconds
             }
-            if ($videoDescription.childElementCount > 1 && $videoDescriptionText) {
+
+            if ($videoDescription.childElementCount > 1 && $videoDescriptionInfo) {
                 const timeStringRegexp = /(\d\d:\d\d(:\d\d)*)/g
                 const urlRegexp = /(http|https|ftp):\/\/[\w\-]+(\.[\w\-]+)*([\w\-\.\,\@\?\^\=\%\&\:\/\~\+\#]*[\w\-\@?\^\=\%\&\/~\+#])?/g
                 const videoIdRegexp = /(BV)([A-Za-z0-9]){10}/g
                 const blankRegexp = /^\s*[\r\n]/gm
-                const videoDescriptionText = $videoDescriptionText.textContent.replace(blankRegexp, '').replace(timeStringRegexp, (match) => {
+                const videoDescriptionInfoHtml = $videoDescriptionInfo.innerHTML.replace(blankRegexp, '').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
                 }).replace(urlRegexp, (match) => {
                     return `<a href="${match}" target="_blank">${match}</a>`
                 }).replace(videoIdRegexp, (match) => {
                     return `<a href="https://www.bilibili.com/video/${match}" target="_blank">${match}</a>`
                 })
+                const upAvatorFace = $upAvatorFace.dataset.src.replace('@96w_96h_1c_1s_!web-avatar', '@160w_160h_1c_1s_!web-avatar-comment')
+                const upAvatorDecoration = document.querySelector(selectors.upAvatorDecoration) ? document.querySelector(selectors.upAvatorDecoration).dataset.src.replace('@144w_144h_!web-avatar', '@240w_240h_!web-avatar-comment') : ''
                 const videoDescriptionReplyTemplate = `
                 <div data-v-eb69efad="" data-v-bad1995c="" id="comment-description" class="reply-item">
                     <div data-v-eb69efad="" class="root-reply-container">
                         <div data-v-eb69efad="" class="root-reply-avatar" >
                             <div data-v-eb69efad="" class="avatar">
                                 <div class="bili-avatar" style="width:40px;height:40px">
-                                    <img class="bili-avatar-img bili-avatar-face bili-avatar-img-radius" data-src="${$upAvator.dataset.src}" src="${$upAvator.dataset.src}">
-                                    <span class="bili-avatar-icon bili-avatar-right-icon  bili-avatar-size-40"></span>
+                                    <img class="bili-avatar-img bili-avatar-face bili-avatar-img-radius" data-src="${upAvatorFace}" src="${upAvatorFace}">
+                                    <div class="bili-avatar-pendent-dom">
+                                        <img class="bili-avatar-img" data-src="${upAvatorDecoration}" alt="" src="${upAvatorDecoration}">
+                                    </div>
+                                    <span class="${$upAvatorIcon.classList}"></span>
                                 </div>
                             </div>
                         </div>
@@ -833,7 +841,7 @@
                             </div>
                             <div data-v-eb69efad="" class="root-reply">
                                 <span data-v-eb69efad="" class="reply-content-container root-reply">
-                                    <span class="reply-content">${decodeURIComponent(videoDescriptionText)}</span>
+                                    <span class="reply-content">${decodeURIComponent(videoDescriptionInfoHtml)}</span>
                                 </span>
                             </div>
                         </div>
