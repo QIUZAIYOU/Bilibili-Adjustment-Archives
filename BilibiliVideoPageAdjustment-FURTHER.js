@@ -810,13 +810,13 @@
             if ($videoDescription.childElementCount > 1 && $videoDescriptionInfo) {
                 const timeStringRegexp = /(\d\d:\d\d(:\d\d)*)/g
                 const urlRegexp = /(http|https|ftp):\/\/[\w\-]+(\.[\w\-]+)*([\w\-\.\,\@\?\^\=\%\&\:\/\~\+\#]*[\w\-\@?\^\=\%\&\/~\+#])?/g
-                const videoIdRegexp = /(BV)([A-Za-z0-9]){10}/g
+                const plaintVideoIdRegexp = /(?<!(\/|>))((BV)([A-Za-z0-9]){10})(?!(\/|<))/g
                 const blankRegexp = /^\s*[\r\n]/gm
                 const videoDescriptionInfoHtml = $videoDescriptionInfo.innerHTML.replace(blankRegexp, '').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
                 }).replace(urlRegexp, (match) => {
                     return `<a href="${match}" target="_blank">${match}</a>`
-                }).replace(videoIdRegexp, (match) => {
+                }).replace(plaintVideoIdRegexp, (match) => {
                     return `<a href="https://www.bilibili.com/video/${match}" target="_blank">${match}</a>`
                 })
                 const upAvatorFace = $upAvatorFace.dataset.src.replace('@96w_96h_1c_1s_!web-avatar', '@160w_160h_1c_1s_!web-avatar-comment')
@@ -826,7 +826,7 @@
                     <div data-v-eb69efad="" class="root-reply-container">
                         <div data-v-eb69efad="" class="root-reply-avatar" >
                             <div data-v-eb69efad="" class="avatar">
-                                <div class="bili-avatar" style="width:40px;height:40px">
+                                <div class="bili-avatar" style="width:48px;height:48px">
                                     <img class="bili-avatar-img bili-avatar-face bili-avatar-img-radius" data-src="${upAvatorFace}" src="${upAvatorFace}">
                                     <div class="bili-avatar-pendent-dom">
                                         <img class="bili-avatar-img" data-src="${upAvatorDecoration}" alt="" src="${upAvatorDecoration}">
