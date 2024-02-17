@@ -32,7 +32,7 @@
         autoSelectVideoHighestQualityRunningCount: 0,
         insertGoToCommentButtonCount: 0,
         insertSetSkipTimeNodesButtonCount: 0,
-        insertSkipTimeNodesSwitchButtonCount: 0,
+        setSkipTimeNodesSwitchButtonCount: 0,
         functionExecutionsCount: 0,
         checkScreenModeSwitchSuccessDepths: 0,
         autoLocationToPlayerRetryDepths: 0,
@@ -50,6 +50,7 @@
         playerContainer: '#bilibili-player .bpx-player-container',
         playerControler: '#bilibili-player .bpx-player-ctrl-btn',
         playerControlerBottomRight: '.bpx-player-control-bottom-right',
+        playerTooltipArea: '.bpx-player-tooltip-area',
         volumeButton: '.bpx-player-ctrl-volume-icon',
         mutedButton: '.bpx-player-ctrl-muted-icon',
         video: '#bilibili-player video',
@@ -72,6 +73,42 @@
         screenModeFullControlButton: '.bpx-player-ctrl-full',
         danmukuBox: '#danmukuBox',
         upAvator: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-img',
+        setSkipTimeNodesPopover: '#setSkipTimeNodesPopover',
+        setSkipTimeNodesPopoverHeaderExtra: '#setSkipTimeNodesPopover .header .extra',
+        setSkipTimeNodesPopoverTips: '#setSkipTimeNodesPopover .tips',
+        setSkipTimeNodesPopoverTipsDetail: '#setSkipTimeNodesPopover .tips .detail',
+        setSkipTimeNodesPopoverTipsContents: '#setSkipTimeNodesPopover .tips .contents',
+        setSkipTimeNodesPopoverRecords: '#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records',
+        setSkipTimeNodesInput: '#setSkipTimeNodesInput',
+        timeNodesRecordsArray: '#timeNodesRecordsArray',
+        clearRecordsButton: '#clearRecordsButton',
+        saveRecordsButton: '#saveRecordsButton',
+    }
+    const vals = {
+        is_vip: () => { return utils.getValue('is_vip') },
+        player_type: () => { return utils.getValue('player_type') },
+        offset_top: () => { return Math.trunc(utils.getValue('offset_top')) },
+        auto_locate: () => { return utils.getValue('auto_locate') },
+        get_offest_method: () => { return utils.getValue('get_offest_method') },
+        auto_locate_video: () => { return utils.getValue('auto_locate_video') },
+        auto_locate_bangumi: () => { return utils.getValue('auto_locate_bangumi') },
+        click_player_auto_locate: () => { return utils.getValue('click_player_auto_locate') },
+        video_player_offset_top: () => { return Math.trunc(utils.getValue('video_player_offset_top')) },
+        bangumi_player_offset_top: () => { return Math.trunc(utils.getValue('bangumi_player_offset_top')) },
+        current_screen_mode: () => { return utils.getValue('current_screen_mode') },
+        selected_screen_mode: () => { return utils.getValue('selected_screen_mode') },
+        auto_select_video_highest_quality: () => { return utils.getValue('auto_select_video_highest_quality') },
+        contain_quality_4k: () => { return utils.getValue('contain_quality_4k') },
+        contain_quality_8k: () => { return utils.getValue('contain_quality_8k') },
+        webfull_unlock: () => { return utils.getValue('webfull_unlock') },
+        auto_reload: () => { return utils.getValue('auto_reload') },
+        auto_skip: () => { return utils.getValue('auto_skip') }
+    }
+    const styles = {
+        AdjustmentStyle: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:131px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#setSkipTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#setSkipTimeNodesButton:hover{background:#00b5e5!important}#timeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}',
+        BodyHidden: 'body{overflow:hidden!important}',
+        ResetPlayerLayoutStyle: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
+        UnlockWebscreenStlye: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}'
     }
     const utils = {
         /**
@@ -351,33 +388,20 @@
             }
         }
     }
-    const vals = {
-        is_vip: () => { return utils.getValue('is_vip') },
-        player_type: () => { return utils.getValue('player_type') },
-        offset_top: () => { return Math.trunc(utils.getValue('offset_top')) },
-        auto_locate: () => { return utils.getValue('auto_locate') },
-        get_offest_method: () => { return utils.getValue('get_offest_method') },
-        auto_locate_video: () => { return utils.getValue('auto_locate_video') },
-        auto_locate_bangumi: () => { return utils.getValue('auto_locate_bangumi') },
-        click_player_auto_locate: () => { return utils.getValue('click_player_auto_locate') },
-        video_player_offset_top: () => { return Math.trunc(utils.getValue('video_player_offset_top')) },
-        bangumi_player_offset_top: () => { return Math.trunc(utils.getValue('bangumi_player_offset_top')) },
-        current_screen_mode: () => { return utils.getValue('current_screen_mode') },
-        selected_screen_mode: () => { return utils.getValue('selected_screen_mode') },
-        auto_select_video_highest_quality: () => { return utils.getValue('auto_select_video_highest_quality') },
-        contain_quality_4k: () => { return utils.getValue('contain_quality_4k') },
-        contain_quality_8k: () => { return utils.getValue('contain_quality_8k') },
-        webfull_unlock: () => { return utils.getValue('webfull_unlock') },
-        auto_reload: () => { return utils.getValue('auto_reload') },
-        auto_skip: () => { return utils.getValue('auto_skip') }
-    }
-    const styles = {
-        AdjustmentStyle: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen="full"] #goToComments{pointer-events:none;cursor:not-allowed;opacity:.6}#comment-description .user-name{display:flex;align-items:center;justify-content:center;padding:0 5px;height:22px;border:1px solid;border-radius:4px',
-        BodyHidden: 'body{overflow:hidden!important}',
-        ResetPlayerLayoutStyle: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
-        UnlockWebscreenStlye: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}'
-    }
     const modules = {
+        /**
+         * 判断用户是否登录
+         */
+        isLogin() {
+            return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || window.UserStatus.userInfo.isLogin || null)
+        },
+        /**
+         * 获取当前视频ID/video BVID/bangumi EPID
+         */
+        getCurrentVideoID() {
+            const currentUrl = document.URL
+            return currentUrl.includes('www.bilibili.com/video') ? currentUrl.split('/')[4] : currentUrl.includes('www.bilibili.com/bangumi') ? currentUrl.split('/')[5].split('?')[0] : 'error'
+        },
         /**
          * 获取当前视频类型(video/bangumi)
          * 如果都没匹配上则弹窗报错
@@ -393,12 +417,6 @@
             // utils.logger.debug(`${playerType} ${vals.player_type()}`)
             if (vals.player_type() === playerType) return { message: `视频类型丨${playerType}` }
             else modules.getCurrentPlayerType()
-        },
-        /**
-         * 判断用户是否登录
-         */
-        isLogin() {
-            return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || window.UserStatus.userInfo.isLogin || null)
         },
         /**
          * 检查视频元素是否存在
@@ -787,19 +805,18 @@
                 return totalSeconds
             }
             if ($videoDescription.childElementCount > 1 && $videoDescriptionText) {
-
                 const timeStringRegexp = /(\d\d:\d\d(:\d\d)*)/g
                 const urlRegexp = /(http|https|ftp):\/\/[\w\-]+(\.[\w\-]+)*([\w\-\.\,\@\?\^\=\%\&\:\/\~\+\#]*[\w\-\@?\^\=\%\&\/~\+#])?/g
                 const videoIdRegexp = /(BV)([A-Za-z0-9]){10}/g
                 const blankRegexp = /^\s*[\r\n]/gm
-                const videoDescriptionText = $videoDescriptionText.textContent.replace(blankRegexp,'').replace(timeStringRegexp, (match) => {
+                const videoDescriptionText = $videoDescriptionText.textContent.replace(blankRegexp, '').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
                 }).replace(urlRegexp, (match) => {
                     return `<a href="${match}" target="_blank">${match}</a>`
                 }).replace(videoIdRegexp, (match) => {
                     return `<a href="https://www.bilibili.com/video/${match}" target="_blank">${match}</a>`
                 })
-                const replyTemplate = `
+                const videoDescriptionReplyTemplate = `
                 <div data-v-eb69efad="" data-v-bad1995c="" id="comment-description" class="reply-item">
                     <div data-v-eb69efad="" class="root-reply-container">
                         <div data-v-eb69efad="" class="root-reply-avatar" >
@@ -824,8 +841,177 @@
                     <div data-v-eb69efad="" class="bottom-line"></div>
                 </div>
                 `
-                utils.createElementAndInsert(replyTemplate, $videoCommentReplyList, 'prepend')
+                utils.createElementAndInsert(videoDescriptionReplyTemplate, $videoCommentReplyList, 'prepend')
             }
+        },
+        /**
+         * 自动跳过视频已设置设置时间节点
+         */
+        async autoSkipTimeNodes() {
+            const videoID = modules.getCurrentVideoID()
+            const $video = await elmGetter.get(selectors.video)
+            const skipTo = (seconds) => {
+                $video.currentTime = seconds
+                if (video.paused) {
+                    video.play()
+                }
+            }
+            const findTargetTimeNode = (num, arr) => {
+                for (let i = 0; i < arr[0].length; i++) {
+                    if (arr[0][i] === num) {
+                        return arr[1][i];
+                    }
+                }
+                return null;
+            }
+            if (videoID !== 'error') {
+                const videoSkipTimeNodesArray = await modules.getVideoSkipTimeNodesByIndexedDB() || await modules.getVideoSkipTimeNodesByAxios()
+                if (videoSkipTimeNodesArray) {
+                    utils.logger.info(`自动跳过丨已获取节点信息丨${JSON.stringify(videoSkipTimeNodesArray)}`)
+                    $video.addEventListener('timeupdate', function () {
+                        const currentTime = Math.ceil(this.currentTime)
+                        const targetTimeNode = findTargetTimeNode(currentTime, videoSkipTimeNodesArray)
+                        if (utils.getValue('auto_skip') && targetTimeNode) skipTo(targetTimeNode)
+                    })
+                } else {
+                    utils.logger.info('自动跳过丨节点信息不存在')
+                }
+            }
+        },
+        /**
+         * 插入设置跳过时间节点按钮
+         */
+        async insertSetSkipTimeNodesButton() {
+            const videoID = modules.getCurrentVideoID()
+            const [$video, $playerControlerBottomRight, $playerTooltipArea] = await elmGetter.get([selectors.video, selectors.playerControlerBottomRight, selectors.playerTooltipArea])
+            if (++vars.insertSetSkipTimeNodesButtonCount === 1) {
+                const validateInputValue = (inputValue) => {
+                    const regex = /^\[\d+,\d+\](,\[\d+,\d+\])*?$/g;
+                    const numbers = input.match(/\[(\d+),(\d+)\]/g)?.flatMap(match => match.slice(1, -1).split(',')).map(Number) || [];
+                    const hasDuplicates = new Set(numbers).size !== numbers.length
+                    if (input === '' || !regex.test(input) || hasDuplicates) {
+                        return false
+                    }
+                    const isAscending = numbers.every((num, i) => i === 0 || num >= numbers[i - 1])
+                    return isAscending
+                }
+                // [[10,20],[30,40]] → [[10,30],[20,40]]
+                const convertArrayReadableToSave = (arr) => {
+                    return arr[0].map((col, i) => arr.map(row => row[i]))
+                }
+                // [10,20,30,40] → [[10,30],[20,40]]
+                const convertArrayRecordToSave = (arr) => {
+                    return arr.reduce((acc, num, i) => {
+                        i % 2 === 0 ? acc[0].push(num) : acc[1].push(num);
+                        return acc;
+                    }, [[], []]);
+                }
+                // [10,20,30,40] → [[10,20],[30,40]]
+                const convertArrayRecordToReadable = (arr) => {
+                    return arr.reduce((acc, _, i) => {
+                        if (i % 2 === 0) {
+                            acc.push(arr.slice(i, i + 2));
+                        }
+                        return acc;
+                    }, []);
+                }
+                const isArrayLengthEven = (arr) => {
+                    return arr.length % 2 === 0
+                }
+            }
+            const setSkipTimeNodesPopoverToggleButtonHtml = `
+            <button id="setSkipTimeNodesPopoverToggleButton" popovertarget="setSkipTimeNodesPopover" class="bpx-player-ctrl-btn bpx-player-ctrl-skip" role="button" aria-label="插入时间节点" tabindex="0">
+                <div class="bpx-player-ctrl-btn-icon">
+                    <span class="bpx-common-svg-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="88" height="88" class="icon" viewBox="0 0 1024 1024">
+                            <path fill="#fff" d="M672 896a21.333 21.333 0 0 1 21.333 21.333v21.334A21.333 21.333 0 0 1 672 960H352a21.333 21.333 0 0 1-21.333-21.333v-21.334A21.333 21.333 0 0 1 352 896h320zM512 64a362.667 362.667 0 0 1 181.333 676.821v69.846A21.333 21.333 0 0 1 672 832H352a21.333 21.333 0 0 1-21.333-21.333V740.82A362.667 362.667 0 0 1 512 64zm24.107 259.243a21.333 21.333 0 0 0-29.398 6.826l-1.792 3.499a21.333 21.333 0 0 0-1.45 7.765l-.043 62.806-129.45-80.896a21.333 21.333 0 0 0-32.64 18.09v179.03a21.333 21.333 0 0 0 21.333 21.333l3.968-.384a21.333 21.333 0 0 0 7.338-2.859l129.451-80.981.043 62.89a21.333 21.333 0 0 0 32.64 18.091l143.232-89.514a21.333 21.333 0 0 0 0-36.182z" />
+                        </svg>
+                    </span>
+                </div>
+            </button>
+            `
+            const setSkipTimeNodesPopoverHtml = `
+            <div id="setSkipTimeNodesPopover" popover>
+                <div class="setSkipTimeNodesWrapper">
+                    <div class="header">
+                        <span class="title">上传时间节点(${videoID})</span>
+                        <span class="extra"></span>
+                    </div>
+                    <div class="tips close">
+                        <span class="detail open">
+                            <svg class="icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="18" height="18">
+                                <path d="M512 926.476C283.087 926.476 97.524 740.913 97.524 512S283.087 97.524 512 97.524 926.476 283.087 926.476 512 740.913 926.476 512 926.476zm0-73.143c188.514 0 341.333-152.82 341.333-341.333S700.513 170.667 512 170.667 170.667 323.487 170.667 512 323.487 853.333 512 853.333zm-6.095-192.097L283.526 438.857l51.712-51.712 170.667 170.667L676.57 387.145l51.712 51.712-222.378 222.379z" fill="#909399"></path>
+                            </svg>
+                        </span>
+                        <div class="contents">
+                            视频播放到相应时间点时将触发跳转至设定时间点
+                            <br>
+                            格式：[触发时间点,目标时间点]
+                            <br>
+                            条件：触发时间点始终小于目标时间点且任意两数不相等
+                            <br>
+                            例：[10,20] 表示视频播放至第 10 秒时跳转至第 20 秒
+                            <br>
+                            若有多组节点请使用英文逗号 ',' 隔开
+                            <br>
+                            例：[10,20],[30,40],[50,60]
+                        </div>
+                    </div>
+                    <span style="display:flex;color:#f56c6c">🈲请勿随意上传无意义时间点，否则将严重影响其他用户观看体验！</span>
+                    <div class="records">
+                        <span id="timeNodesRecordsArray"></span>
+                        <div class="recordsButtonsGroup">
+                            <button id="clearRecordsButton">清除数据</button>
+                            <button id="saveRecordsButton">保存数据</button>
+                        </div>
+                    </div>
+                    <div class="handles">
+                        <input id="setSkipTimeNodesInput" value="">
+                        <button id="setSkipTimeNodesButton">上传</button>
+                    </div>
+                    <div class="result" style="display:none"></div>
+                </div>
+            </div>
+            `
+            const setSkipTimeNodesButtonTipHtml = `
+            <div id="setSkipTimeNodesButtonTip" class="bpx-player-tooltip-item" style="visibility: hidden; opacity: 0; transform: translate(0px, 0px);">
+                <div class="bpx-player-tooltip-title">上传节点</div>
+            </div>
+            `
+            const $setSkipTimeNodesPopoverToggleButton = utils.createElementAndInsert(setSkipTimeNodesPopoverToggleButtonHtml, $playerControlerBottomRight, 'append')
+            const $setSkipTimeNodesPopover = utils.createElementAndInsert(setSkipTimeNodesPopoverHtml, document.body, 'append')
+            const $setSkipTimeNodesButtonTip = utils.createElementAndInsert(setSkipTimeNodesButtonTipHtml, $playerTooltipArea, 'append')
+            $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseover', function () {
+                const { top, left } = utils.getElementOffsetToDocument(this)
+                // utils.logger.debug(`${top} ${left} ${window.pageYOffset} ${top - window.pageYOffset}`)
+                $setSkipTimeNodesButtonTip.style.top = `${top - window.pageYOffset - (this.getBoundingClientRect().height * 2) - 5}px`
+                $setSkipTimeNodesButtonTip.style.left = `${left - (this.getBoundingClientRect().width / 2)}px`
+                $setSkipTimeNodesButtonTip.style.opacity = 1
+                $setSkipTimeNodesButtonTip.style.visibility = 'visible'
+                $setSkipTimeNodesButtonTip.style.transition = 'opacity .3s'
+
+            })
+            $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseout', () => {
+                $setSkipTimeNodesButtonTip.style.opacity = 0
+                $setSkipTimeNodesButtonTip.style.visibility = 'hidden'
+            })
+            const [$setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail] = await elmGetter.get([selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail])
+            $setSkipTimeNodesPopoverTipsDetail.addEventListener('click', function () {
+                const detailClassList = [...this.classList]
+                if (detailClassList.includes('open')) {
+                    this.classList.replace('open', 'close')
+                    $setSkipTimeNodesPopoverTips.classList.replace('close', 'open')
+                }
+                if (detailClassList.includes('close')) {
+                    this.classList.replace('close', 'open')
+                    $setSkipTimeNodesPopoverTips.classList.replace('open', 'close')
+                }
+            })
+            $setSkipTimeNodesPopoverToggleButton.addEventListener('click', () => {
+                $video.pause()
+                const currentTime = Math.ceil($video.currentTime)
+                $setSkipTimeNodesPopoverHeaderExtra.innerText = `${currentTime} / ${$video.duration}`
+            })
         },
         /**
          * 前期准备函数
@@ -900,7 +1086,8 @@
                     modules.clickPlayerAutoLocation,
                     modules.insertFloatSideNavToolsButton,
                     modules.clickVideoTimeAutoLocation,
-                    modules.insertVideoDescriptionToComment
+                    modules.insertVideoDescriptionToComment,
+                    modules.insertSetSkipTimeNodesButton
                 ]
                 await utils.sleep(2000)
                 utils.executeFunctionsSequentially(functions)
