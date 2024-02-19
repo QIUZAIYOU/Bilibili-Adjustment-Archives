@@ -63,6 +63,8 @@
         videoDescription: '#v_desc',
         videoDescriptionInfo: '#v_desc .basic-desc-info',
         videoDescriptionText: '#v_desc .desc-info-text',
+        videoNextPlayAndRecommendLink: '.video-page-card-small .card-box',
+        videoSectonsEpisodeLink: '.video-sections-content-list .video-episode-card',
         bangumiComment: '#comment_module',
         bangumiFloatNav: '[class*="navTools_floatNavExp"] [class*="navTools_navMenu"]',
         bangumiMainContainer: '.main-container',
@@ -287,6 +289,8 @@
                     await modules.insertVideoDescriptionToComment()
                     // utils.logger.debug('URL改变了！')
                 })
+            } else {
+                modules.clickRelatedVideoAutoLocation()
             }
             $playerContainer.addEventListener('fullscreenchange', async (event) => {
                 let isFullscreen = document.fullscreenElement === event.target;
@@ -746,6 +750,23 @@
             })
         },
         /**
+         * 点击相关视频自动返回播放器
+         * - 合集中的其他视频
+         * - 推荐列表中的视频
+         */
+        async clickRelatedVideoAutoLocation() {
+            await elmGetter.each(selectors.videoSectonsEpisodeLink, (link) => {
+                link.addEventListener('click', async () => {
+                    await modules.locationToPlayer()
+                })
+            })
+            await elmGetter.each(selectors.videoNextPlayAndRecommendLink, (link) => {
+                link.addEventListener('click', async () => {
+                    await modules.locationToPlayer()
+                })
+            })
+        },
+        /**
          * 网页全屏模式解锁
          */
         async webfullScreenModeUnlock() {
@@ -1128,7 +1149,7 @@
                     modules.insertSetSkipTimeNodesButton,
                     utils.addEventListenerToElement
                 ]
-                await utils.sleep(2000)
+                // await utils.sleep(2000)
                 utils.executeFunctionsSequentially(functions)
             } else {
                 utils.logger.info('当前标签｜未激活｜等待激活')
