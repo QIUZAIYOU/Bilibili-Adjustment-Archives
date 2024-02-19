@@ -89,6 +89,7 @@
         timeNodesRecordsArray: '#timeNodesRecordsArray',
         clearRecordsButton: '#clearRecordsButton',
         saveRecordsButton: '#saveRecordsButton',
+        uploadTimeNodesButton: '#uploadTimeNodesButton',
     }
     const vals = {
         is_vip: () => { return utils.getValue('is_vip') },
@@ -111,7 +112,7 @@
         auto_skip: () => { return utils.getValue('auto_skip') }
     }
     const styles = {
-        AdjustmentStyle: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:134px!important;line-height:20px!important;}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#setSkipTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#setSkipTimeNodesButton:hover{background:#00b5e5!important}#timeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}',
+        AdjustmentStyle: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:134px!important;line-height:20px!important;}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#uploadTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#uploadTimeNodesButton:hover{background:#00b5e5!important}#timeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}',
         BodyHidden: 'body{overflow:hidden!important}',
         ResetPlayerLayoutStyle: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
         UnlockWebscreenStlye: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}'
@@ -970,8 +971,8 @@
                 const isArrayLengthEven = (arr) => {
                     return arr.length % 2 === 0
                 }
-            }
-            const setSkipTimeNodesPopoverToggleButtonHtml = `
+
+                const setSkipTimeNodesPopoverToggleButtonHtml = `
             <button id="setSkipTimeNodesPopoverToggleButton" popovertarget="setSkipTimeNodesPopover" class="bpx-player-ctrl-btn bpx-player-ctrl-skip" role="button" aria-label="插入时间节点" tabindex="0">
                 <div class="bpx-player-ctrl-btn-icon">
                     <span class="bpx-common-svg-icon">
@@ -982,7 +983,7 @@
                 </div>
             </button>
             `
-            const setSkipTimeNodesPopoverHtml = `
+                const setSkipTimeNodesPopoverHtml = `
             <div id="setSkipTimeNodesPopover" popover>
                 <div class="setSkipTimeNodesWrapper">
                     <div class="header">
@@ -1019,59 +1020,75 @@
                     </div>
                     <div class="handles">
                         <input id="setSkipTimeNodesInput" value="">
-                        <button id="setSkipTimeNodesButton">上传</button>
+                        <button id="uploadTimeNodesButton">上传</button>
                     </div>
                     <div class="result" style="display:none"></div>
                 </div>
             </div>
             `
-            const setSkipTimeNodesButtonTipHtml = `
+                const setSkipTimeNodesButtonTipHtml = `
             <div id="setSkipTimeNodesButtonTip" class="bpx-player-tooltip-item" style="visibility: hidden; opacity: 0; transform: translate(0px, 0px);">
                 <div class="bpx-player-tooltip-title">上传节点</div>
             </div>
             `
-            const $setSkipTimeNodesPopoverToggleButton = utils.createElementAndInsert(setSkipTimeNodesPopoverToggleButtonHtml, $playerControlerBottomRight, 'append')
-            const $setSkipTimeNodesPopover = utils.createElementAndInsert(setSkipTimeNodesPopoverHtml, $playerContainer, 'append')
-            const $setSkipTimeNodesButtonTip = utils.createElementAndInsert(setSkipTimeNodesButtonTipHtml, $playerTooltipArea, 'append')
-            $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseover', function () {
-                const { top, left } = utils.getElementOffsetToDocument(this)
-                // utils.logger.debug(`${top} ${left} ${window.pageYOffset} ${top - window.pageYOffset}`)
-                $setSkipTimeNodesButtonTip.style.top = `${top - window.pageYOffset - (this.getBoundingClientRect().height * 2) - 5}px`
-                $setSkipTimeNodesButtonTip.style.left = `${left - (this.getBoundingClientRect().width / 2)}px`
-                $setSkipTimeNodesButtonTip.style.opacity = 1
-                $setSkipTimeNodesButtonTip.style.visibility = 'visible'
-                $setSkipTimeNodesButtonTip.style.transition = 'opacity .3s'
+                const $setSkipTimeNodesPopoverToggleButton = utils.createElementAndInsert(setSkipTimeNodesPopoverToggleButtonHtml, $playerControlerBottomRight, 'append')
+                const $setSkipTimeNodesPopover = utils.createElementAndInsert(setSkipTimeNodesPopoverHtml, $playerContainer, 'append')
+                const $setSkipTimeNodesButtonTip = utils.createElementAndInsert(setSkipTimeNodesButtonTipHtml, $playerTooltipArea, 'append')
+                $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseover', function () {
+                    const { top, left } = utils.getElementOffsetToDocument(this)
+                    // utils.logger.debug(`${top} ${left} ${window.pageYOffset} ${top - window.pageYOffset}`)
+                    $setSkipTimeNodesButtonTip.style.top = `${top - window.pageYOffset - (this.getBoundingClientRect().height * 2) - 5}px`
+                    $setSkipTimeNodesButtonTip.style.left = `${left - (this.getBoundingClientRect().width / 2)}px`
+                    $setSkipTimeNodesButtonTip.style.opacity = 1
+                    $setSkipTimeNodesButtonTip.style.visibility = 'visible'
+                    $setSkipTimeNodesButtonTip.style.transition = 'opacity .3s'
 
-            })
-            $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseout', () => {
-                $setSkipTimeNodesButtonTip.style.opacity = 0
-                $setSkipTimeNodesButtonTip.style.visibility = 'hidden'
-            })
-            const [$setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail] = await elmGetter.get([selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail])
-            $setSkipTimeNodesPopoverTipsDetail.addEventListener('click', function (event) {
-                event.stopPropagation()
-                const detailClassList = [...this.classList]
-                if (detailClassList.includes('open')) {
-                    this.classList.replace('open', 'close')
-                    $setSkipTimeNodesPopoverTips.classList.replace('close', 'open')
-                }
-                if (detailClassList.includes('close')) {
-                    this.classList.replace('close', 'open')
-                    $setSkipTimeNodesPopoverTips.classList.replace('open', 'close')
-                }
-            })
-            $setSkipTimeNodesPopoverToggleButton.addEventListener('click', () => {
-                const currentTime = Math.ceil($video.currentTime)
-                $setSkipTimeNodesPopoverHeaderExtra.innerText = `${currentTime} / ${$video.duration}`
-            })
-            $setSkipTimeNodesPopover.addEventListener('toggle', (event) => {
-                if (event.newState === 'open') {
-                    $video.pause()
-                }
-                if (event.newState === 'closed') {
-                    $video.play()
-                }
-            })
+                })
+                $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseout', () => {
+                    $setSkipTimeNodesButtonTip.style.opacity = 0
+                    $setSkipTimeNodesButtonTip.style.visibility = 'hidden'
+                })
+                const [$setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail, $setSkipTimeNodesPopoverRecords, $setSkipTimeNodesInput, $timeNodesRecordsArray, $clearRecordsButton, $saveRecordsButton, $uploadTimeNodesButton] = await elmGetter.get([selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail, selectors.setSkipTimeNodesPopoverRecords, selectors.setSkipTimeNodesInput, selectors.timeNodesRecordsArray, selectors.clearRecordsButton, selectors.saveRecordsButton, selectors.uploadTimeNodesButton])
+                $setSkipTimeNodesPopoverTipsDetail.addEventListener('click', function (event) {
+                    event.stopPropagation()
+                    const detailClassList = [...this.classList]
+                    if (detailClassList.includes('open')) {
+                        this.classList.replace('open', 'close')
+                        $setSkipTimeNodesPopoverTips.classList.replace('close', 'open')
+                    }
+                    if (detailClassList.includes('close')) {
+                        this.classList.replace('close', 'open')
+                        $setSkipTimeNodesPopoverTips.classList.replace('open', 'close')
+                    }
+                })
+                $setSkipTimeNodesPopoverToggleButton.addEventListener('click', () => {
+                    const currentTime = Math.ceil($video.currentTime)
+                    $setSkipTimeNodesPopoverHeaderExtra.innerText = `${currentTime} / ${$video.duration}`
+                })
+                $setSkipTimeNodesPopover.addEventListener('toggle', (event) => {
+                    if (event.newState === 'open') {
+                        $video.pause()
+                        $setSkipTimeNodesInput.focus()
+                    }
+                    if (event.newState === 'closed') {
+                        $video.play()
+                        $clearRecordsButton.click()
+                    }
+                })
+                $clearRecordsButton.addEventListener('click', () => {
+                    arrays.skipNodesRecords = []
+                    $timeNodesRecordsArray.className = ''
+                    $timeNodesRecordsArray.innerText = ''
+                    $setSkipTimeNodesPopoverRecords.style.display = 'none'
+                    $setSkipTimeNodesInput.value = ''
+                })
+                $saveRecordsButton.addEventListener('click', () => {
+                    $setSkipTimeNodesInput.value = JSON.stringify(convertArrayRecordToReadable(JSON.parse($timeNodesRecordsArray.innerText.replace('打点数据：', '')))).slice(1, -1)
+                })
+                $uploadTimeNodesButton.addEventListener('click', () => {
+
+                })
+            }
         },
         /**
          * 前期准备函数
