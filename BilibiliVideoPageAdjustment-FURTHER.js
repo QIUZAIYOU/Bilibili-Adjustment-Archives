@@ -1049,6 +1049,7 @@
          * 自动跳过视频已设置设置时间节点
          */
         async autoSkipTimeNodes() {
+            if (!vals.auto_skip()) return
             const videoID = modules.getCurrentVideoID()
             const $video = await elmGetter.get(selectors.video)
             const skipTo = (seconds) => {
