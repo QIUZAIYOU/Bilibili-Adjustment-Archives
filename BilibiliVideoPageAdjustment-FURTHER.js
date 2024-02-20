@@ -53,6 +53,7 @@
         playerTooltipArea: '.bpx-player-tooltip-area',
         playerTooltipTitle: '.bpx-player-tooltip-title',
         playerDanmuSetting: '.bpx-player-dm-setting',
+        playerEndingRelateVideo: '.bpx-player-ending-related-item',
         volumeButton: '.bpx-player-ctrl-volume-icon',
         mutedButton: '.bpx-player-ctrl-muted-icon',
         video: '#bilibili-player video',
@@ -792,6 +793,11 @@
                 })
             })
             await elmGetter.each(selectors.videoNextPlayAndRecommendLink, (link) => {
+                link.addEventListener('click', async () => {
+                    await modules.locationToPlayer()
+                })
+            })
+            await elmGetter.each(selectors.playerEndingRelateVideo, (link) => {
                 link.addEventListener('click', async () => {
                     await modules.locationToPlayer()
                 })
