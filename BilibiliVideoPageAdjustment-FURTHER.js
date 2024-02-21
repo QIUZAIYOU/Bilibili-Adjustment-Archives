@@ -38,7 +38,7 @@
         autoLocationToPlayerRetryDepths: 0,
     }
     let arrays = {
-        screenModes =['wide', 'web'],
+        screenModes: ['wide', 'web'],
         intervalIds: [],
         skipNodesRecords: []
     }
@@ -297,7 +297,7 @@
          * 为元素添加监听器并执行相应函数
          */
         async addEventListenerToElement() {
-            const [$video, $playerContainer, $setSkipTimeNodesPopoverToggleButton, $setSkipTimeNodesPopoverRecords, $skipTimeNodesRecordsArray, $saveRecordsButton, $AutoSkipSwitchInput] = await elmGetter.get([selectors.video, selectors.playerContainer, selectors.setSkipTimeNodesPopoverToggleButton, selectors.setSkipTimeNodesPopoverRecords, selectors.skipTimeNodesRecordsArray, selectors.saveRecordsButton, selectors.AutoSkipSwitchInput])
+            const [$playerContainer, $AutoSkipSwitchInput] = await elmGetter.get([selectors.playerContainer, selectors.AutoSkipSwitchInput])
             if (window.onurlchange === null) {
                 window.addEventListener('urlchange', async () => {
                     await modules.locationToPlayer()
@@ -308,35 +308,40 @@
                 modules.clickRelatedVideoAutoLocation()
             }
             $playerContainer.addEventListener('fullscreenchange', async (event) => {
-                let isFullscreen = document.fullscreenElement === event.target;
+                let isFullscreen = document.fullscreenElement === event.target
                 if (!isFullscreen) await modules.locationToPlayer()
             })
             document.addEventListener('keydown', (event) => {
-                if (event.key === 'k') {
-                    const currentTime = Math.ceil($video.currentTime)
-                    arrays.skipNodesRecords.push(currentTime)
-                    arrays.skipNodesRecords = Array.from(new Set(arrays.skipNodesRecords))
-                    if (arrays.skipNodesRecords.length > 0) {
-                        $setSkipTimeNodesPopoverRecords.style.display = 'flex'
-                        $skipTimeNodesRecordsArray.innerText = `打点数据：${JSON.stringify(arrays.skipNodesRecords)}`
-                        if (utils.isArrayLengthEven(arrays.skipNodesRecords)) {
-                            $skipTimeNodesRecordsArray.classList.remove('danger')
-                            $skipTimeNodesRecordsArray.classList.add('success')
-                            $saveRecordsButton.removeAttribute('disabled')
-                        } else {
-                            $skipTimeNodesRecordsArray.classList.remove('success')
-                            $skipTimeNodesRecordsArray.classList.add('danger')
-                            $saveRecordsButton.setAttribute('disabled', true)
-                        }
-                    }
-                }
-                if (event.key === 'g') {
-                    $setSkipTimeNodesPopoverToggleButton.click()
-                }
                 if (event.key === 'j') {
                     $AutoSkipSwitchInput.click()
                 }
             })
+            if (vals.auto_skip()) {
+                const [$video, $setSkipTimeNodesPopoverToggleButton, $setSkipTimeNodesPopoverRecords, $skipTimeNodesRecordsArray, $saveRecordsButton] = await elmGetter.get([selectors.video, selectors.setSkipTimeNodesPopoverToggleButton, selectors.setSkipTimeNodesPopoverRecords, selectors.skipTimeNodesRecordsArray, selectors.saveRecordsButton])
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'k') {
+                        const currentTime = Math.ceil($video.currentTime)
+                        arrays.skipNodesRecords.push(currentTime)
+                        arrays.skipNodesRecords = Array.from(new Set(arrays.skipNodesRecords))
+                        if (arrays.skipNodesRecords.length > 0) {
+                            $setSkipTimeNodesPopoverRecords.style.display = 'flex'
+                            $skipTimeNodesRecordsArray.innerText = `打点数据：${JSON.stringify(arrays.skipNodesRecords)}`
+                            if (utils.isArrayLengthEven(arrays.skipNodesRecords)) {
+                                $skipTimeNodesRecordsArray.classList.remove('danger')
+                                $skipTimeNodesRecordsArray.classList.add('success')
+                                $saveRecordsButton.removeAttribute('disabled')
+                            } else {
+                                $skipTimeNodesRecordsArray.classList.remove('success')
+                                $skipTimeNodesRecordsArray.classList.add('danger')
+                                $saveRecordsButton.setAttribute('disabled', true)
+                            }
+                        }
+                    }
+                    if (event.key === 'g') {
+                        $setSkipTimeNodesPopoverToggleButton.click()
+                    }
+                })
+            }
         },
         /**
          * 刷新当前页面
@@ -432,10 +437,8 @@
                             callback
                         } = result
                         if (message) utils.logger.info(message)
-                        if (callback) {
-                            if (typeof callback === 'function') callback()
-                            if (typeof callback === 'array') executeFunctionsSequentially(callback)
-                        }
+                        if (callback && typeof callback === 'function') callback()
+                        if (callback && typeof callback === 'array') executeFunctionsSequentially(callback)
                     }
                     utils.executeFunctionsSequentially(functions)
                 }).catch(error => {
