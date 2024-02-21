@@ -38,6 +38,7 @@
         autoLocationToPlayerRetryDepths: 0,
     }
     let arrays = {
+        screenModes =['wide', 'web'],
         intervalIds: [],
         skipNodesRecords: []
     }
@@ -431,7 +432,10 @@
                             callback
                         } = result
                         if (message) utils.logger.info(message)
-                        if (callback && typeof callback === 'function') callback()
+                        if (callback) {
+                            if (typeof callback === 'function') callback()
+                            if (typeof callback === 'array') executeFunctionsSequentially(callback)
+                        }
                     }
                     utils.executeFunctionsSequentially(functions)
                 }).catch(error => {
@@ -551,9 +555,8 @@
             if (++vars.autoSelectScreenModeRunningCount === 1) {
                 if (vals.selected_screen_mode() === 'close') return { message: '屏幕模式｜功能已关闭' }
                 const currentScreenMode = await modules.getCurrentScreenMode()
-                const screenModeMap = ['wide', 'web']
-                if (screenModeMap.includes(currentScreenMode)) return { message: `屏幕模式｜当前已是 ${currentScreenMode.toUpperCase()} 模式` }
-                if (screenModeMap.includes(vals.selected_screen_mode())) {
+                if (arrays.screenModes.includes(currentScreenMode)) return { message: `屏幕模式｜当前已是 ${currentScreenMode.toUpperCase()} 模式` }
+                if (arrays.screenModes.includes(vals.selected_screen_mode())) {
                     const result = await modules.checkScreenModeSwitchSuccess(vals.selected_screen_mode())
                     // utils.logger.debug(`${result}`)
                     if (result) return { message: `屏幕模式｜${vals.selected_screen_mode().toUpperCase()}｜切换成功` }
@@ -1084,6 +1087,7 @@
                 } else {
                     utils.logger.info('自动跳过丨节点信息不存在')
                 }
+
             }
         },
         /**
@@ -1092,7 +1096,7 @@
         async insertSetSkipTimeNodesButton() {
             const videoID = modules.getCurrentVideoID()
             const [$video, $playerContainer, $playerControlerBottomRight, $playerTooltipArea] = await elmGetter.get([selectors.video, selectors.playerContainer, selectors.playerControlerBottomRight, selectors.playerTooltipArea])
-            if (++vars.insertSetSkipTimeNodesButtonCount === 1) {
+            if (++vars.insertSetSkipTimeNodesButtonCount === 1 && vals.auto_skip()) {
                 const validateInputValue = (inputValue) => {
                     const regex = /^\[\d+,\d+\](,\[\d+,\d+\])*?$/g;
                     const numbers = inputValue.match(/\[(\d+),(\d+)\]/g)?.flatMap(match => match.slice(1, -1).split(',')).map(Number) || [];
@@ -1406,7 +1410,7 @@
                     modules.insertSkipTimeNodesSwitchButton,
                     utils.addEventListenerToElement
                 ]
-                // await utils.sleep(2000)
+                await utils.sleep(2000)
                 utils.executeFunctionsSequentially(functions)
             } else {
                 utils.logger.info('当前标签｜未激活｜等待激活')
