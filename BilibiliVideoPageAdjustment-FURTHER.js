@@ -182,7 +182,7 @@
                 value: false,
             }, {
                 name: 'auto_skip',
-                value: true,
+                value: false,
             }]
             value.forEach(v => {
                 if (utils.getValue(v.name) === undefined) {
@@ -1079,18 +1079,26 @@
                 return null;
             }
             if (videoID !== 'error') {
-                const videoSkipTimeNodesArray = await modules.getVideoSkipTimeNodesByIndexedDB() || await modules.getVideoSkipTimeNodesByAxios()
-                if (videoSkipTimeNodesArray) {
-                    utils.logger.info(`自动跳过丨已获取节点信息丨${JSON.stringify(videoSkipTimeNodesArray)}`)
-                    $video.addEventListener('timeupdate', function () {
-                        const currentTime = Math.ceil($video.currentTime)
-                        const targetTimeNode = findTargetTimeNode(currentTime, videoSkipTimeNodesArray)
-                        if (vals.auto_skip() && targetTimeNode) skipTo(targetTimeNode)
-                    })
+                let videoSkipTimeNodesArray
+                const videoSkipTimeNodesArrayIndexedDB = await modules.getVideoSkipTimeNodesByIndexedDB()
+                if (videoSkipTimeNodesArrayIndexedDB) {
+                    videoSkipTimeNodesArray = videoSkipTimeNodesArrayIndexedDB
                 } else {
-                    utils.logger.info('自动跳过丨节点信息不存在')
+                    const videoSkipTimeNodesArrayAxios = await modules.getVideoSkipTimeNodesByAxios()
+                    if (videoSkipTimeNodesArrayAxios) {
+                        videoSkipTimeNodesArray = videoSkipTimeNodesArrayAxios
+                        await modules.setVideoSkipTimeNodesByIndexedDB(videoSkipTimeNodesArray)
+                    } else {
+                        utils.logger.info('自动跳过丨节点信息不存在')
+                        return
+                    }
                 }
-
+                utils.logger.info(`自动跳过丨已获取节点信息丨${JSON.stringify(videoSkipTimeNodesArray)}`)
+                $video.addEventListener('timeupdate', function () {
+                    const currentTime = Math.ceil($video.currentTime)
+                    const targetTimeNode = findTargetTimeNode(currentTime, videoSkipTimeNodesArray)
+                    if (vals.auto_skip() && targetTimeNode) skipTo(targetTimeNode)
+                })
             }
         },
         /**
