@@ -581,7 +581,7 @@
             if (enterBtnMap[expectScreenMode]) {
                 const enterBtn = await enterBtnMap[expectScreenMode]()
                 enterBtn.click()
-                const currentScreenMode = await modules.getCurrentScreenMode(300)
+                const currentScreenMode = await modules.getCurrentScreenMode()
                 const equal = expectScreenMode === currentScreenMode
                 const success = vals.player_type() === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selectors.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
                 // utils.logger.debug(`${vals.player_type()} ${expectScreenMode} ${currentScreenMode} ${equal} ${success}`)
