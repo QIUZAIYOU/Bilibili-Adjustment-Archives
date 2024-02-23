@@ -898,7 +898,7 @@
                 return totalSeconds
             }
             const timeStringRegexp = /(\d\d:\d\d(:\d\d)*)/g
-            const urlRegexp = /(http|https|ftp):\/\/[\w\-]+(\.[\w\-]+)*([\w\-\.\,\@\?\^\=\%\&\:\/\~\+\#;]*[\w\-\@?\^\=\%\&\/~\+#;])?/g
+            const urlRegexp = /(?<!((href|url)="))(http|https|ftp):\/\/[\w\-]+(\.[\w\-]+)*([\w\-\.\,\@\?\^\=\%\&\:\/\~\+\#;]*[\w\-\@?\^\=\%\&\/~\+#;])?/g
             const plaintVideoIdRegexp = /(?<!(\/|>))((BV)([A-Za-z0-9]){10})(?!(\/|<))/g
             const blankRegexp = /^\s*[\r\n]/gm
             if ($videoDescription.childElementCount > 1 && $videoDescriptionInfo) {
