@@ -299,17 +299,20 @@
         async addEventListenerToElement() {
             const [$playerContainer, $AutoSkipSwitchInput] = await elmGetter.get([selectors.playerContainer, selectors.AutoSkipSwitchInput])
             if (window.onurlchange === null) {
-                window.addEventListener('urlchange', async () => {
-                    await modules.locationToPlayer()
-                    await modules.insertVideoDescriptionToComment()
+                window.addEventListener('urlchange', () => {
+                    modules.locationToPlayer()
+                    modules.insertVideoDescriptionToComment()
                     // utils.logger.debug('URL改变了！')
                 })
             } else {
                 modules.clickRelatedVideoAutoLocation()
             }
-            $playerContainer.addEventListener('fullscreenchange', async (event) => {
+            window.addEventListener("popstate", () => {
+                modules.autoLocationAndInsertVideoDescriptionToComment()
+            }, false)
+            $playerContainer.addEventListener('fullscreenchange', (event) => {
                 let isFullscreen = document.fullscreenElement === event.target
-                if (!isFullscreen) await modules.locationToPlayer()
+                if (!isFullscreen) modules.locationToPlayer()
             })
             document.addEventListener('keydown', (event) => {
                 if (event.key === 'j') {
@@ -788,24 +791,32 @@
             })
         },
         /**
-         * 点击相关视频自动返回播放器
+         * 自动返回播放器并更新评论区简介
+         */
+        async autoLocationAndInsertVideoDescriptionToComment() {
+            modules.locationToPlayer()
+            await utils.sleep(1000)
+            modules.insertVideoDescriptionToComment()
+        },
+        /**
+         * 点击相关视频自动返回播放器并更新评论区简介
          * - 合集中的其他视频
          * - 推荐列表中的视频
          */
         async clickRelatedVideoAutoLocation() {
             await elmGetter.each(selectors.videoSectonsEpisodeLink, (link) => {
-                link.addEventListener('click', async () => {
-                    await modules.locationToPlayer()
+                link.addEventListener('click', () => {
+                    modules.autoLocationAndInsertVideoDescriptionToComment()
                 })
             })
             await elmGetter.each(selectors.videoNextPlayAndRecommendLink, (link) => {
-                link.addEventListener('click', async () => {
-                    await modules.locationToPlayer()
+                link.addEventListener('click', () => {
+                    modules.autoLocationAndInsertVideoDescriptionToComment()
                 })
             })
             await elmGetter.each(selectors.playerEndingRelateVideo, (link) => {
-                link.addEventListener('click', async () => {
-                    await modules.locationToPlayer()
+                link.addEventListener('click', () => {
+                    modules.autoLocationAndInsertVideoDescriptionToComment()
                 })
             })
         },
