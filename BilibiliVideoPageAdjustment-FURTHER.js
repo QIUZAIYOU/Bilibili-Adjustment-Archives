@@ -70,8 +70,9 @@
         videoNextPlayAndRecommendLink: '.video-page-card-small .card-box',
         videoSectonsEpisodeLink: '.video-sections-content-list .video-episode-card',
         bangumiComment: '#comment_module',
-        bangumiFloatNav: '[class*="navTools_floatNavExp"] [class*="navTools_navMenu"]',
+        bangumiFloatNav: '#__next div[class*="navTools_floatNavExp"] div[class*="navTools_navMenu"]',
         bangumiMainContainer: '.main-container',
+        bangumiSectonsEpisodeLink: '#__next div[class*="numberList_wrapper"] div[class*="numberListItem_number_list_item"] ',
         qualitySwitchButtons: '.bpx-player-ctrl-quality-menu-item',
         screenModeWideEnterButton: '.bpx-player-ctrl-wide-enter',
         screenModeWideLeaveButton: '.bpx-player-ctrl-wide-leave',
@@ -297,7 +298,6 @@
          * 为元素添加监听器并执行相应函数
          */
         async addEventListenerToElement() {
-            const [$playerContainer, $AutoSkipSwitchInput] = await elmGetter.get([selectors.playerContainer, selectors.AutoSkipSwitchInput])
             if (window.onurlchange === null) {
                 window.addEventListener('urlchange', () => {
                     modules.locationToPlayer()
@@ -310,6 +310,7 @@
             window.addEventListener("popstate", () => {
                 modules.autoLocationAndInsertVideoDescriptionToComment()
             }, false)
+            const [$playerContainer, $AutoSkipSwitchInput] = await elmGetter.get([selectors.playerContainer, selectors.AutoSkipSwitchInput])
             $playerContainer.addEventListener('fullscreenchange', (event) => {
                 let isFullscreen = document.fullscreenElement === event.target
                 if (!isFullscreen) modules.locationToPlayer()
@@ -783,40 +784,11 @@
                 target.addEventListener('click', async (event) => {
                     event.stopPropagation()
                     await modules.locationToPlayer()
-                    const targetTime = vals.player_type() === 'video' ? target.dataset.videoTime : target.dataset.time
+                    // const targetTime = vals.player_type() === 'video' ? target.dataset.videoTime : target.dataset.time
+                    const targetTime = target.dataset.videoTime
                     if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
                     $video.currentTime = targetTime
                     $video.play()
-                })
-            })
-        },
-        /**
-         * 自动返回播放器并更新评论区简介
-         */
-        async autoLocationAndInsertVideoDescriptionToComment() {
-            modules.locationToPlayer()
-            await utils.sleep(1000)
-            modules.insertVideoDescriptionToComment()
-        },
-        /**
-         * 点击相关视频自动返回播放器并更新评论区简介
-         * - 合集中的其他视频
-         * - 推荐列表中的视频
-         */
-        async clickRelatedVideoAutoLocation() {
-            await elmGetter.each(selectors.videoSectonsEpisodeLink, (link) => {
-                link.addEventListener('click', () => {
-                    modules.autoLocationAndInsertVideoDescriptionToComment()
-                })
-            })
-            await elmGetter.each(selectors.videoNextPlayAndRecommendLink, (link) => {
-                link.addEventListener('click', () => {
-                    modules.autoLocationAndInsertVideoDescriptionToComment()
-                })
-            })
-            await elmGetter.each(selectors.playerEndingRelateVideo, (link) => {
-                link.addEventListener('click', () => {
-                    modules.autoLocationAndInsertVideoDescriptionToComment()
                 })
             })
         },
@@ -888,6 +860,7 @@
          * - 若视频简介中包含视频 BV 号，则将其转换为跳转链接
          */
         async insertVideoDescriptionToComment() {
+            if (vals.player_type() === 'bangumi') return
             const $commentDescription = document.getElementById('comment-description')
             if ($commentDescription) $commentDescription.remove()
             const [$upAvatorFace, $upAvatorIcon, $videoDescription, $videoDescriptionInfo, $videoCommentReplyList] = await elmGetter.get([selectors.upAvatorFace, selectors.upAvatorIcon, selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList])
@@ -1117,8 +1090,8 @@
          */
         async insertSetSkipTimeNodesButton() {
             const videoID = modules.getCurrentVideoID()
-            const [$video, $playerContainer, $playerControlerBottomRight, $playerTooltipArea] = await elmGetter.get([selectors.video, selectors.playerContainer, selectors.playerControlerBottomRight, selectors.playerTooltipArea])
             if (++vars.insertSetSkipTimeNodesButtonCount === 1 && vals.auto_skip()) {
+                const [$video, $playerContainer, $playerControlerBottomRight, $playerTooltipArea] = await elmGetter.get([selectors.video, selectors.playerContainer, selectors.playerControlerBottomRight, selectors.playerTooltipArea])
                 const validateInputValue = (inputValue) => {
                     const regex = /^\[\d+,\d+\](,\[\d+,\d+\])*?$/g;
                     const numbers = inputValue.match(/\[(\d+),(\d+)\]/g)?.flatMap(match => match.slice(1, -1).split(',')).map(Number) || [];
@@ -1355,6 +1328,48 @@
             }
         },
         /**
+         * 自动返回播放器并更新评论区简介
+         */
+        async autoLocationAndInsertVideoDescriptionToComment() {
+            modules.locationToPlayer()
+            await utils.sleep(1500)
+            modules.insertVideoDescriptionToComment()
+        },
+        /**
+         * 点击相关视频自动返回播放器并更新评论区简介
+         * - 合集中的其他视频
+         * - 推荐列表中的视频
+         */
+        async clickRelatedVideoAutoLocation() {
+
+            if (vals.player_type() === 'video') {
+                await elmGetter.each(selectors.videoSectonsEpisodeLink, (link) => {
+                    link.addEventListener('click', () => {
+                        modules.autoLocationAndInsertVideoDescriptionToComment()
+                    })
+                })
+                await elmGetter.each(selectors.videoNextPlayAndRecommendLink, (link) => {
+                    link.addEventListener('click', () => {
+                        modules.autoLocationAndInsertVideoDescriptionToComment()
+                    })
+                })
+                await elmGetter.each(selectors.playerEndingRelateVideo, (link) => {
+                    link.addEventListener('click', () => {
+                        modules.autoLocationAndInsertVideoDescriptionToComment()
+                    })
+                })
+            }
+
+            if (vals.player_type() === 'bangumi') {
+                await elmGetter.each(selectors.bangumiSectonsEpisodeLink, (link) => {
+                    link.addEventListener('click', async () => {
+                        await utils.sleep(100)
+                        modules.locationToPlayer()
+                    })
+                })
+            }
+        },
+        /**
          * 前期准备函数
          * 提前执行其他脚本功能所依赖的其他函数
          */
@@ -1441,3 +1456,4 @@
         arrays.intervalIds.push(timer)
     } else utils.logger.warn('请登录｜本脚本只能在登录状态下使用')
 })();
+
