@@ -874,7 +874,7 @@
             const urlRegexp = /(?<!((href|url)="))(http|https|ftp):\/\/[\w\-]+(\.[\w\-]+)*([\w\-\.\,\@\?\^\=\%\&\:\/\~\+\#;]*[\w\-\@?\^\=\%\&\/~\+#;])?/g
             const plaintVideoIdRegexp = /(?<!(\/|>))((BV)([A-Za-z0-9]){10})(?!(\/|<))/g
             const blankRegexp = /^\s*[\r\n]/gm
-            if ($videoDescription.childElementCount > 1 && $videoDescriptionInfo) {
+            if ($videoDescription.childElementCount > 1 && $videoDescriptionInfo.childElementCount > 0) {
                 const videoDescriptionInfoHtml = $videoDescriptionInfo.innerHTML.replace(blankRegexp, '').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
                 }).replace(urlRegexp, (match) => {
@@ -1456,4 +1456,3 @@
         arrays.intervalIds.push(timer)
     } else utils.logger.warn('请登录｜本脚本只能在登录状态下使用')
 })();
-
