@@ -870,18 +870,19 @@
                 const totalSeconds = hours * 3600 + minutes * 60 + seconds
                 return totalSeconds
             }
+            const nbspToBlankRegexp = /&nbsp;/g
             const timeStringRegexp = /(\d\d:\d\d(:\d\d)*)/g
             const urlRegexp = /(?<!((href|url)="))(http|https|ftp):\/\/[\w\-]+(\.[\w\-]+)*([\w\-\.\,\@\?\^\=\%\&\:\/\~\+\#;]*[\w\-\@?\^\=\%\&\/~\+#;])?/g
             const plaintVideoIdRegexp = /(?<!(\/|>))((BV)([A-Za-z0-9]){10})(?!(\/|<))/g
             const blankRegexp = /^\s*[\r\n]/gm
             if ($videoDescription.childElementCount > 1 && $videoDescriptionInfo.childElementCount > 0) {
-                const videoDescriptionInfoHtml = $videoDescriptionInfo.innerHTML.replace(blankRegexp, '').replace(timeStringRegexp, (match) => {
+                const videoDescriptionInfoHtml = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp,' ').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
                 }).replace(urlRegexp, (match) => {
                     return `<a href="${match}" target="_blank">${match}</a>`
                 }).replace(plaintVideoIdRegexp, (match) => {
                     return `<a href="https://www.bilibili.com/video/${match}" target="_blank">${match}</a>`
-                })
+                }).replace(blankRegexp, '')
                 const upAvatorFace = $upAvatorFace.dataset.src.replace('@96w_96h_1c_1s_!web-avatar', '@160w_160h_1c_1s_!web-avatar-comment')
                 const upAvatorDecoration = document.querySelector(selectors.upAvatorDecoration) ? document.querySelector(selectors.upAvatorDecoration).dataset.src.replace('@144w_144h_!web-avatar', '@240w_240h_!web-avatar-comment') : ''
                 const videoDescriptionReplyTemplate = `
@@ -914,13 +915,13 @@
                 `
                 utils.createElementAndInsert(videoDescriptionReplyTemplate, $videoCommentReplyList, 'prepend')
             } else {
-                $videoDescriptionInfo.innerHTML = $videoDescriptionInfo.innerHTML.replace(blankRegexp, '').replace(timeStringRegexp, (match) => {
+                $videoDescriptionInfo.innerHTML = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp,' ').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
                 }).replace(urlRegexp, (match) => {
                     return `<a href="${match}" target="_blank">${match}</a>`
                 }).replace(plaintVideoIdRegexp, (match) => {
                     return `<a href="https://www.bilibili.com/video/${match}" target="_blank">${match}</a>`
-                })
+                }).replace(blankRegexp, '')
             }
         },
         /**
