@@ -927,6 +927,7 @@
                 </div>
                 `
                 utils.createElementAndInsert(videoDescriptionReplyTemplate, $videoCommentReplyList, 'prepend')
+                document.querySelector('#comment-description:not(:first-child)').remove()
             } else {
                 $videoDescriptionInfo.innerHTML = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp, ' ').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
