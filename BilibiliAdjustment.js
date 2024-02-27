@@ -126,7 +126,7 @@
         BodyHidden: 'body{overflow:hidden!important}',
         ResetPlayerLayoutStyle: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
         UnlockWebscreenStlye: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}',
-        FreezeHeaderAndVideoTitle:'#viewbox_report{height:108px!important;padding-top:22px!important}.members-info-container{height:86px!important;overflow:hidden!important;padding-top:11px!important}.membersinfo-wide .header{display:none!imporant}'
+        FreezeHeaderAndVideoTitle:'#biliMainHeader{height:64px!important}#viewbox_report{height:108px!important;padding-top:22px!important}.members-info-container{height:86px!important;overflow:hidden!important;padding-top:11px!important}.membersinfo-wide .header{display:none!important}'
     }
     const regexps = {
         video: /.*:\/\/www\.bilibili\.com\/(video|bangumi\/play|list)\/.*/g,
@@ -319,7 +319,7 @@
             }
             window.addEventListener("popstate", () => {
                 modules.autoLocationAndInsertVideoDescriptionToComment()
-            }, false)
+            })
             const [$playerContainer, $AutoSkipSwitchInput] = await elmGetter.get([selectors.playerContainer, selectors.AutoSkipSwitchInput])
             $playerContainer.addEventListener('fullscreenchange', (event) => {
                 let isFullscreen = document.fullscreenElement === event.target
@@ -632,7 +632,7 @@
                 playerOffsetTop = utils.getElementOffsetToDocument($player).top
 
             }
-            utils.logger.debug(playerOffsetTop)
+            // utils.logger.debug(playerOffsetTop)
             vals.player_type() === 'video' ? utils.setValue('video_player_offset_top', playerOffsetTop) : utils.setValue('bangumi_player_offset_top', playerOffsetTop)
             await modules.getCurrentScreenMode() === 'wide' ? utils.documentScrollTo(playerOffsetTop - vals.offset_top()) : utils.documentScrollTo(0)
             return
@@ -647,7 +647,6 @@
             }
             const onAutoLocate = vals.auto_locate() && ((!vals.auto_locate_video() && !vals.auto_locate_bangumi()) || (vals.auto_locate_video() && vals.player_type() === 'video') || (vals.auto_locate_bangumi() && vals.player_type() === 'bangumi'))
             if (!onAutoLocate || vals.selected_screen_mode() === 'web') return { callback: unlockbody }
-            await utils.sleep(1000)
             await modules.setlocationDataAndScrollToPlayer()
             const playerOffsetTop = vals.player_type() === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
             const result = await modules.checkAutoLocationSuccess(playerOffsetTop - vals.offset_top())
