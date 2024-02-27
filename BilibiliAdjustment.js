@@ -6,10 +6,10 @@
 // @version           0.1
 // @description       一、动态页调整：1.导航样式优化。2.默认显示"投稿视频"内容。二、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
-// @match             *://*.bilibili.com/video/*
-// @match             *://*.bilibili.com/bangumi/play/*
-// @match             *://*.bilibili.com/list/*
-// @match              *://t.bilibili.com/*
+// @match             *://www.bilibili.com/video/*
+// @match             *://www.bilibili.com/bangumi/play/*
+// @match             *://www.bilibili.com/list/*
+// @match             *://t.bilibili.com/*
 // @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
 // @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
 // @require           https://scriptcat.org/lib/513/2.0.0/ElementGetter.js#sha256=KbLWud5OMbbXZHRoU/GLVgvIgeosObRYkDEbE/YanRU=
@@ -118,7 +118,8 @@
         contain_quality_8k: () => { return utils.getValue('contain_quality_8k') },
         webfull_unlock: () => { return utils.getValue('webfull_unlock') },
         auto_reload: () => { return utils.getValue('auto_reload') },
-        auto_skip: () => { return utils.getValue('auto_skip') }
+        auto_skip: () => { return utils.getValue('auto_skip') },
+        web_video_link: () => { return utils.getValue('web_video_link') }
     }
     const styles = {
         AdjustmentStyle: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:134px!important;line-height:20px!important;}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#uploadSkipTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#uploadSkipTimeNodesButton:hover{background:#00b5e5!important}#skipTimeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}',
@@ -185,6 +186,9 @@
             }, {
                 name: 'auto_skip',
                 value: false,
+            }, {
+                name: 'web_video_link',
+                value: 'https://t.bilibili.com/?tab=video'
             }]
             value.forEach(v => {
                 if (utils.getValue(v.name) === undefined) {
@@ -429,31 +433,39 @@
         /**
          * 按顺序依次执行函数数组中的函数
          * @param {Array} functions 待执行的函数数组
-         * - 只有当前一个函数执行完毕时才会继续执行下一个函数
+         * - 当函数为异步函数时，只有当前一个函数执行完毕时才会继续执行下一个函数
+         * - 当函数为同步函数时，则只会执行相应函数
          */
         async executeFunctionsSequentially(functions) {
+            const isAsyncFunction = (func) => { return func() instanceof Promise }
             if (functions.length > 0) {
                 const currentFunction = functions.shift()
-                await currentFunction().then(result => {
-                    // console.log(currentFunction.name, message)
+                if (isAsyncFunction(currentFunction)) {
+                    await currentFunction().then(result => {
+                        // console.log(currentFunction.name, message)
+                        if (result) {
+                            const { message, callback } = result
+                            if (message) utils.logger.info(message)
+                            if (callback && typeof callback === 'function') callback()
+                            if (callback && typeof callback === 'array') executeFunctionsSequentially(callback)
+                        }
+                        utils.executeFunctionsSequentially(functions)
+                    }).catch(error => {
+                        utils.logger.error(error)
+                        utils.reloadCurrentTab()
+                    })
+                } else {
+                    const result = currentFunction()
                     if (result) {
-                        const {
-                            message,
-                            callback
-                        } = result
+                        const { message, callback } = result
                         if (message) utils.logger.info(message)
-                        if (callback && typeof callback === 'function') callback()
-                        if (callback && typeof callback === 'array') executeFunctionsSequentially(callback)
                     }
-                    utils.executeFunctionsSequentially(functions)
-                }).catch(error => {
-                    utils.logger.error(error)
-                    utils.reloadCurrentTab()
-                })
+                }
             }
         }
     }
     const modules = {
+        //** ----------------------- 视频播放页相关功能 ----------------------- **//
         /**
          * 判断用户是否登录
          */
@@ -877,7 +889,7 @@
             const plaintVideoIdRegexp = /(?<!(\/|>))((BV)([A-Za-z0-9]){10})(?!(\/|<))/g
             const blankRegexp = /^\s*[\r\n]/gm
             if ($videoDescription.childElementCount > 1 && $videoDescriptionInfo.childElementCount > 0) {
-                const videoDescriptionInfoHtml = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp,' ').replace(timeStringRegexp, (match) => {
+                const videoDescriptionInfoHtml = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp, ' ').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
                 }).replace(urlRegexp, (match) => {
                     return `<a href="${match}" target="_blank">${match}</a>`
@@ -916,7 +928,7 @@
                 `
                 utils.createElementAndInsert(videoDescriptionReplyTemplate, $videoCommentReplyList, 'prepend')
             } else {
-                $videoDescriptionInfo.innerHTML = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp,' ').replace(timeStringRegexp, (match) => {
+                $videoDescriptionInfo.innerHTML = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp, ' ').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
                 }).replace(urlRegexp, (match) => {
                     return `<a href="${match}" target="_blank">${match}</a>`
@@ -1371,57 +1383,47 @@
                 })
             }
         },
+        //** ----------------------- 动态页相关功能 ----------------------- **//
+        /**
+         * 默认显示投稿视频
+         */
+        changeCurrentUrlToVideoSubmissions() {
+            const web_video_link = vals.web_video_link()
+            const url = window.location.href
+            const indexHTML = 'https://t.bilibili.com/pages/nav/index'
+            const indexHTMLNew = /(https:\/\/t.bilibili.com\/pages\/nav\/index_new).*/i
+            const indexVoteHTML = /https:\/\/t.bilibili.com\/vote\/h5\/index\/#\/result\?vote_id=.*/i
+            const webVoteHTML = /t.bilibili.com\/h5\/dynamic\/vote#\/result\?vote_id=.*/i
+            const indexLotteryHTML = /https:\/\/t.bilibili.com\/lottery\/h5\/index\/.*/i
+            const webLotteryHTML = /https:\/\/t.bilibili.com\/lottery\/.*/i
+            const moreDongTai = /https:\/\/t.bilibili.com\/[0-9]+\?tab=[0-9]+/i
+            const DongTaiDetail = /https:\/\/t.bilibili.com\/[0-9]+/i
+            const DongTaiTopicDetail = /https:\/\/t.bilibili.com\/topic\/[0-9]+/i
+            if (url == indexHTML || indexHTMLNew.test(url) || indexVoteHTML.test(url) || webVoteHTML.test(url) || indexLotteryHTML.test(url) || webLotteryHTML.test(url) || moreDongTai.test(url) || DongTaiDetail.test(url) || DongTaiTopicDetail.test(url)) {
+                //不影响BiliBili首页导航栏动态悬浮窗、动态页里投票及互动抽奖页等内容显示
+                return false
+            }
+            if (url !== web_video_link) {
+                window.location.href = web_video_link
+            } else {
+                return { message: '动态页｜已切换至投稿视频' }
+            }
+        },
         /**
          * 前期准备函数
          * 提前执行其他脚本功能所依赖的其他函数
          */
         thePrepFunction() {
             if (++vars.thePrepFunctionRunningCount === 1) {
-                utils.insertStyleToDocument('BodyHidden', styles.BodyHidden)
-                utils.clearAllTimersWhenCloseTab()
-                utils.insertStyleToDocument('AdjustmentStyle', styles.AdjustmentStyle)
                 utils.initValue()
-                modules.observerPlayerDataScreenChanges()
-            }
-        },
-        /**
-         * 脚本执行主函数
-         * 定义了所有功能函数将按何种规则执行
-         */
-        async theMainFunction() {
-            if (++vars.theMainFunctionRunningCount === 1) {
-                const videoPlayerExists = await elmGetter.get(selectors.video)
-                if (videoPlayerExists) {
-                    utils.logger.info('播放器｜已找到')
-                    const isCanPlayThrough = await modules.checkVideoCanPlayThrough()
-                    const videoControlerBtnExists = await elmGetter.get(selectors.playerControler)
-                    if (isCanPlayThrough || (!isCanPlayThrough && videoControlerBtnExists)) {
-                        utils.logger.info('视频资源｜可以播放')
-                        const selectedScreenMode = await modules.autoSelectScreenMode()
-                        if (selectedScreenMode) {
-                            utils.logger.info(`屏幕模式｜${vals.selected_screen_mode().toUpperCase()}｜切换成功`)
-                            const autoLocationToPlayerSuccess = await modules.autoLocationToPlayer()
-                            if (autoLocationToPlayerSuccess) {
-                                modules.autoCancelMute()
-                                modules.autoSelectVideoHighestQuality()
-                                modules.clickPlayerAutoLocation()
-                                modules.insertFloatSideNavToolsButton()
-                                document.body.style.overflow = 'auto'
-                            }
-                        } else {
-                            utils.logger.error(`屏幕模式｜${vals.selected_screen_mode().toUpperCase()}｜切换失败)`)
-                            utils.reloadCurrentTab()
-                        }
-                    } else {
-                        utils.logger.error('视频资源｜加载失败')
-                        utils.reloadCurrentTab()
-                    }
-                } else {
-                    utils.logger.error('播放器｜未找到')
-                    utils.reloadCurrentTab()
+                if (window.location.host === 'www.bilibili.com') {
+                    utils.insertStyleToDocument('BodyHidden', styles.BodyHidden)
+                    utils.clearAllTimersWhenCloseTab()
+                    utils.insertStyleToDocument('AdjustmentStyle', styles.AdjustmentStyle)
+                    modules.observerPlayerDataScreenChanges()
                 }
             }
-        }
+        },
     }
     if (modules.isLogin()) {
         modules.thePrepFunction()
@@ -1431,25 +1433,33 @@
                 clearInterval(timer)
                 utils.logger.info('当前标签｜已激活｜开始应用配置')
                 // modules.theMainFunction()
-                const functions = [
-                    modules.getCurrentPlayerType,
-                    modules.checkVideoExistence,
-                    modules.checkVideoCanPlayThrough,
-                    modules.autoSelectScreenMode,
-                    modules.webfullScreenModeUnlock,
-                    modules.autoLocationToPlayer,
-                    modules.autoCancelMute,
-                    modules.autoSelectVideoHighestQuality,
-                    modules.clickPlayerAutoLocation,
-                    modules.insertFloatSideNavToolsButton,
-                    modules.clickVideoTimeAutoLocation,
-                    modules.insertVideoDescriptionToComment,
-                    modules.autoSkipTimeNodes,
-                    modules.insertSetSkipTimeNodesButton,
-                    modules.insertSkipTimeNodesSwitchButton,
-                    utils.addEventListenerToElement
-                ]
-                await utils.sleep(2000)
+                let functions
+                if (window.location.host === 'www.bilibili.com') {
+                    functions = [
+                        modules.getCurrentPlayerType,
+                        modules.checkVideoExistence,
+                        modules.checkVideoCanPlayThrough,
+                        modules.autoSelectScreenMode,
+                        modules.webfullScreenModeUnlock,
+                        modules.autoLocationToPlayer,
+                        modules.autoCancelMute,
+                        modules.autoSelectVideoHighestQuality,
+                        modules.clickPlayerAutoLocation,
+                        modules.insertFloatSideNavToolsButton,
+                        modules.clickVideoTimeAutoLocation,
+                        modules.insertVideoDescriptionToComment,
+                        modules.autoSkipTimeNodes,
+                        modules.insertSetSkipTimeNodesButton,
+                        modules.insertSkipTimeNodesSwitchButton,
+                        utils.addEventListenerToElement
+                    ]
+                    await utils.sleep(2000)
+                }
+                if (window.location.host === 't.bilibili.com') {
+                    functions = [
+                        modules.changeCurrentUrlToVideoSubmissions,
+                    ]
+                }
                 utils.executeFunctionsSequentially(functions)
             } else {
                 utils.logger.info('当前标签｜未激活｜等待激活')
