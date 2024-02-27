@@ -646,7 +646,7 @@
             }
             const onAutoLocate = vals.auto_locate() && ((!vals.auto_locate_video() && !vals.auto_locate_bangumi()) || (vals.auto_locate_video() && vals.player_type() === 'video') || (vals.auto_locate_bangumi() && vals.player_type() === 'bangumi'))
             if (!onAutoLocate || vals.selected_screen_mode() === 'web') return { callback: unlockbody }
-            await utils.sleep(500)
+            await utils.sleep(1000)
             await modules.setlocationDataAndScrollToPlayer()
             const playerOffsetTop = vals.player_type() === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
             const result = await modules.checkAutoLocationSuccess(playerOffsetTop - vals.offset_top())
@@ -1442,7 +1442,6 @@
                 // modules.theMainFunction()
                 let functions
                 if (regexps.video.test(window.location.href)) {
-                    await utils.sleep(2000)
                     functions = [
                         modules.getCurrentPlayerType,
                         modules.checkVideoExistence,
@@ -1461,13 +1460,14 @@
                         modules.insertSkipTimeNodesSwitchButton,
                         utils.addEventListenerToElement
                     ]
-                    
+                    await utils.sleep(2000)
                 }
                 if (regexps.dynamic.test(window.location.href)) {
                     functions = [
                         modules.changeCurrentUrlToVideoSubmissions,
                     ]
                 }
+                
                 utils.executeFunctionsSequentially(functions)
             } else {
                 utils.logger.info('当前标签｜未激活｜等待激活')
