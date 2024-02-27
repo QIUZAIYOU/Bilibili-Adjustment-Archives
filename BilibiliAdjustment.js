@@ -631,6 +631,7 @@
                 playerOffsetTop = utils.getElementOffsetToDocument($player).top
 
             }
+            utils.logger.debug(playerOffsetTop)
             vals.player_type() === 'video' ? utils.setValue('video_player_offset_top', playerOffsetTop) : utils.setValue('bangumi_player_offset_top', playerOffsetTop)
             await modules.getCurrentScreenMode() === 'wide' ? utils.documentScrollTo(playerOffsetTop - vals.offset_top()) : utils.documentScrollTo(0)
             return
@@ -645,8 +646,8 @@
             }
             const onAutoLocate = vals.auto_locate() && ((!vals.auto_locate_video() && !vals.auto_locate_bangumi()) || (vals.auto_locate_video() && vals.player_type() === 'video') || (vals.auto_locate_bangumi() && vals.player_type() === 'bangumi'))
             if (!onAutoLocate || vals.selected_screen_mode() === 'web') return { callback: unlockbody }
+            await utils.sleep(500)
             await modules.setlocationDataAndScrollToPlayer()
-            await utils.sleep(100)
             const playerOffsetTop = vals.player_type() === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
             const result = await modules.checkAutoLocationSuccess(playerOffsetTop - vals.offset_top())
             if (result) return { message: '自动定位｜成功', callback: unlockbody }
@@ -1441,6 +1442,7 @@
                 // modules.theMainFunction()
                 let functions
                 if (regexps.video.test(window.location.href)) {
+                    await utils.sleep(2000)
                     functions = [
                         modules.getCurrentPlayerType,
                         modules.checkVideoExistence,
@@ -1459,7 +1461,7 @@
                         modules.insertSkipTimeNodesSwitchButton,
                         utils.addEventListenerToElement
                     ]
-                    await utils.sleep(2000)
+                    
                 }
                 if (regexps.dynamic.test(window.location.href)) {
                     functions = [
