@@ -127,6 +127,10 @@
         ResetPlayerLayoutStyle: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
         UnlockWebscreenStlye: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}'
     }
+    const regexps = {
+        video: /.*:\/\/www\.bilibili\.com\/(video|bangumi\/play|list)\/.*/g,
+        dynamic: /.*:\/\/t\.bilibili\.com\/.*/g
+    }
     const utils = {
         /**
          * 初始化所有数据
@@ -1391,16 +1395,16 @@
         changeCurrentUrlToVideoSubmissions() {
             const web_video_link = vals.web_video_link()
             const url = window.location.href
-            const indexHTML = 'https://t.bilibili.com/pages/nav/index'
-            const indexHTMLNew = /(https:\/\/t.bilibili.com\/pages\/nav\/index_new).*/i
-            const indexVoteHTML = /https:\/\/t.bilibili.com\/vote\/h5\/index\/#\/result\?vote_id=.*/i
-            const webVoteHTML = /t.bilibili.com\/h5\/dynamic\/vote#\/result\?vote_id=.*/i
-            const indexLotteryHTML = /https:\/\/t.bilibili.com\/lottery\/h5\/index\/.*/i
-            const webLotteryHTML = /https:\/\/t.bilibili.com\/lottery\/.*/i
-            const moreDongTai = /https:\/\/t.bilibili.com\/[0-9]+\?tab=[0-9]+/i
-            const DongTaiDetail = /https:\/\/t.bilibili.com\/[0-9]+/i
-            const DongTaiTopicDetail = /https:\/\/t.bilibili.com\/topic\/[0-9]+/i
-            if (url == indexHTML || indexHTMLNew.test(url) || indexVoteHTML.test(url) || webVoteHTML.test(url) || indexLotteryHTML.test(url) || webLotteryHTML.test(url) || moreDongTai.test(url) || DongTaiDetail.test(url) || DongTaiTopicDetail.test(url)) {
+            const indexLink = 'https://t.bilibili.com/pages/nav/index'
+            const newIndexLinkRegexp = /(https:\/\/t.bilibili.com\/pages\/nav\/index_new).*/i
+            const indexVoteLinkRegexp = /https:\/\/t.bilibili.com\/vote\/h5\/index\/#\/result\?vote_id=.*/i
+            const webVoteLinkRegexp = /t.bilibili.com\/h5\/dynamic\/vote#\/result\?vote_id=.*/i
+            const indexLotteryLinkRegexp = /https:\/\/t.bilibili.com\/lottery\/h5\/index\/.*/i
+            const webLotteryLinkRegexp = /https:\/\/t.bilibili.com\/lottery\/.*/i
+            const moreDynamicLinkRegexp = /https:\/\/t.bilibili.com\/[0-9]+\?tab=[0-9]+/i
+            const dynamicDetailLinkRegexp = /https:\/\/t.bilibili.com\/[0-9]+/i
+            const dynamicTopicDetailLinkRegexp = /https:\/\/t.bilibili.com\/topic\/[0-9]+/i
+            if (url == indexLink || newIndexLinkRegexp.test(url) || indexVoteLinkRegexp.test(url) || webVoteLinkRegexp.test(url) || indexLotteryLinkRegexp.test(url) || webLotteryLinkRegexp.test(url) || moreDynamicLinkRegexp.test(url) || dynamicDetailLinkRegexp.test(url) || dynamicTopicDetailLinkRegexp.test(url)) {
                 //不影响BiliBili首页导航栏动态悬浮窗、动态页里投票及互动抽奖页等内容显示
                 return false
             }
@@ -1436,7 +1440,7 @@
                 utils.logger.info('当前标签｜已激活｜开始应用配置')
                 // modules.theMainFunction()
                 let functions
-                if (window.location.host === 'www.bilibili.com') {
+                if (regexps.video.test(window.location.href)) {
                     functions = [
                         modules.getCurrentPlayerType,
                         modules.checkVideoExistence,
@@ -1457,7 +1461,7 @@
                     ]
                     await utils.sleep(2000)
                 }
-                if (window.location.host === 't.bilibili.com') {
+                if (regexps.dynamic.test(window.location.href)) {
                     functions = [
                         modules.changeCurrentUrlToVideoSubmissions,
                     ]
