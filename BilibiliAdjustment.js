@@ -446,8 +446,8 @@
             if (functions.length > 0) {
                 const currentFunction = functions.shift()
                 if (isAsyncFunction(currentFunction)) {
-                    await currentFunction().then(result => {
-                        // console.log(currentFunction.name, message)
+                    await currentFunction().then((result) => {
+                        // console.log(currentFunction.name, result)
                         if (result) {
                             const { message, callback } = result
                             if (message) utils.logger.info(message)
@@ -643,7 +643,7 @@
          */
         async autoLocationToPlayer() {
             const unlockbody = () => {
-                document.getElementById('BodyHidden').remove()
+                document.getElementById('BodyHidden')?.remove()
             }
             const onAutoLocate = vals.auto_locate() && ((!vals.auto_locate_video() && !vals.auto_locate_bangumi()) || (vals.auto_locate_video() && vals.player_type() === 'video') || (vals.auto_locate_bangumi() && vals.player_type() === 'bangumi'))
             if (!onAutoLocate || vals.selected_screen_mode() === 'web') return { callback: unlockbody }
@@ -739,13 +739,13 @@
                 let message
                 const qualitySwitchButtonsMap = new Map()
                 if (!vals.auto_select_video_highest_quality()) return
-                await elmGetter.each(selectors.qualitySwitchButtons, document, button => {
+                await elmGetter.each(selectors.qualitySwitchButtons, document.body, button => {
                     qualitySwitchButtonsMap.set(button.dataset.value, button)
                 })
-                await utils.sleep(100)
+                const qualitySwitchButtonsArray = [...qualitySwitchButtonsMap]
                 if (vals.is_vip()) {
                     if (!vals.contain_quality_4k() && !vals.contain_quality_8k()) {
-                        [...qualitySwitchButtonsMap].filter(quality => {
+                        qualitySwitchButtonsArray.filter(quality => {
                             return +quality[0] < 120
                         })[0][1].click()
                         message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
@@ -759,15 +759,13 @@
                         message = '最高画质｜VIP｜8K｜切换成功'
                     }
                 } else {
-                    [...qualitySwitchButtonsMap].filter(button => {
+                    qualitySwitchButtonsArray.filter(button => {
                         return button[1].children.length < 2
                     })[0][1].click()
                     message = '最高画质｜非VIP｜切换成功'
                 }
                 // utils.logger.info(message)
-                return {
-                    message
-                }
+                return { message }
             }
         },
         /**
