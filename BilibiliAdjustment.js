@@ -126,7 +126,7 @@
         BodyHidden: 'body{overflow:hidden!important}',
         ResetPlayerLayoutStyle: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
         UnlockWebscreenStlye: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}',
-        FreezeHeaderAndVideoTitle:'#biliMainHeader{height:64px!important}#viewbox_report{height:108px!important;padding-top:22px!important}.members-info-container{height:86px!important;overflow:hidden!important;padding-top:11px!important}.membersinfo-wide .header{display:none!important}'
+        FreezeHeaderAndVideoTitle: '#biliMainHeader{height:64px!important}#viewbox_report{height:108px!important;padding-top:22px!important}.members-info-container{height:86px!important;overflow:hidden!important;padding-top:11px!important}.membersinfo-wide .header{display:none!important}'
     }
     const regexps = {
         video: /.*:\/\/www\.bilibili\.com\/(video|bangumi\/play|list)\/.*/g,
@@ -932,7 +932,7 @@
                 </div>
                 `
                 utils.createElementAndInsert(videoDescriptionReplyTemplate, $videoCommentReplyList, 'prepend')
-                document.querySelector('#comment-description:not(:first-child)').remove()
+                document.querySelector('#comment-description:not(:first-child)')?.remove()
             } else {
                 $videoDescriptionInfo.innerHTML = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp, ' ').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
@@ -1468,7 +1468,7 @@
                         modules.changeCurrentUrlToVideoSubmissions,
                     ]
                 }
-                
+
                 utils.executeFunctionsSequentially(functions)
             } else {
                 utils.logger.info('当前标签｜未激活｜等待激活')
