@@ -430,16 +430,13 @@
          * @param {Array} functions 待执行的函数数组
          * - 只有当前一个函数执行完毕时才会继续执行下一个函数
          */
-        async executeFunctionsSequentially(functions) {
+        executeFunctionsSequentially(functions) {
             if (functions.length > 0) {
                 const currentFunction = functions.shift()
-                await currentFunction().then(result => {
+                currentFunction().then(result => {
                     // console.log(currentFunction.name, message)
                     if (result) {
-                        const {
-                            message,
-                            callback
-                        } = result
+                        const { message, callback } = result
                         if (message) utils.logger.info(message)
                         if (callback && typeof callback === 'function') callback()
                         if (callback && typeof callback === 'array') executeFunctionsSequentially(callback)
