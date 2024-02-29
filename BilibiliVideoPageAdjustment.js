@@ -250,29 +250,6 @@
                 console.info('%c播放页调整(调试)', 'color:white;background:#cc00ff;padding:2px;border-radius:2px', content);
             },
         },
-        // /**
-        //  * 检查元素是否存在
-        //  * @param {String} selector 元素选择器
-        //  * @param {Number} maxAttempts 最大尝试次数
-        //  * @param {Number} delay 检查时间间隔
-        //  */
-        // checkElementExistence(selector, maxAttempts, delay) {
-        //   return new Promise(resolve => {
-        //     let attempts = 0
-        //     const timer = setInterval(() => {
-        //       attempts++
-        //       const $element = document.querySelector(selector)
-        //       if ($element) {
-        //         clearInterval(timer)
-        //         resolve(true)
-        //       } else if (attempts === maxAttempts) {
-        //         clearInterval(timer)
-        //         resolve(false)
-        //       }
-        //     }, delay)
-        //     arrays.intervalIds.push(timer)
-        //   })
-        // },
         /**
          * 检查当前文档是否被激活
          */
