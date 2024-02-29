@@ -82,6 +82,8 @@
         screenModeFullControlButton: '.bpx-player-ctrl-full',
         danmukuBox: '#danmukuBox',
         danmuShowHideTip: 'div[aria-label="弹幕显示隐藏"]',
+        membersContainer: '.members-info-container',
+        membersUpAvatorFace: '.membersinfo-upcard:first-child picture img',
         upAvatorFace: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-face',
         upAvatorDecoration: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-pendent-dom .bili-avatar-img',
         upAvatorIcon: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-icon',
@@ -856,7 +858,8 @@
             if (vals.player_type() === 'bangumi') return
             const $commentDescription = document.getElementById('comment-description')
             if ($commentDescription) $commentDescription.remove()
-            const [$upAvatorFace, $upAvatorIcon, $videoDescription, $videoDescriptionInfo, $videoCommentReplyList] = await elmGetter.get([selectors.upAvatorFace, selectors.upAvatorIcon, selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList])
+
+            const [$videoDescription, $videoDescriptionInfo, $videoCommentReplyList] = await elmGetter.get([selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList])
             const getTotalSecondsFromTimeString = (timeString) => {
                 if (timeString.length === 5) timeString = '00:' + timeString
                 const [hours, minutes, seconds] = timeString.split(':').map(Number)
@@ -868,7 +871,17 @@
             const urlRegexp = /(?<!((href|url)="))(http|https|ftp):\/\/[\w\-]+(\.[\w\-]+)*([\w\-\.\,\@\?\^\=\%\&\:\/\~\+\#;]*[\w\-\@?\^\=\%\&\/~\+#;])?/g
             const plaintVideoIdRegexp = /(?<!(\/|>))((BV)([A-Za-z0-9]){10})(?!(\/|<))/g
             const blankRegexp = /^\s*[\r\n]/gm
+
             if ($videoDescription.childElementCount > 1 && $videoDescriptionInfo.childElementCount > 0) {
+                let $upAvatorFace, $upAvatorIcon, upAvatorFaceLink
+                const $membersContainer = document.querySelector(selectors.membersContainer)
+                if ($membersContainer) {
+                    const $membersUpAvatorFace = await elmGetter.get(selectors.membersUpAvatorFace)
+                    upAvatorFaceLink = $membersUpAvatorFace.getAttribute('src')
+                } else {
+                    [$upAvatorFace, $upAvatorIcon] = await elmGetter.get([selectors.upAvatorFace, selectors.upAvatorIcon])
+                    upAvatorFaceLink = $upAvatorFace.dataset.src.replace('@96w_96h_1c_1s_!web-avatar', '@160w_160h_1c_1s_!web-avatar-comment')
+                }
                 const videoDescriptionInfoHtml = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp, ' ').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
                 }).replace(urlRegexp, (match) => {
@@ -876,19 +889,18 @@
                 }).replace(plaintVideoIdRegexp, (match) => {
                     return `<a href="https://www.bilibili.com/video/${match}" target="_blank">${match}</a>`
                 }).replace(blankRegexp, '')
-                const upAvatorFace = $upAvatorFace.dataset.src.replace('@96w_96h_1c_1s_!web-avatar', '@160w_160h_1c_1s_!web-avatar-comment')
-                const upAvatorDecoration = document.querySelector(selectors.upAvatorDecoration) ? document.querySelector(selectors.upAvatorDecoration).dataset.src.replace('@144w_144h_!web-avatar', '@240w_240h_!web-avatar-comment') : ''
+                const upAvatorDecorationLink = document.querySelector(selectors.upAvatorDecoration) ? document.querySelector(selectors.upAvatorDecoration).dataset.src.replace('@144w_144h_!web-avatar', '@240w_240h_!web-avatar-comment') : ''
                 const videoDescriptionReplyTemplate = `
                 <div data-v-eb69efad="" data-v-bad1995c="" id="comment-description" class="reply-item">
                     <div data-v-eb69efad="" class="root-reply-container">
                         <div data-v-eb69efad="" class="root-reply-avatar" >
                             <div data-v-eb69efad="" class="avatar">
                                 <div class="bili-avatar" style="width:48px;height:48px">
-                                    <img class="bili-avatar-img bili-avatar-face bili-avatar-img-radius" data-src="${upAvatorFace}" src="${upAvatorFace}">
+                                    <img class="bili-avatar-img bili-avatar-face bili-avatar-img-radius" data-src="${upAvatorFaceLink}" src="${upAvatorFaceLink}">
                                     <div class="bili-avatar-pendent-dom">
-                                        <img class="bili-avatar-img" data-src="${upAvatorDecoration}" alt="" src="${upAvatorDecoration}">
+                                        <img class="bili-avatar-img" data-src="${upAvatorDecorationLink}" alt="" src="${upAvatorDecorationLink}">
                                     </div>
-                                    <span class="${$upAvatorIcon.classList}"></span>
+                                    <span class="${$upAvatorIcon?.classList}"></span>
                                 </div>
                             </div>
                         </div>
