@@ -436,17 +436,26 @@
             return element
         },
         /**
+         * 判断函数是否为异步函数
+         * - 不使用 targetFunction() instanceof Promise 方法
+         * - 因为这会导致 targetFunction 函数在此处执行一遍，从而增加 vars 里相关的计数变量
+         * - 当之后真正执行时会因为相关计数变量值不等于 1 导致在 executeFunctionsSequentially 函数里获取不到返回值
+         */
+        isAsyncFunction(targetFunction) {
+            // return targetFunction() instanceof Promise
+            return targetFunction.constructor.name === 'AsyncFunction'
+        },
+        /**
          * 按顺序依次执行函数数组中的函数
          * @param {Array} functions 待执行的函数数组
          * - 当函数为异步函数时，只有当前一个函数执行完毕时才会继续执行下一个函数
          * - 当函数为同步函数时，则只会执行相应函数
          */
-        async executeFunctionsSequentially(functions) {
-            const isAsyncFunction = (func) => { return func() instanceof Promise }
+        executeFunctionsSequentially(functions) {
             if (functions.length > 0) {
                 const currentFunction = functions.shift()
-                if (isAsyncFunction(currentFunction)) {
-                    await currentFunction().then((result) => {
+                if (utils.isAsyncFunction(currentFunction)) {
+                    currentFunction().then(result => {
                         // console.log(currentFunction.name, result)
                         if (result) {
                             const { message, callback } = result
@@ -454,12 +463,14 @@
                             if (callback && typeof callback === 'function') callback()
                             if (callback && typeof callback === 'array') executeFunctionsSequentially(callback)
                         }
+                        // else utils.logger.debug(currentFunction.name)
                         utils.executeFunctionsSequentially(functions)
                     }).catch(error => {
                         utils.logger.error(error)
                         utils.reloadCurrentTab()
                     })
                 } else {
+                    // console.log(currentFunction.name, result)
                     const result = currentFunction()
                     if (result) {
                         const { message, callback } = result
@@ -514,12 +525,6 @@
          * 检查视频是否可以播放
          */
         async checkVideoCanPlayThrough() {
-            // const BwpVideoPlayerExists = await utils.checkElementExistence(selectors.videoBwp, 10, 10)
-            // if (BwpVideoPlayerExists) {
-            //   return new Promise(resolve => {
-            //     resolve(true)
-            //   })
-            // }
             return new Promise((resolve, reject) => {
                 let attempts = 100
                 let message
@@ -528,15 +533,11 @@
                     const videoReadyState = $video.readyState
                     if (videoReadyState === 4) {
                         message = '视频资源｜可以播放'
-                        resolve({
-                            message
-                        })
+                        resolve({ message })
                         clearInterval(timer)
                     } else if (attempts <= 0) {
                         message = '视频资源｜加载失败'
-                        reject({
-                            message
-                        })
+                        reject({ message })
                         clearInterval(timer)
                     }
                     attempts--
@@ -583,7 +584,6 @@
                 if (arrays.screenModes.includes(currentScreenMode)) return { message: `屏幕模式｜当前已是 ${currentScreenMode.toUpperCase()} 模式` }
                 if (arrays.screenModes.includes(vals.selected_screen_mode())) {
                     const result = await modules.checkScreenModeSwitchSuccess(vals.selected_screen_mode())
-                    // utils.logger.debug(`${result}`)
                     if (result) return { message: `屏幕模式｜${vals.selected_screen_mode().toUpperCase()}｜切换成功` }
                     else throw new Error(`屏幕模式｜${vals.selected_screen_mode().toUpperCase()}｜切换失败：已达到最大重试次数`)
                 }
@@ -1466,7 +1466,6 @@
                         modules.changeCurrentUrlToVideoSubmissions,
                     ]
                 }
-
                 utils.executeFunctionsSequentially(functions)
             } else {
                 utils.logger.info('当前标签｜未激活｜等待激活')
