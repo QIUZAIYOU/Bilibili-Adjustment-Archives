@@ -850,7 +850,7 @@
             const plaintVideoIdRegexp = /(?<!(\/|>))((BV)([A-Za-z0-9]){10})(?!(\/|<))/g
             const blankRegexp = /^\s*[\r\n]/gm
             if ($videoDescription.childElementCount > 1 && $videoDescriptionInfo.childElementCount > 0) {
-                const videoDescriptionInfoHtml = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp,' ').replace(timeStringRegexp, (match) => {
+                const videoDescriptionInfoHtml = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp, ' ').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
                 }).replace(urlRegexp, (match) => {
                     return `<a href="${match}" target="_blank">${match}</a>`
@@ -888,8 +888,9 @@
                 </div>
                 `
                 utils.createElementAndInsert(videoDescriptionReplyTemplate, $videoCommentReplyList, 'prepend')
+                document.querySelector('#comment-description:not(:first-child)')?.remove()
             } else {
-                $videoDescriptionInfo.innerHTML = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp,' ').replace(timeStringRegexp, (match) => {
+                $videoDescriptionInfo.innerHTML = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp, ' ').replace(timeStringRegexp, (match) => {
                     return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
                 }).replace(urlRegexp, (match) => {
                     return `<a href="${match}" target="_blank">${match}</a>`
