@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1
+// @version           0.1.2
 // @description       一、动态页调整：1.导航样式优化。2.默认显示"投稿视频"内容。二、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://www.bilibili.com/video/*
@@ -429,7 +429,6 @@
          * - 当之后真正执行时会因为相关计数变量值不等于 1 导致在 executeFunctionsSequentially 函数里获取不到返回值
          */
         isAsyncFunction(targetFunction) {
-            // return targetFunction() instanceof Promise
             return targetFunction.constructor.name === 'AsyncFunction'
         },
         /**
@@ -479,7 +478,7 @@
          * 获取当前视频ID/video BVID/bangumi EPID
          */
         getCurrentVideoID() {
-            const currentUrl = document.URL
+            const currentUrl = window.location.href
             return currentUrl.includes('www.bilibili.com/video') ? currentUrl.split('/')[4] : currentUrl.includes('www.bilibili.com/bangumi') ? currentUrl.split('/')[5].split('?')[0] : 'error'
         },
         /**
@@ -488,7 +487,7 @@
          * @returns 当前视频类型
          */
         async getCurrentPlayerType() {
-            const playerType = (document.URL.startsWith('https://www.bilibili.com/video') || document.URL.startsWith('https://www.bilibili.com/list/')) ? 'video' : document.URL.startsWith('https://www.bilibili.com/bangumi') ? 'bangumi' : false
+            const playerType = (window.location.href.startsWith('https://www.bilibili.com/video') || window.location.href.startsWith('https://www.bilibili.com/list/')) ? 'video' : window.location.href.startsWith('https://www.bilibili.com/bangumi') ? 'bangumi' : false
             if (!playerType) {
                 utils.logger.debug('视频类型丨未匹配')
                 alert('未匹配到当前视频类型，请反馈当前地址栏链接。')
