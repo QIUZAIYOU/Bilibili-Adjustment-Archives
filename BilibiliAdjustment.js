@@ -1434,7 +1434,6 @@
             if (!dicumentHidden) {
                 clearInterval(timer)
                 utils.logger.info('当前标签｜已激活｜开始应用配置')
-                // modules.theMainFunction()
                 let functionsArray = []
                 if (regexps.video.test(window.location.href)) {
                     functionsArray = [
