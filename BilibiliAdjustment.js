@@ -41,7 +41,7 @@
     let arrays = {
         screenModes: ['wide', 'web'],
         intervalIds: [],
-        skipNodesRecords: []
+        skipNodesRecords: [],
     }
     const selectors = {
         app: '#app',
@@ -100,7 +100,7 @@
         clearRecordsButton: '#clearRecordsButton',
         saveRecordsButton: '#saveRecordsButton',
         uploadSkipTimeNodesButton: '#uploadSkipTimeNodesButton',
-        AutoSkipSwitchInput: '#Auto-Skip-Switch'
+        AutoSkipSwitchInput: '#Auto-Skip-Switch',
     }
     const vals = {
         is_vip: () => { return utils.getValue('is_vip') },
@@ -121,18 +121,26 @@
         webfull_unlock: () => { return utils.getValue('webfull_unlock') },
         auto_reload: () => { return utils.getValue('auto_reload') },
         auto_skip: () => { return utils.getValue('auto_skip') },
-        web_video_link: () => { return utils.getValue('web_video_link') }
+        web_video_link: () => { return utils.getValue('web_video_link') },
     }
     const styles = {
-        AdjustmentStyle: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:134px!important;line-height:20px!important;}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#uploadSkipTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#uploadSkipTimeNodesButton:hover{background:#00b5e5!important}#skipTimeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}',
+        VideoPageAdjustment: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:134px!important;line-height:20px!important;}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#uploadSkipTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#uploadSkipTimeNodesButton:hover{background:#00b5e5!important}#skipTimeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}',
         BodyHidden: 'body{overflow:hidden!important}',
-        ResetPlayerLayoutStyle: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
-        UnlockWebscreenStlye: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}',
-        FreezeHeaderAndVideoTitle: '#biliMainHeader{height:64px!important}#viewbox_report{height:108px!important;padding-top:22px!important}.members-info-container{height:86px!important;overflow:hidden!important;padding-top:11px!important}.membersinfo-wide .header{display:none!important}'
+        ResetPlayerLayout: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
+        UnlockWebscreen: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}',
+        FreezeHeaderAndVideoTitle: '#biliMainHeader{height:64px!important}#viewbox_report{height:108px!important;padding-top:22px!important}.members-info-container{height:86px!important;overflow:hidden!important;padding-top:11px!important}.membersinfo-wide .header{display:none!important}',
     }
     const regexps = {
-        video: /.*:\/\/www\.bilibili\.com\/(video|bangumi\/play|list)\/.*/g,
-        dynamic: /.*:\/\/t\.bilibili\.com\/.*/g
+        // 如果使用全局检索符(g)，则在多次使用 RegExp.prototype.test() 时会导致脚本执行失败，
+        // 因为在全局检索符下(g), RegExp.prototype.test() 在匹配成功后会设置下一次匹配的起始索引 lastindex
+        // 但是当前页面的 URL 为固定字符串，在上一次匹配成功后设置的 lastindex 后没有其他字符串，所以会匹配失败
+        // 例如：使用 /asifadeaway/g.test('https://www.asifadeaway.com/post/Watched.html') 检查是否含有字符串'asifadeaway',此时返回 true 并将 lastindex 设为 23
+        // 后续再执行一次同样的检查则会返回 false 并将 lastindex 设为 0，因为继上次检查匹配成功后再次检查会从索引位置 23 开始，而此位置往后并没有字符串'asifadeaway'
+        // 以下的正则表达式都包含了整个 URL 字符串，所以匹配成功一次之后 lastindex 会被设置为 URL 字符串的长度，再次执行后必定返回 false
+        // 所以会产生匹配成功之后再次匹配就会失败的奇怪现象，就是因为 lastindex 的值在上一次匹配成功后被设为了字符串的长度
+        // 因此不使用全局检索符(g)
+        video: /.*:\/\/www\.bilibili\.com\/(video|bangumi\/play|list)\/.*/i,
+        dynamic: /.*:\/\/t\.bilibili\.com\/.*/i,
     }
     const utils = {
         /**
@@ -622,7 +630,7 @@
          */
         async autoLocationToPlayer() {
             const unlockbody = () => {
-                document.getElementById('BodyHidden')?.remove()
+                document.getElementById('BodyHiddenStyle')?.remove()
             }
             const onAutoLocate = vals.auto_locate() && ((!vals.auto_locate_video() && !vals.auto_locate_bangumi()) || (vals.auto_locate_video() && vals.player_type() === 'video') || (vals.auto_locate_bangumi() && vals.player_type() === 'bangumi'))
             if (!onAutoLocate || vals.selected_screen_mode() === 'web') return { callback: unlockbody }
@@ -796,21 +804,21 @@
                 const [$app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton] = await elmGetter.get([selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton])
                 const resetPlayerLayout = async () => {
                     if (document.getElementById('UnlockWebscreenStlye')) document.getElementById('UnlockWebscreenStlye').remove()
-                    if (!document.getElementById('ResetPlayerLayoutStyle')) utils.insertStyleToDocument('ResetPlayerLayoutStyle', styles.ResetPlayerLayoutStyle)
+                    if (!document.getElementById('ResetPlayerLayoutStyle')) utils.insertStyleToDocument('ResetPlayerLayoutStyle', styles.ResetPlayerLayout)
                     $playerWrap.append($player)
                     utils.setValue('current_screen_mode', 'wide')
                     await utils.sleep(300)
                     await modules.locationToPlayer()
                 }
                 const bodyHeight = utils.getBodyHeight()
-                utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreenStlye.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
+                utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreen.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
                 $app.prepend($playerWebscreen)
                 $webLeaveButton.addEventListener('click', async () => {
                     await utils.sleep(100)
                     await resetPlayerLayout()
                 })
                 $webEnterButton.addEventListener('click', async () => {
-                    if (!document.getElementById('UnlockWebscreenStlye')) utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreenStlye.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
+                    if (!document.getElementById('UnlockWebscreenStlye')) utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreen.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
                     $app.prepend($playerWebscreen)
                     await modules.locationToPlayer()
                 })
@@ -1348,7 +1356,6 @@
          * - 推荐列表中的视频
          */
         async clickRelatedVideoAutoLocation() {
-
             if (vals.player_type() === 'video') {
                 await elmGetter.each(selectors.videoSectonsEpisodeLink, (link) => {
                     link.addEventListener('click', () => {
@@ -1366,7 +1373,6 @@
                     })
                 })
             }
-
             if (vals.player_type() === 'bangumi') {
                 await elmGetter.each(selectors.bangumiSectonsEpisodeLink, (link) => {
                     link.addEventListener('click', async () => {
@@ -1410,12 +1416,13 @@
         thePrepFunction() {
             if (++vars.thePrepFunctionRunningCount === 1) {
                 utils.initValue()
-                if (window.location.host === 'www.bilibili.com') {
-                    utils.insertStyleToDocument('BodyHidden', styles.BodyHidden)
-                    utils.clearAllTimersWhenCloseTab()
-                    utils.insertStyleToDocument('AdjustmentStyle', styles.AdjustmentStyle)
-                    utils.insertStyleToDocument('AdjustmentStyle', styles.FreezeHeaderAndVideoTitle)
+                utils.clearAllTimersWhenCloseTab()
+                if (regexps.video.test(window.location.href)) {
+                    utils.insertStyleToDocument('BodyHiddenStyle', styles.BodyHidden)
+                    utils.insertStyleToDocument('VideoPageAdjustmentStyle', styles.VideoPageAdjustment)
+                    utils.insertStyleToDocument('FreezeHeaderAndVideoTitleStyle', styles.FreezeHeaderAndVideoTitle)
                     modules.observerPlayerDataScreenChanges()
+                    
                 }
             }
         },
@@ -1428,9 +1435,9 @@
                 clearInterval(timer)
                 utils.logger.info('当前标签｜已激活｜开始应用配置')
                 // modules.theMainFunction()
-                let functions
+                let functionsArray = []
                 if (regexps.video.test(window.location.href)) {
-                    functions = [
+                    functionsArray = [
                         modules.getCurrentPlayerType,
                         modules.checkVideoExistence,
                         modules.checkVideoCanPlayThrough,
@@ -1451,11 +1458,11 @@
                     await utils.sleep(2000)
                 }
                 if (regexps.dynamic.test(window.location.href)) {
-                    functions = [
+                    functionsArray = [
                         modules.changeCurrentUrlToVideoSubmissions,
                     ]
                 }
-                utils.executeFunctionsSequentially(functions)
+                utils.executeFunctionsSequentially(functionsArray)
             } else {
                 utils.logger.info('当前标签｜未激活｜等待激活')
             }
