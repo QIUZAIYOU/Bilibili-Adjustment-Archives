@@ -1461,6 +1461,7 @@
             })
             const [$indexRecommendVideoHistoryPopover] = await elmGetter.get([selectors.indexRecommendVideoHistoryPopover])
             await indexRecommendVideoHistory.iterate(function (value, key) {
+                // TODO:数据重复添加的问题
                 utils.createElementAndInsert(`<li><a href="${value}" target="_blank">${key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector('ul'), 'append')
             })
         },
