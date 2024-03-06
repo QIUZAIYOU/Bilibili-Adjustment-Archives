@@ -106,6 +106,7 @@
         indexRecommendVideoRollButton: '.recommended-container_floor-aside .feed-roll-btn button.roll-btn',
         indexRecommendVideoHistoryOpenButton: '#indexRecommendVideoHistoryOpenButton',
         indexRecommendVideoHistoryPopover: '#indexRecommendVideoHistoryPopover',
+        clearRecommendVideoHistoryButton: '#clearRecommendVideoHistoryButton',
         AutoSkipSwitchInput: '#Auto-Skip-Switch',
 
     }
@@ -131,7 +132,7 @@
         web_video_link: () => { return utils.getValue('web_video_link') },
     }
     const styles = {
-        IndexAdjustment: '#indexRecommendVideoHistoryOpenButton{margin-top:10px!important}#indexRecommendVideoHistoryPopover{position:absolute!important;top:50%!important;left:50%!important;box-sizing:border-box!important;padding:20px!important;width:600px!important;max-height:600px!important;border:none!important;border-radius:6px!important;font-size:15px!important;transform:translate(-50%,-50%)!important}#indexRecommendVideoHistoryPopover ul{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:space-between!important}#indexRecommendVideoHistoryPopover ul li{padding:7px 0;width:100%;border-color:#ededed!important;border-style:solid!important;line-height:24px!important;border-bottom-width:1px!important}#indexRecommendVideoHistoryPopover ul li:first-child{border-top-width:1px!important}#indexRecommendVideoHistoryPopover ul li a{color:#333!important}#indexRecommendVideoHistoryPopover ul li:hover a{color:#00a1d6!important}',
+        IndexAdjustment: '#indexRecommendVideoHistoryOpenButton{margin-top:10px!important}#indexRecommendVideoHistoryPopover{position:fixed!important;top:50%!important;left:50%!important;box-sizing:border-box!important;padding:20px!important;width:600px!important;max-height:600px!important;border:none!important;border-radius:6px!important;font-size:15px!important;transform:translate(-50%,-50%)!important}#indexRecommendVideoHistoryPopover ul{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:space-between!important}#indexRecommendVideoHistoryPopover ul li{padding:7px 0;width:100%;border-color:#ededed!important;border-style:solid!important;line-height:24px!important;border-bottom-width:1px!important}#indexRecommendVideoHistoryPopover ul li:first-child{border-top-width:1px!important}#indexRecommendVideoHistoryPopover ul li a{color:#333!important}#indexRecommendVideoHistoryPopover ul li:hover a{color:#00a1d6!important}#clearRecommendVideoHistoryButton{position:sticky!important;bottom:20px!important;left:20px!important;display:flex!important;padding:10px!important;width:50px!important;height:50px!important;border-radius:6px!important;background:#00a1d6!important;color:#fff!important;align-items:center!important;justify-content:center}',
         VideoPageAdjustment: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:134px!important;line-height:20px!important;}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#uploadSkipTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#uploadSkipTimeNodesButton:hover{background:#00b5e5!important}#skipTimeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}',
         BodyHidden: 'body{overflow:hidden!important}',
         ResetPlayerLayout: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
@@ -304,10 +305,13 @@
          */
         async addEventListenerToElement() {
             if (window.location.href === 'https://www.bilibili.com/') {
-                const [screenModeFullControlButton] = await elmGetter.get([selectors.indexRecommendVideoRollButton])
-                screenModeFullControlButton.addEventListener('click', () => {
+                const [$screenModeFullControlButton, $clearRecommendVideoHistoryButton] = await elmGetter.get([selectors.indexRecommendVideoRollButton, selectors.clearRecommendVideoHistoryButton])
+                $screenModeFullControlButton.addEventListener('click', () => {
                     modules.setIndexRecordRecommendVideoHistory()
                     modules.getIndexRecordRecommendVideoHistory()
+                })
+                $clearRecommendVideoHistoryButton('click', () => {
+                    modules.clearRecommendVideoHistory()
                 })
             }
             if (regexps.video.test(window.location.href)) {
@@ -1451,7 +1455,7 @@
             if (document.getElementById(selectors.indexRecommendVideoHistoryPopover)) document.getElementById(selectors.indexRecommendVideoHistoryPopover).remove()
             const [$indexRecommendVideoRollButtonWrapper] = await elmGetter.get([selectors.indexRecommendVideoRollButtonWrapper])
             const indexRecommendVideoHistoryOpenButtonHtml = `<button id="indexRecommendVideoHistoryOpenButton" popovertarget="indexRecommendVideoHistoryPopover" class="primary-btn roll-btn"><span>历史记录</span></button>`
-            const indexRecommendVideoHistoryPopoverHtml = `<div id="indexRecommendVideoHistoryPopover" popover><ul></ul></div>`
+            const indexRecommendVideoHistoryPopoverHtml = `<div id="indexRecommendVideoHistoryPopover" popover><ul></ul><div id="clearRecommendVideoHistoryButton">清空记录</div></div>`
             const $indexRecommendVideoHistoryWrapper = utils.createElementAndInsert(indexRecommendVideoHistoryOpenButtonHtml, $indexRecommendVideoRollButtonWrapper, 'append')
             utils.createElementAndInsert(indexRecommendVideoHistoryPopoverHtml, $indexRecommendVideoHistoryWrapper, 'append')
         },
@@ -1460,9 +1464,14 @@
                 name: 'indexRecommendVideoHistory',
             })
             const [$indexRecommendVideoHistoryPopover] = await elmGetter.get([selectors.indexRecommendVideoHistoryPopover])
+            $indexRecommendVideoHistoryPopover.querySelector('ul').innerHTML = ''
             await indexRecommendVideoHistory.iterate(function (value, key) {
-                // TODO:数据重复添加的问题
                 utils.createElementAndInsert(`<li><a href="${value}" target="_blank">${key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector('ul'), 'append')
+            })
+        },
+        clearRecommendVideoHistory() {
+            const indexRecommendVideoHistory = localforage.createInstance({
+                name: 'indexRecommendVideoHistory',
             })
         },
         //** ----------------------- 脚本最终执行函数 ----------------------- **//
