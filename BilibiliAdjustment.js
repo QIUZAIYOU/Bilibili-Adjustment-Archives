@@ -3,9 +3,10 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.2
+// @version           0.1.3
 // @description       一、动态页调整：1.导航样式优化。2.默认显示"投稿视频"内容。二、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
+// @match             *://www.bilibili.com
 // @match             *://www.bilibili.com/video/*
 // @match             *://www.bilibili.com/bangumi/play/*
 // @match             *://www.bilibili.com/list/*
