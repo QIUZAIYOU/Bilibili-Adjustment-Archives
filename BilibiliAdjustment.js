@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.8
+// @version           0.1.9
 // @description       一、动态页调整：1.导航样式优化。2.默认显示"投稿视频"内容。二、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -40,7 +40,7 @@
     autoLocationToPlayerRetryDepths: 0,
   }
   let arrays = {
-    screenModes: ['wide', 'web'],
+    screenModes: [ 'wide', 'web' ],
     intervalIds: [],
     skipNodesRecords: [],
   }
@@ -70,11 +70,11 @@
     videoDescriptionInfo: '#v_desc .basic-desc-info',
     videoDescriptionText: '#v_desc .desc-info-text',
     videoNextPlayAndRecommendLink: '.video-page-card-small .card-box',
-    videoSectonsEpisodeLink: '.video-sections-content-list .video-episode-card',
+    videoSectionsEpisodeLink: '.video-sections-content-list .video-episode-card',
     bangumiComment: '#comment_module',
     bangumiFloatNav: '#__next div[class*="navTools_floatNavExp"] div[class*="navTools_navMenu"]',
     bangumiMainContainer: '.main-container',
-    bangumiSectonsEpisodeLink: '#__next div[class*="numberList_wrapper"] div[class*="numberListItem_number_list_item"] ',
+    bangumiSectionsEpisodeLink: '#__next div[class*="numberList_wrapper"] div[class*="numberListItem_number_list_item"] ',
     qualitySwitchButtons: '.bpx-player-ctrl-quality-menu-item',
     screenModeWideEnterButton: '.bpx-player-ctrl-wide-enter',
     screenModeWideLeaveButton: '.bpx-player-ctrl-wide-leave',
@@ -111,6 +111,7 @@
     clearRecommendVideoHistoryButton: '#clearRecommendVideoHistoryButton',
     dynamicSettingPopover: '#dynamicSettingPopover',
     dynamicSettingSaveButton: '#dynamicSettingSaveButton',
+    dynamicSettingPopoverTips: '#dynamicSettingPopoverTips',
     dynamicHeaderContainer: '#bili-header-container',
     videoSettingPopover: '#videoSettingPopover',
     AutoSkipSwitchInput: '#Auto-Skip-Switch',
@@ -121,7 +122,7 @@
     player_type: () => { return utils.getValue('player_type') },
     offset_top: () => { return Math.trunc(utils.getValue('offset_top')) },
     auto_locate: () => { return utils.getValue('auto_locate') },
-    get_offest_method: () => { return utils.getValue('get_offest_method') },
+    get_offset_method: () => { return utils.getValue('get_offset_method') },
     auto_locate_video: () => { return utils.getValue('auto_locate_video') },
     auto_locate_bangumi: () => { return utils.getValue('auto_locate_bangumi') },
     click_player_auto_locate: () => { return utils.getValue('click_player_auto_locate') },
@@ -138,14 +139,14 @@
     web_video_link: () => { return utils.getValue('web_video_link') },
   }
   const styles = {
-    BilibiliAdjustment: '.adjustment_popover{position:fixed!important;top:50%!important;left:50%!important;box-sizing:border-box!important;margin:0!important;padding:20px!important;width:400px!important;max-height:70vh!important;border:none!important;border-radius:6px!important;font-size:1em!important;transform:translate(-50%,-50%)!important;overscroll-behavior:contain!important}.adjustment_popover::backdrop{backdrop-filter:blur(3px)!important}.adjustment_popoverTitle{margin-bottom:15px!important;text-align:center!important;font-weight:700!important;font-size:22px!important}.adjustment_buttonGroup{display:flex!important;align-items:center!important;justify-content:end!important}.adjustment_button{display:inline-block;box-sizing:border-box;margin:0;padding:10px 20px;outline:0;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;text-align:center;white-space:nowrap;font-weight:500;font-size:14px;line-height:1;cursor:pointer;transition:.1s;-webkit-appearance:none;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none}.adjustment_button.primary{border-color:#409eff;background-color:#409eff;color:#fff}.adjustment_tips{}',
-    IndexAdjustment: '#indexRecommendVideoHistoryOpenButton{margin-top:10px!important}#indexRecommendVideoHistoryPopover{width:600px!important}#indexRecommendVideoHistoryPopover #indexRecommendVideoHistoryPopoverTitle{display:flex;margin-bottom:15px;text-align:center;font-weight:700!important;font-size:22px;align-items:center;justify-content:space-between}#indexRecommendVideoHistoryPopover ul{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:space-between!important}#indexRecommendVideoHistoryPopover ul li{padding:7px 0;width:100%;border-color:#ededed!important;border-style:solid!important;line-height:24px!important;border-bottom-width:1px!important}#indexRecommendVideoHistoryPopover ul li:first-child{border-top-width:1px!important}#indexRecommendVideoHistoryPopover ul li a{color:#333!important}#indexRecommendVideoHistoryPopover ul li:hover a{color:#00a1d6!important}#clearRecommendVideoHistoryButton{position:sticky!important;display:flex!important;padding:10px!important;width:80px!important;border-radius:6px!important;background:#00a1d6!important;color:#fff!important;font-size:15px!important;line-height:16px!important;cursor:pointer!important;align-items:center!important;justify-content:center}',
+    BilibiliAdjustment: '.adjustment_popover{position:fixed!important;top:50%!important;left:50%!important;box-sizing:border-box!important;margin:0!important;padding:20px!important;width:400px!important;max-height:70vh!important;border:none!important;border-radius:6px!important;font-size:1em!important;transform:translate(-50%,-50%)!important;overscroll-behavior:contain!important}.adjustment_popover::backdrop{backdrop-filter:blur(3px)!important}.adjustment_popoverTitle{margin-bottom:15px!important;padding-bottom:20px;border-bottom:1px solid #dcdfe6!important;text-align:center!important;font-weight:700!important;font-size:22px!important}.adjustment_buttonGroup{display:flex!important;align-items:center!important;justify-content:end!important}.adjustment_button{display:inline-block;box-sizing:border-box;margin:0;padding:10px 20px;outline:0;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;text-align:center;white-space:nowrap;font-weight:500;font-size:14px;line-height:1;cursor:pointer;transition:.1s;-webkit-appearance:none;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none}.adjustment_button.primary{border-color:#409eff;background-color:#409eff;color:#fff}.adjustment_tips{display:inline-block;box-sizing:border-box;padding:3px 5px;height:fit-content;border:1px solid #d9ecff;border-radius:4px;background-color:#ecf5ff;color:#409eff;font-size:12px;line-height:1.5}.adjustment_tips.success{border-color:#e1f3d8;background-color:#f0f9eb;color:#67c23a}.adjustment_tips.warning{border-color:#faecd8;background-color:#fdf6ec;color:#e6a23c}.adjustment_tips.danger{border-color:#fde2e2;background-color:#fef0f0;color:#f56c6c}.adjustment_input{display:inline-flex!important;padding:1px 11px!important;outline:0!important;border: 1px solid #dcdfe6!important;border-radius:6px!important;background:#f5f5f5!important;line-height:32px!important;cursor:text!important;flex-grow:1!important;align-items:center!important;justify-content:center!important}',
+    IndexAdjustment: '#indexRecommendVideoHistoryOpenButton{margin-top:10px!important}#indexRecommendVideoHistoryPopover{width:600px!important}#indexRecommendVideoHistoryPopover #indexRecommendVideoHistoryPopoverTitle{display:flex;margin-bottom:15px;text-align:center;font-weight:700!important;font-size:22px;align-items:center;justify-content:space-between}#indexRecommendVideoHistoryPopover ul{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:space-between!important}#indexRecommendVideoHistoryPopover ul li{padding:7px 0;width:100%;border-color:#dcdfe6!important;border-style:solid!important;line-height:24px!important;border-bottom-width:1px!important}#indexRecommendVideoHistoryPopover ul li:first-child{border-top-width:1px!important}#indexRecommendVideoHistoryPopover ul li a{color:#333!important}#indexRecommendVideoHistoryPopover ul li:hover a{color:#00a1d6!important}#clearRecommendVideoHistoryButton{position:sticky!important;display:flex!important;padding:10px!important;width:80px!important;border-radius:6px!important;background:#00a1d6!important;color:#fff!important;font-size:15px!important;line-height:16px!important;cursor:pointer!important;align-items:center!important;justify-content:center}',
     VideoPageAdjustment: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:134px!important;line-height:20px!important;}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#uploadSkipTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#uploadSkipTimeNodesButton:hover{background:#00b5e5!important}#skipTimeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}',
     BodyHidden: 'body{overflow:hidden!important}',
     ResetPlayerLayout: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
     UnlockWebscreen: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}',
     FreezeHeaderAndVideoTitle: '#biliMainHeader{height:64px!important}#viewbox_report{height:108px!important;padding-top:22px!important}.members-info-container{height:86px!important;overflow:hidden!important;padding-top:11px!important}.membersinfo-wide .header{display:none!important}',
-    DynamicSetting: '#dynamicSettingPopoverTitle{margin-bottom:15px!important;text-align:center!important;font-weight:700!important;font-size:21px!important}#dynamicSettingPopover::backdrop{backdrop-filter:blur(3px)}#Web-Video-Link{display:inline-flex!important;padding:1px 11px!important;outline:0!important;border: 1px solid #dcdfe6!important;border-radius:6px!important;background:#f5f5f5!important;line-height:32px!important;cursor:text!important;flex-grow:1!important;align-items:center!important;justify-content:center!important}#dynamicSettingSaveButton{margin-top:10px!important}#dynamicSettingPopover .#dynamicSettingPopoverTips{}'
+    DynamicSetting: '#dynamicSettingPopoverTitle{margin-bottom:15px!important;text-align:center!important;font-weight:700!important;font-size:21px!important}#dynamicSettingPopover::backdrop{backdrop-filter:blur(3px)}#dynamicSettingSaveButton{margin-top:10px!important}#dynamicSettingPopover #dynamicSettingPopoverTips{margin-top:5px}'
   }
   const regexps = {
     // 如果使用全局检索符(g)，则在多次使用 RegExp.prototype.test() 时会导致脚本执行失败，
@@ -163,8 +164,8 @@
     /**
      * 初始化所有数据
      */
-    initValue () {
-      const value = [{
+    initValue() {
+      const value = [ {
         name: 'is_vip',
         value: true,
       }, {
@@ -183,7 +184,7 @@
         name: 'auto_locate',
         value: true,
       }, {
-        name: 'get_offest_method',
+        name: 'get_offset_method',
         value: 'function',
       }, {
         name: 'auto_locate_video',
@@ -221,7 +222,7 @@
       }, {
         name: 'web_video_link',
         value: 'https://t.bilibili.com/?tab=video'
-      }]
+      } ]
       value.forEach(v => {
         if (utils.getValue(v.name) === undefined) {
           utils.setValue(v.name, v.value)
@@ -233,7 +234,7 @@
      * @param {String} 数据名称
      * @returns 数据数值
      */
-    getValue (name) {
+    getValue(name) {
       return GM_getValue(name)
     },
     /**
@@ -241,7 +242,7 @@
      * @param {String} 数据名称
      * @param {*} 数据数值
      */
-    setValue (name, value) {
+    setValue(name, value) {
       GM_setValue(name, value)
     },
     /**
@@ -249,13 +250,13 @@
      * @param {Number} 时长
      * @returns
      */
-    sleep (times) {
+    sleep(times) {
       return new Promise(resolve => setTimeout(resolve, times))
     },
     /**
      * 判断数组长度是否为偶数
      */
-    isArrayLengthEven (arr) {
+    isArrayLengthEven(arr) {
       return arr.length % 2 === 0
     },
     /**
@@ -264,7 +265,7 @@
      * @param {String} css 样式内容
      */
 
-    insertStyleToDocument (id, css) {
+    insertStyleToDocument(id, css) {
       const styleElement = GM_addStyle(css)
       styleElement.id = id
     },
@@ -274,27 +275,27 @@
      * - error->错误；debug->调试
      */
     logger: {
-      info (content) {
+      info(content) {
         console.info('%c播放页调整', 'color:white;background:#006aff;padding:2px;border-radius:2px', content);
       },
-      warn (content) {
+      warn(content) {
         console.warn('%c播放页调整', 'color:white;background:#ff6d00;padding:2px;border-radius:2px', content);
       },
-      error (content) {
+      error(content) {
         console.error('%c播放页调整', 'color:white;background:#f33;padding:2px;border-radius:2px', content);
       },
-      debug (content) {
+      debug(content) {
         console.info('%c播放页调整(调试)', 'color:white;background:#cc00ff;padding:2px;border-radius:2px', content);
       },
     },
     /**
      * 检查当前文档是否被激活
      */
-    checkDocumentIsHidden () {
-      const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
+    checkDocumentIsHidden() {
+      const visibilityChangeEventNames = [ 'visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange' ]
       const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null
       if (documentHiddenPropertyName !== null) {
-        const isHidden = () => document[documentHiddenPropertyName]
+        const isHidden = () => document[ documentHiddenPropertyName ]
         const onChange = () => isHidden()
         // 添加各种事件监听器
         visibilityChangeEventNames.forEach(eventName => document.addEventListener(eventName, onChange))
@@ -311,9 +312,9 @@
     /**
      * 为元素添加监听器并执行相应函数
      */
-    async addEventListenerToElement () {
+    async addEventListenerToElement() {
       if (window.location.href === 'https://www.bilibili.com/') {
-        const [$indexRecommendVideoRollButton, $clearRecommendVideoHistoryButton] = await elmGetter.get([selectors.indexRecommendVideoRollButton, selectors.clearRecommendVideoHistoryButton])
+        const [ $indexRecommendVideoRollButton, $clearRecommendVideoHistoryButton ] = await elmGetter.get([ selectors.indexRecommendVideoRollButton, selectors.clearRecommendVideoHistoryButton ])
         $indexRecommendVideoRollButton.addEventListener('click', () => {
           modules.setIndexRecordRecommendVideoHistory()
           modules.getIndexRecordRecommendVideoHistory()
@@ -335,7 +336,7 @@
         window.addEventListener("popstate", () => {
           modules.autoLocationAndInsertVideoDescriptionToComment()
         })
-        const [$playerContainer, $AutoSkipSwitchInput] = await elmGetter.get([selectors.playerContainer, selectors.AutoSkipSwitchInput])
+        const [ $playerContainer, $AutoSkipSwitchInput ] = await elmGetter.get([ selectors.playerContainer, selectors.AutoSkipSwitchInput ])
         $playerContainer.addEventListener('fullscreenchange', (event) => {
           let isFullscreen = document.fullscreenElement === event.target
           if (!isFullscreen) modules.locationToPlayer()
@@ -346,7 +347,7 @@
           }
         })
         if (vals.auto_skip()) {
-          const [$video, $setSkipTimeNodesPopoverToggleButton, $setSkipTimeNodesPopoverRecords, $skipTimeNodesRecordsArray, $saveRecordsButton] = await elmGetter.get([selectors.video, selectors.setSkipTimeNodesPopoverToggleButton, selectors.setSkipTimeNodesPopoverRecords, selectors.skipTimeNodesRecordsArray, selectors.saveRecordsButton])
+          const [ $video, $setSkipTimeNodesPopoverToggleButton, $setSkipTimeNodesPopoverRecords, $skipTimeNodesRecordsArray, $saveRecordsButton ] = await elmGetter.get([ selectors.video, selectors.setSkipTimeNodesPopoverToggleButton, selectors.setSkipTimeNodesPopoverRecords, selectors.skipTimeNodesRecordsArray, selectors.saveRecordsButton ])
           document.addEventListener('keydown', (event) => {
             if (event.key === 'k') {
               const currentTime = Math.ceil($video.currentTime)
@@ -376,14 +377,14 @@
     /**
      * 刷新当前页面
      */
-    reloadCurrentTab () {
+    reloadCurrentTab() {
       if (vals.auto_reload()) location.reload()
     },
     /**
      * 滚动文档至目标位置
      * @param {Number} 滚动距离
      */
-    documentScrollTo (offset) {
+    documentScrollTo(offset) {
       document.documentElement.scrollTop = offset
     },
     /**
@@ -391,7 +392,7 @@
      * @param {*} attribute 属性名称
      * @returns 属性值
      */
-    async getMetaContent (attribute) {
+    async getMetaContent(attribute) {
       const meta = await elmGetter.get(`meta[${attribute}]`)
       if (meta) {
         return meta.getAttribute('content')
@@ -403,7 +404,7 @@
      * 获取Body 元素高度
      * @returns Body 元素高度
      */
-    getBodyHeight () {
+    getBodyHeight() {
       const bodyHeight = document.body.clientHeight || 0
       const docHeight = document.documentElement.clientHeight || 0
       return bodyHeight < docHeight ? bodyHeight : docHeight
@@ -411,7 +412,7 @@
     /**
      * 确保页面销毁时清除所有定时器
      */
-    clearAllTimersWhenCloseTab () {
+    clearAllTimersWhenCloseTab() {
       window.addEventListener('beforeunload', () => {
         for (let id of arrays.intervalIds) {
           clearInterval(id)
@@ -424,7 +425,7 @@
      * @param {String} 目标元素
      * @returns 顶部和左侧距离
      */
-    getElementOffsetToDocument (element) {
+    getElementOffsetToDocument(element) {
       let rect, win
       if (!element.getClientRects().length) {
         return {
@@ -446,9 +447,9 @@
      * @param {String} 插入方法（before/after/prepend/append）
      * @returns 被创建的元素
      */
-    createElementAndInsert (HtmlString, target, method) {
+    createElementAndInsert(HtmlString, target, method) {
       const element = elmGetter.create(HtmlString, target)
-      target[method](element)
+      target[ method ](element)
       return element
     },
     /**
@@ -457,18 +458,19 @@
      * - 因为这会导致 targetFunction 函数在此处执行一遍，从而增加 vars 里相关的计数变量
      * - 当之后真正执行时会因为相关计数变量值不等于 1 导致在 executeFunctionsSequentially 函数里获取不到返回值
      */
-    isAsyncFunction (targetFunction) {
+    isAsyncFunction(targetFunction) {
       return targetFunction.constructor.name === 'AsyncFunction'
     },
     /**
      * 按顺序依次执行函数数组中的函数
-     * @param {Array} functions 待执行的函数数组
+     * @param {Array} functionsArray 待执行的函数数组
      * - 当函数为异步函数时，只有当前一个函数执行完毕时才会继续执行下一个函数
      * - 当函数为同步函数时，则只会执行相应函数
      */
-    executeFunctionsSequentially (functions) {
-      if (functions.length > 0) {
-        const currentFunction = functions.shift()
+    executeFunctionsSequentially(functionsArray) {
+      if (functionsArray.length > 0) {
+        // console.log(functionsArray.length)
+        const currentFunction = functionsArray.shift()
         if (utils.isAsyncFunction(currentFunction)) {
           currentFunction().then(result => {
             // console.log(currentFunction.name, result)
@@ -479,7 +481,7 @@
               if (callback && Array.isArray(callback)) modules.executeFunctionsSequentially(callback)
             }
             // else utils.logger.debug(currentFunction.name)
-            utils.executeFunctionsSequentially(functions)
+            utils.executeFunctionsSequentially(functionsArray)
           }).catch(error => {
             utils.logger.error(error)
             utils.reloadCurrentTab()
@@ -500,22 +502,22 @@
     /**
      * 判断用户是否登录
      */
-    isLogin () {
+    isLogin() {
       return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || window.UserStatus.userInfo.isLogin || null)
     },
     /**
      * 获取当前视频ID/video BVID/bangumi EPID
      */
-    getCurrentVideoID () {
+    getCurrentVideoID() {
       const currentUrl = window.location.href
-      return currentUrl.includes('www.bilibili.com/video') ? currentUrl.split('/')[4] : currentUrl.includes('www.bilibili.com/bangumi') ? currentUrl.split('/')[5].split('?')[0] : 'error'
+      return currentUrl.includes('www.bilibili.com/video') ? currentUrl.split('/')[ 4 ] : currentUrl.includes('www.bilibili.com/bangumi') ? currentUrl.split('/')[ 5 ].split('?')[ 0 ] : 'error'
     },
     /**
      * 获取当前视频类型(video/bangumi)
      * 如果都没匹配上则弹窗报错
      * @returns 当前视频类型
      */
-    async getCurrentPlayerType () {
+    async getCurrentPlayerType() {
       const playerType = (window.location.href.startsWith('https://www.bilibili.com/video') || window.location.href.startsWith('https://www.bilibili.com/list/')) ? 'video' : window.location.href.startsWith('https://www.bilibili.com/bangumi') ? 'bangumi' : false
       if (!playerType) {
         utils.logger.debug('视频类型丨未匹配')
@@ -531,7 +533,7 @@
      * - 若存在返回成功消息
      * - 若不存在则抛出异常
      */
-    async checkVideoExistence () {
+    async checkVideoExistence() {
       const $video = await elmGetter.get(selectors.video)
       if ($video) return { message: '播放器｜已找到' }
       else throw new Error('播放器｜未找到')
@@ -539,7 +541,7 @@
     /**
      * 检查视频是否可以播放
      */
-    async checkVideoCanPlayThrough () {
+    async checkVideoCanPlayThrough() {
       return new Promise((resolve, reject) => {
         let attempts = 100
         let message
@@ -563,7 +565,7 @@
     /**
      * 监听屏幕模式变化(normal/wide/web/full)
      */
-    async observerPlayerDataScreenChanges () {
+    async observerPlayerDataScreenChanges() {
       const $playerContainer = await elmGetter.get(selectors.playerContainer, 100)
       const observer = new MutationObserver(() => {
         const playerDataScreen = $playerContainer.getAttribute('data-screen')
@@ -571,7 +573,7 @@
       })
       observer.observe($playerContainer, {
         attributes: true,
-        attributeFilter: ['data-screen'],
+        attributeFilter: [ 'data-screen' ],
       })
     },
     /**
@@ -579,7 +581,7 @@
      * @param {Number} 延时
      * @returns
      */
-    async getCurrentScreenMode (delay = 0) {
+    async getCurrentScreenMode(delay = 0) {
       // if (vals.player_type() === 'bangumi') await utils.sleep(1000)
       const $playerContainer = await elmGetter.get(selectors.playerContainer, delay)
       // utils.logger.debug($playerContainer)
@@ -592,7 +594,7 @@
      * - 功能开启，但当前屏幕已为宽屏或网页全屏，则直接返回成功
      * - 功能开启，执行切换函数
      */
-    async autoSelectScreenMode () {
+    async autoSelectScreenMode() {
       if (++vars.autoSelectScreenModeRunningCount === 1) {
         if (vals.selected_screen_mode() === 'close') return { message: '屏幕模式｜功能已关闭' }
         const currentScreenMode = await modules.getCurrentScreenMode()
@@ -610,17 +612,17 @@
      * - 未成功自动重试
      * - 递归超过 10 次则返回失败
      */
-    async checkScreenModeSwitchSuccess (expectScreenMode) {
+    async checkScreenModeSwitchSuccess(expectScreenMode) {
       const enterBtnMap = {
         wide: async () => { return await elmGetter.get(selectors.screenModeWideEnterButton) },
         web: async () => { return await elmGetter.get(selectors.screenModeWebEnterButton) },
       }
-      if (enterBtnMap[expectScreenMode]) {
-        const enterBtn = await enterBtnMap[expectScreenMode]()
+      if (enterBtnMap[ expectScreenMode ]) {
+        const enterBtn = await enterBtnMap[ expectScreenMode ]()
         enterBtn.click()
         const currentScreenMode = await modules.getCurrentScreenMode()
         const equal = expectScreenMode === currentScreenMode
-        const success = vals.player_type() === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selectors.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
+        const success = vals.player_type() === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selectors.danmukuBox))[ 'margin-top' ].slice(0, -2) > 0 : equal : equal
         // utils.logger.debug(`${vals.player_type()} ${expectScreenMode} ${currentScreenMode} ${equal} ${success}`)
         if (success) return success
         else {
@@ -632,17 +634,17 @@
       }
     },
     // 设置位置数据并滚动至播放器
-    async setlocationDataAndScrollToPlayer () {
-      const getOffestMethod = vals.get_offest_method()
+    async setLocationDataAndScrollToPlayer() {
+      const getOffsetMethod = vals.get_offset_method()
       let playerOffsetTop
-      if (getOffestMethod === 'elements') {
+      if (getOffsetMethod === 'elements') {
         const $header = await elmGetter.get(selectors.header, 100)
         const $placeholderElement = await elmGetter.get(selectors.videoTitleArea, 100) || await elmGetter.get(selectors.bangumiMainContainer, 100)
         const headerHeight = $header.getBoundingClientRect().height
         const placeholderElementHeight = $placeholderElement.getBoundingClientRect().height
-        playerOffsetTop = vals.player_type() === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle($placeholderElement)['margin-top'].slice(0, -2)
+        playerOffsetTop = vals.player_type() === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle($placeholderElement)[ 'margin-top' ].slice(0, -2)
       }
-      if (getOffestMethod === 'function') {
+      if (getOffsetMethod === 'function') {
         const $player = await elmGetter.get(selectors.player)
         playerOffsetTop = utils.getElementOffsetToDocument($player).top
 
@@ -656,13 +658,13 @@
     /**
      * 自动定位至播放器并检查是否成功
      */
-    async autoLocationToPlayer () {
+    async autoLocationToPlayer() {
       const unlockbody = () => {
         document.getElementById('BodyHiddenStyle')?.remove()
       }
       const onAutoLocate = vals.auto_locate() && ((!vals.auto_locate_video() && !vals.auto_locate_bangumi()) || (vals.auto_locate_video() && vals.player_type() === 'video') || (vals.auto_locate_bangumi() && vals.player_type() === 'bangumi'))
       if (!onAutoLocate || vals.selected_screen_mode() === 'web') return { callback: unlockbody }
-      await modules.setlocationDataAndScrollToPlayer()
+      await modules.setLocationDataAndScrollToPlayer()
       const playerOffsetTop = vals.player_type() === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
       const result = await modules.checkAutoLocationSuccess(playerOffsetTop - vals.offset_top())
       if (result) return { message: '自动定位｜成功', callback: unlockbody }
@@ -670,7 +672,7 @@
     },
     /**
      * 递归检查屏自动定位是否成功
-     * @param {*} expectOffest 期望文档滚动偏移量
+     * @param {*} expectOffset 期望文档滚动偏移量
      * - 未定位成功自动重试，递归超过 10 次则返回失败
      * - 基础数据：
      * - videoOffsetTop：播放器相对文档顶部距离，大小不随页面滚动变化
@@ -678,9 +680,9 @@
      * - targetOffset：用户期望的播放器相对浏览器视口顶部距离，由用户自定义
      * - 文档滚动距离：videoOffsetTop - targetOffset
      */
-    async checkAutoLocationSuccess (expectOffest) {
+    async checkAutoLocationSuccess(expectOffset) {
       const $video = await elmGetter.get(selectors.video)
-      utils.documentScrollTo(expectOffest)
+      utils.documentScrollTo(expectOffset)
       await utils.sleep(300)
       const videoClientTop = Math.trunc($video.getBoundingClientRect().top)
       const playerOffsetTop = vals.player_type() === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
@@ -700,25 +702,25 @@
                     设置偏移量：${vals.offset_top()}`)
         utils.documentScrollTo(0)
         await utils.sleep(300)
-        return modules.checkAutoLocationSuccess(expectOffest)
+        return modules.checkAutoLocationSuccess(expectOffset)
       }
     },
     /**
      * 文档滚动至播放器(使用已有数据)
      */
-    async locationToPlayer () {
+    async locationToPlayer() {
       const playerOffsetTop = vals.player_type() === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
       utils.documentScrollTo(await modules.getCurrentScreenMode() !== 'web' ? playerOffsetTop - vals.offset_top() : 0)
     },
     /**
      * 点击播放器自动定位
      */
-    async clickPlayerAutoLocation () {
+    async clickPlayerAutoLocation() {
       if (vals.click_player_auto_locate()) {
         const $video = await elmGetter.get(selectors.video)
         $video.addEventListener('click', async () => {
           const currentScreenMode = await modules.getCurrentScreenMode()
-          if (['full', 'mini'].includes(currentScreenMode)) return
+          if ([ 'full', 'mini' ].includes(currentScreenMode)) return
           await modules.locationToPlayer()
         })
       }
@@ -726,9 +728,9 @@
     /**
      * 自动关闭静音
      */
-    async autoCancelMute () {
+    async autoCancelMute() {
       if (++vars.autoCancelMuteRunningCount === 1) {
-        const [$mutedButton, $volumeButton] = await elmGetter.get([selectors.mutedButton, selectors.volumeButton])
+        const [ $mutedButton, $volumeButton ] = await elmGetter.get([ selectors.mutedButton, selectors.volumeButton ])
         // const mutedButtonDisplay = getComputedStyle(mutedButton)['display']
         // const volumeButtonDisplay = getComputedStyle(volumeButton)['display']
         const mutedButtonDisplay = $mutedButton.style.display
@@ -749,7 +751,7 @@
      * - 80->1080P 高清；64->720P 高清；32->480P 清晰；
      * - 16->360P 流畅；0->自动
      */
-    async autoSelectVideoHighestQuality () {
+    async autoSelectVideoHighestQuality() {
       if (++vars.autoSelectVideoHighestQualityRunningCount === 1) {
         let message
         const qualitySwitchButtonsMap = new Map()
@@ -757,12 +759,12 @@
         await elmGetter.each(selectors.qualitySwitchButtons, document.body, button => {
           qualitySwitchButtonsMap.set(button.dataset.value, button)
         })
-        const qualitySwitchButtonsArray = [...qualitySwitchButtonsMap]
+        const qualitySwitchButtonsArray = [ ...qualitySwitchButtonsMap ]
         if (vals.is_vip()) {
           if (!vals.contain_quality_4k() && !vals.contain_quality_8k()) {
             qualitySwitchButtonsArray.filter(quality => {
-              return +quality[0] < 120
-            })[0][1].click()
+              return +quality[ 0 ] < 120
+            })[ 0 ][ 1 ].click()
             message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
           }
           if (vals.contain_quality_4k() && !vals.contain_quality_8k()) {
@@ -775,8 +777,8 @@
           }
         } else {
           qualitySwitchButtonsArray.filter(button => {
-            return button[1].children.length < 2
-          })[0][1].click()
+            return button[ 1 ].children.length < 2
+          })[ 0 ][ 1 ].click()
           message = '最高画质｜非VIP｜切换成功'
         }
         // utils.logger.info(message)
@@ -787,9 +789,9 @@
      * 插入漂浮功能按钮
      * - 快速返回至播放器
      */
-    async insertFloatSideNavToolsButton () {
+    async insertFloatSideNavToolsButton() {
       const $floatNav = vals.player_type() === 'video' ? await elmGetter.get(selectors.videoFloatNav) : await elmGetter.get(selectors.bangumiFloatNav, 100)
-      const dataV = $floatNav.lastChild.attributes[1].name
+      const dataV = $floatNav.lastChild.attributes[ 1 ].name
       let $locateButton
       if (vals.player_type() === 'video') {
         const locateButtonHtml = '<div class="fixed-sidenav-storage-item locate" title="定位至播放器"><svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg>定位</div>'.replace('title="定位至播放器"', `title="定位至播放器" ${dataV}`)
@@ -807,7 +809,7 @@
     /**
      * 点击时间锚点自动返回播放器
      */
-    async clickVideoTimeAutoLocation () {
+    async clickVideoTimeAutoLocation() {
       await utils.sleep(100)
       const $video = await elmGetter.get('video')
       const $clickTarget = vals.player_type() === 'video' ? await elmGetter.get(selectors.videoComment, 100) : await elmGetter.get(selectors.bangumiComment, 100)
@@ -826,12 +828,12 @@
     /**
      * 网页全屏模式解锁
      */
-    async webfullScreenModeUnlock () {
+    async webfullScreenModeUnlock() {
       if (vals.webfull_unlock() && vals.selected_screen_mode() === 'web' && ++vars.webfullUnlockRunningCount === 1) {
         if (vals.player_type() === 'bangumi') return
-        const [$app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton] = await elmGetter.get([selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton])
+        const [ $app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton ] = await elmGetter.get([ selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton ])
         const resetPlayerLayout = async () => {
-          if (document.getElementById('UnlockWebscreenStlye')) document.getElementById('UnlockWebscreenStlye').remove()
+          if (document.getElementById('UnlockWebscreenStyle')) document.getElementById('UnlockWebscreenStyle').remove()
           if (!document.getElementById('ResetPlayerLayoutStyle')) utils.insertStyleToDocument('ResetPlayerLayoutStyle', styles.ResetPlayerLayout)
           $playerWrap.append($player)
           utils.setValue('current_screen_mode', 'wide')
@@ -839,14 +841,14 @@
           await modules.locationToPlayer()
         }
         const bodyHeight = utils.getBodyHeight()
-        utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreen.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
+        utils.insertStyleToDocument('UnlockWebscreenStyle', styles.UnlockWebscreen.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
         $app.prepend($playerWebscreen)
         $webLeaveButton.addEventListener('click', async () => {
           await utils.sleep(100)
           await resetPlayerLayout()
         })
         $webEnterButton.addEventListener('click', async () => {
-          if (!document.getElementById('UnlockWebscreenStlye')) utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreen.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
+          if (!document.getElementById('UnlockWebscreenStyle')) utils.insertStyleToDocument('UnlockWebscreenStyle', styles.UnlockWebscreen.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
           $app.prepend($playerWebscreen)
           await modules.locationToPlayer()
         })
@@ -871,9 +873,9 @@
     /**
      * 网页全屏模式解锁后插入跳转评论按钮
      */
-    async insertGoToCommentButton () {
+    async insertGoToCommentButton() {
       if (vals.player_type() === 'video' && vals.webfull_unlock() && ++vars.insertGoToCommentButtonCount === 1) {
-        const [$comment, $playerControllerBottomRight] = await elmGetter.get([selectors.videoComment, selectors.playerControllerBottomRight])
+        const [ $comment, $playerControllerBottomRight ] = await elmGetter.get([ selectors.videoComment, selectors.playerControllerBottomRight ])
         const goToCommentBtnHtml = '<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>'
         const $goToCommentButton = utils.createElementAndInsert(goToCommentBtnHtml, $playerControllerBottomRight, 'append')
         $goToCommentButton.addEventListener('click', (event) => {
@@ -890,15 +892,15 @@
      * - 若视频简介中包含 URL 链接，则将其转换为跳转链接
      * - 若视频简介中包含视频 BV 号或专栏 cv 号，则将其转换为跳转链接
      */
-    async insertVideoDescriptionToComment () {
+    async insertVideoDescriptionToComment() {
       if (vals.player_type() === 'bangumi') return
       const $commentDescription = document.getElementById('comment-description')
       if ($commentDescription) $commentDescription.remove()
 
-      const [$videoDescription, $videoDescriptionInfo, $videoCommentReplyList] = await elmGetter.get([selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList])
+      const [ $videoDescription, $videoDescriptionInfo, $videoCommentReplyList ] = await elmGetter.get([ selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList ])
       const getTotalSecondsFromTimeString = (timeString) => {
         if (timeString.length === 5) timeString = '00:' + timeString
-        const [hours, minutes, seconds] = timeString.split(':').map(Number)
+        const [ hours, minutes, seconds ] = timeString.split(':').map(Number)
         const totalSeconds = hours * 3600 + minutes * 60 + seconds
         return totalSeconds
       }
@@ -917,7 +919,7 @@
           const $membersUpAvatarFace = await elmGetter.get(selectors.membersUpAvatarFace)
           upAvatarFaceLink = $membersUpAvatarFace.getAttribute('src')
         } else {
-          [$upAvatarFace, $upAvatarIcon] = await elmGetter.get([selectors.upAvatarFace, selectors.upAvatarIcon])
+          [ $upAvatarFace, $upAvatarIcon ] = await elmGetter.get([ selectors.upAvatarFace, selectors.upAvatarIcon ])
           upAvatarFaceLink = $upAvatarFace.dataset.src.replace('@96w_96h_1c_1s_!web-avatar', '@160w_160h_1c_1s_!web-avatar-comment')
         }
         // 先将内容编码后替换特殊空白符(%09)为普通空格(%20)后再解码供后续使用
@@ -977,7 +979,7 @@
      * - indexedDB
      * - 数据存在浏览器本地
      */
-    async setVideoSkipTimeNodesByIndexedDB (videoSkipTimeNodesArray) {
+    async setVideoSkipTimeNodesByIndexedDB(videoSkipTimeNodesArray) {
       const videoID = modules.getCurrentVideoID()
       if (videoID !== 'error') {
         const videoSkipTimeNodesList = localforage.createInstance({
@@ -1006,7 +1008,7 @@
      * - indexedDB
      * - 数据存在浏览器本地
      */
-    async getVideoSkipTimeNodesByIndexedDB () {
+    async getVideoSkipTimeNodesByIndexedDB() {
       const videoSkipTimeNodesList = localforage.createInstance({
         name: 'videoSkipTimeNodesList',
       })
@@ -1027,7 +1029,7 @@
      * - Axios
      * - 数据存在云数据库
      */
-    async setVideoSkipTimeNodesByAxios (timeNodesArray) {
+    async setVideoSkipTimeNodesByAxios(timeNodesArray) {
       const videoID = modules.getCurrentVideoID()
       const videoAuthor = decodeURIComponent(await utils.getMetaContent('name="author"'))
       let videoTitle, videoUrl
@@ -1042,10 +1044,10 @@
       if (videoID !== 'error') {
         const timeNodesArraySafe = decodeURIComponent(timeNodesArray)
         const url = `https://hn216.api.yesapi.cn/?s=SVIP.Swxqian_MyApi.AUpdateSkipTimeNodes&return_data=0&videoID=${videoID}&timeNodesArray=${timeNodesArraySafe}&videoTitle=${videoTitle}&videoAuthor=${videoAuthor}&videoUrl=${videoUrl}&app_key=A11B09901609FA722CFDFEB981EC31DB&sign=6BAEA5FDE94074B8C3ADF35789AE8B18&yesapi_allow_origin=1`
-        const result = await axios.post(url).then(respones => {
-          // utils.logger.debug(respones)
-          const responesData = respones.data
-          const { msg, ret, data } = responesData
+        const result = await axios.post(url).then(response => {
+          // utils.logger.debug(response)
+          const responseData = response.data
+          const { msg, ret, data } = responseData
           const { err_msg } = data
           if (Object.keys(data).length === 0) {
             return {
@@ -1059,7 +1061,6 @@
             }
           }
         }).catch(error => {
-          // logger.debug(error)
           return {
             message: error
           }
@@ -1074,12 +1075,12 @@
      * - Axios
      * - 数据存在云数据库
      */
-    async getVideoSkipTimeNodesByAxios () {
+    async getVideoSkipTimeNodesByAxios() {
       const videoID = modules.getCurrentVideoID()
       if (videoID !== 'error') {
         const url = `https://hn216.api.yesapi.cn/?s=SVIP.Swxqian_MyApi.AGetSkipTimeNodes&return_data=0&videoID=${videoID}&app_key=A11B09901609FA722CFDFEB981EC31DB&sign=574181B06EBD07D9252199563CD7D9D3&yesapi_allow_origin=1`
-        const result = await axios.post(url).then(respones => {
-          const skipNodesInfo = respones.data.data
+        const result = await axios.post(url).then(response => {
+          const skipNodesInfo = response.data.data
           const success = skipNodesInfo.success
           const timeNodesArray = skipNodesInfo.info?.timeNodesArray
           if (success && timeNodesArray !== '') {
@@ -1099,7 +1100,7 @@
     /**
      * 自动跳过视频已设置设置时间节点
      */
-    async autoSkipTimeNodes () {
+    async autoSkipTimeNodes() {
       if (!vals.auto_skip()) return
       const videoID = modules.getCurrentVideoID()
       const $video = await elmGetter.get(selectors.video)
@@ -1110,9 +1111,9 @@
         }
       }
       const findTargetTimeNode = (num, arr) => {
-        for (let i = 0; i < arr[0].length; i++) {
-          if (arr[0][i] === num) {
-            return arr[1][i];
+        for (let i = 0; i < arr[ 0 ].length; i++) {
+          if (arr[ 0 ][ i ] === num) {
+            return arr[ 1 ][ i ];
           }
         }
         return null;
@@ -1143,10 +1144,10 @@
     /**
      * 插入设置跳过时间节点按钮
      */
-    async insertSetSkipTimeNodesButton () {
+    async insertSetSkipTimeNodesButton() {
       const videoID = modules.getCurrentVideoID()
       if (++vars.insertSetSkipTimeNodesButtonCount === 1 && vals.auto_skip()) {
-        const [$video, $playerContainer, $playerControllerBottomRight, $playerTooltipArea] = await elmGetter.get([selectors.video, selectors.playerContainer, selectors.playerControllerBottomRight, selectors.playerTooltipArea])
+        const [ $video, $playerContainer, $playerControllerBottomRight, $playerTooltipArea ] = await elmGetter.get([ selectors.video, selectors.playerContainer, selectors.playerControllerBottomRight, selectors.playerTooltipArea ])
         const validateInputValue = (inputValue) => {
           const regex = /^\[\d+,\d+\](,\[\d+,\d+\])*?$/g;
           const numbers = inputValue.match(/\[(\d+),(\d+)\]/g)?.flatMap(match => match.slice(1, -1).split(',')).map(Number) || [];
@@ -1154,12 +1155,12 @@
           if (inputValue === '' || !regex.test(inputValue) || hasDuplicates) {
             return false
           }
-          const isAscending = numbers.every((num, i) => i === 0 || num >= numbers[i - 1])
+          const isAscending = numbers.every((num, i) => i === 0 || num >= numbers[ i - 1 ])
           return isAscending
         }
         // [[10,20],[30,40]] → [[10,30],[20,40]]
         const convertArrayReadableToSave = (arr) => {
-          return arr[0].map((col, i) => arr.map(row => row[i]))
+          return arr[ 0 ].map((col, i) => arr.map(row => row[ i ]))
         }
         // [10,20,30,40] → [[10,30],[20,40]]
         // const convertArrayRecordToSave = (arr) => {
@@ -1224,7 +1225,7 @@
                             </div>
                         </div>
                         <div class="handles">
-                            <input id="${selectors.AutoSkipSwitchInput.slice(1)}" value="">
+                            <input id="${selectors.setSkipTimeNodesInput.slice(1)}" class="adjustment_input" value="">
                             <button id="${selectors.uploadSkipTimeNodesButton.slice(1)}">上传</button>
                         </div>
                         <div class="result" style="display:none"></div>
@@ -1253,10 +1254,10 @@
           $setSkipTimeNodesButtonTip.style.opacity = 0
           $setSkipTimeNodesButtonTip.style.visibility = 'hidden'
         })
-        const [$setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail, $setSkipTimeNodesPopoverRecords, $setSkipTimeNodesInput, $skipTimeNodesRecordsArray, $setSkipTimeNodesPopoverResult, $clearRecordsButton, $saveRecordsButton, $uploadSkipTimeNodesButton] = await elmGetter.get([selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail, selectors.setSkipTimeNodesPopoverRecords, selectors.setSkipTimeNodesInput, selectors.skipTimeNodesRecordsArray, selectors.setSkipTimeNodesPopoverResult, selectors.clearRecordsButton, selectors.saveRecordsButton, selectors.uploadSkipTimeNodesButton])
+        const [ $setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail, $setSkipTimeNodesPopoverRecords, $setSkipTimeNodesInput, $skipTimeNodesRecordsArray, $setSkipTimeNodesPopoverResult, $clearRecordsButton, $saveRecordsButton, $uploadSkipTimeNodesButton ] = await elmGetter.get([ selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail, selectors.setSkipTimeNodesPopoverRecords, selectors.setSkipTimeNodesInput, selectors.skipTimeNodesRecordsArray, selectors.setSkipTimeNodesPopoverResult, selectors.clearRecordsButton, selectors.saveRecordsButton, selectors.uploadSkipTimeNodesButton ])
         $setSkipTimeNodesPopoverTipsDetail.addEventListener('click', function (event) {
           event.stopPropagation()
-          const detailClassList = [...this.classList]
+          const detailClassList = [ ...this.classList ]
           if (detailClassList.includes('open')) {
             this.classList.replace('open', 'close')
             $setSkipTimeNodesPopoverTips.classList.replace('close', 'open')
@@ -1326,7 +1327,7 @@
     /**
      * 插入跳过时间节点功能开关
      */
-    async insertSkipTimeNodesSwitchButton () {
+    async insertSkipTimeNodesSwitchButton() {
       if (++vars.insertSetSkipTimeNodesSwitchButtonCount === 1) {
         const skipTimeNodesSwitchButtonHtml = `
                 <div id="autoSkipSwitchButton" class="bpx-player-dm-switch bui bui-danmaku-switch" aria-label="跳过开启关闭">
@@ -1358,14 +1359,13 @@
                     <div class="bpx-player-tooltip-title">关闭自动跳过(j)</div>
                 </div>
                 `
-        const [playerDanmuSetting, playerTooltipArea] = await elmGetter.get([selectors.playerDanmuSetting, selectors.playerTooltipArea])
+        const [ playerDanmuSetting, playerTooltipArea ] = await elmGetter.get([ selectors.playerDanmuSetting, selectors.playerTooltipArea ])
         const $skipTimeNodesSwitchButton = utils.createElementAndInsert(skipTimeNodesSwitchButtonHtml, playerDanmuSetting, 'after')
         const $autoSkipTips = utils.createElementAndInsert(skipTimeNodesSwitchButtonTipHtml, playerTooltipArea, 'append')
         const $AutoSkipSwitchInput = await elmGetter.get(selectors.AutoSkipSwitchInput)
         $AutoSkipSwitchInput.addEventListener('change', event => {
           utils.setValue('auto_skip', event.target.checked)
           $autoSkipTips.querySelector(selectors.playerTooltipTitle).innerText = event.target.checked ? '关闭自动跳过(j)' : '开启自动跳过(j)'
-          // logger.debug(getValue('auto_skip'))
         })
         $skipTimeNodesSwitchButton.addEventListener('mouseover', async function () {
           const { top, left } = utils.getElementOffsetToDocument(this)
@@ -1385,7 +1385,7 @@
     /**
      * 自动返回播放器并更新评论区简介
      */
-    async autoLocationAndInsertVideoDescriptionToComment () {
+    async autoLocationAndInsertVideoDescriptionToComment() {
       modules.locationToPlayer()
       await utils.sleep(1500)
       modules.insertVideoDescriptionToComment()
@@ -1395,9 +1395,9 @@
      * - 合集中的其他视频
      * - 推荐列表中的视频
      */
-    async clickRelatedVideoAutoLocation () {
+    async clickRelatedVideoAutoLocation() {
       if (vals.player_type() === 'video') {
-        await elmGetter.each(selectors.videoSectonsEpisodeLink, (link) => {
+        await elmGetter.each(selectors.videoSectionsEpisodeLink, (link) => {
           link.addEventListener('click', () => {
             modules.autoLocationAndInsertVideoDescriptionToComment()
           })
@@ -1414,7 +1414,7 @@
         })
       }
       if (vals.player_type() === 'bangumi') {
-        await elmGetter.each(selectors.bangumiSectonsEpisodeLink, (link) => {
+        await elmGetter.each(selectors.bangumiSectionsEpisodeLink, (link) => {
           link.addEventListener('click', async () => {
             await utils.sleep(100)
             modules.locationToPlayer()
@@ -1426,7 +1426,7 @@
     /**
      * 默认显示投稿视频
      */
-    changeCurrentUrlToVideoSubmissions () {
+    changeCurrentUrlToVideoSubmissions() {
       const web_video_link = vals.web_video_link()
       const url = window.location.href
       const indexLink = 'https://t.bilibili.com/pages/nav/index'
@@ -1452,7 +1452,7 @@
     /**
      * 记录首页推荐的前 6 个视频
      */
-    async setIndexRecordRecommendVideoHistory () {
+    async setIndexRecordRecommendVideoHistory() {
       const indexRecommendVideoHistory = localforage.createInstance({
         name: 'indexRecommendVideoHistory',
       })
@@ -1464,7 +1464,7 @@
         }
       })
     },
-    async insertIndexRecommendVideoHistoryOpenButton () {
+    async insertIndexRecommendVideoHistoryOpenButton() {
       if (document.getElementById(selectors.indexRecommendVideoHistoryOpenButton)) document.getElementById(selectors.indexRecommendVideoHistoryOpenButton).remove()
       if (document.getElementById(selectors.indexRecommendVideoHistoryPopover)) document.getElementById(selectors.indexRecommendVideoHistoryPopover).remove()
       const $indexRecommendVideoRollButtonWrapper = await elmGetter.get(selectors.indexRecommendVideoRollButtonWrapper)
@@ -1483,7 +1483,7 @@
       utils.createElementAndInsert(indexRecommendVideoHistoryOpenButtonHtml, $indexRecommendVideoRollButtonWrapper, 'append')
       const $indexRecommendVideoHistoryPopover = utils.createElementAndInsert(indexRecommendVideoHistoryPopoverHtml, document.body, 'append')
       $indexRecommendVideoHistoryPopover.addEventListener('toggle', async (event) => {
-        const [$indexBodyElement, $indexRecommendVideoHistoryPopoverTitle] = await elmGetter.get([selectors.indexBodyElement, selectors.indexRecommendVideoHistoryPopoverTitle])
+        const [ $indexBodyElement, $indexRecommendVideoHistoryPopoverTitle ] = await elmGetter.get([ selectors.indexBodyElement, selectors.indexRecommendVideoHistoryPopoverTitle ])
         if (event.newState === 'open') {
           $indexBodyElement.style.pointerEvents = 'none'
           $indexRecommendVideoHistoryPopoverTitle.querySelector('span').append(`(${$indexRecommendVideoHistoryPopover.querySelector('ul').childElementCount})`)
@@ -1494,7 +1494,7 @@
         }
       })
     },
-    async getIndexRecordRecommendVideoHistory () {
+    async getIndexRecordRecommendVideoHistory() {
       const indexRecommendVideoHistory = localforage.createInstance({
         name: 'indexRecommendVideoHistory',
       })
@@ -1505,7 +1505,7 @@
       })
 
     },
-    async clearRecommendVideoHistory () {
+    async clearRecommendVideoHistory() {
       const indexRecommendVideoHistory = localforage.createInstance({
         name: 'indexRecommendVideoHistory',
       })
@@ -1515,16 +1515,16 @@
       $indexRecommendVideoHistoryPopover.hidePopover()
     },
     //** ----------------------- 脚本最终执行函数 ----------------------- **//
-    async registerMenuCommand () {
+    async registerMenuCommand() {
       if (regexps.dynamic.test(window.location.href)) {
         const dynamicSettingPopoverHtml = `
           <div id="${selectors.dynamicSettingPopover.slice(1)}" class="adjustment_popover" popover>
               <div class="adjustment_popoverTitle">哔哩哔哩动态页设置</div>
               <label class="bilibili-adjustment-setting-label" style="padding-top:0!important;display: grid;grid-gap: 10px">
                   「投稿视频」链接：
-                  <input id="${selectors.WebVideoLinkInput.slice(1)}" value="${utils.getValue('web_video_link')}">
+                  <input id="${selectors.WebVideoLinkInput.slice(1)}" class="adjustment_input" value="${utils.getValue('web_video_link')}">
               </label>
-              <div class="adjustment_tips">手动选择「投稿视频」选项后，填入当前浏览器地址栏链接，即可自动跳转至该链接</div>
+              <div id="${selectors.dynamicSettingPopoverTips.slice(1)}" class="adjustment_tips">手动选择「投稿视频」选项后，填入当前浏览器地址栏链接，即可自动跳转至该链接</div>
               <div class="adjustment_buttonGroup">
                 <button id="${selectors.dynamicSettingSaveButton.slice(1)}" class="adjustment_button primary">保存</button>
               </div>
@@ -1532,7 +1532,7 @@
           `
         if (document.getElementById(selectors.dynamicSettingPopover)) document.getElementById(selectors.dynamicSettingPopover).remove()
         const $dynamicSettingPopover = utils.createElementAndInsert(dynamicSettingPopoverHtml, document.body, 'append')
-        const [$app, $dynamicHeaderContainer, $WebVideoLinkInput, $dynamicSettingSaveButton] = await elmGetter.get([selectors.app, selectors.dynamicHeaderContainer, selectors.WebVideoLinkInput, selectors.dynamicSettingSaveButton])
+        const [ $app, $dynamicHeaderContainer, $WebVideoLinkInput, $dynamicSettingSaveButton ] = await elmGetter.get([ selectors.app, selectors.dynamicHeaderContainer, selectors.WebVideoLinkInput, selectors.dynamicSettingSaveButton ])
         $WebVideoLinkInput.addEventListener('input', event => {
           utils.setValue('web_video_link', event.target.value.trim())
         })
@@ -1566,7 +1566,7 @@
      * 前期准备函数
      * 提前执行其他脚本功能所依赖的其他函数
      */
-    thePrepFunction () {
+    thePrepFunction() {
       if (++vars.thePrepFunctionRunningCount === 1) {
         utils.initValue()
         utils.clearAllTimersWhenCloseTab()
@@ -1590,8 +1590,8 @@
   if (modules.isLogin()) {
     modules.thePrepFunction()
     const timer = setInterval(async () => {
-      const dicumentHidden = utils.checkDocumentIsHidden()
-      if (!dicumentHidden) {
+      const documentHidden = utils.checkDocumentIsHidden()
+      if (!documentHidden) {
         clearInterval(timer)
         utils.logger.info('当前标签｜已激活｜开始应用配置')
         let functionsArray = []
