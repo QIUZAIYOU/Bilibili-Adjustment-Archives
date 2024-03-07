@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.7
+// @version           0.1.8
 // @description       一、动态页调整：1.导航样式优化。2.默认显示"投稿视频"内容。二、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置是否自动选择最高画质；3.可设置播放器默认模式；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -109,8 +109,12 @@
     indexRecommendVideoHistoryOpenButton: '#indexRecommendVideoHistoryOpenButton',
     indexRecommendVideoHistoryPopover: '#indexRecommendVideoHistoryPopover',
     clearRecommendVideoHistoryButton: '#clearRecommendVideoHistoryButton',
+    dynamicSettingPopover: '#dynamicSettingPopover',
+    dynamicSettingSaveButton: '#dynamicSettingSaveButton',
+    dynamicHeaderContainer: '#bili-header-container',
+    videoSettingPopover: '#videoSettingPopover',
     AutoSkipSwitchInput: '#Auto-Skip-Switch',
-
+    WebVideoLinkInput: '#Web-Video-Link',
   }
   const vals = {
     is_vip: () => { return utils.getValue('is_vip') },
@@ -134,12 +138,14 @@
     web_video_link: () => { return utils.getValue('web_video_link') },
   }
   const styles = {
-    IndexAdjustment: '#indexRecommendVideoHistoryOpenButton{margin-top:10px!important}#indexRecommendVideoHistoryPopover{position:fixed!important;top:50%!important;left:50%!important;box-sizing:border-box!important;padding:20px!important;width:600px!important;max-height:70vh!important;border:none!important;border-radius:6px!important;font-size:15px!important;transform:translate(-50%,-50%)!important;overscroll-behavior:contain!important}#indexRecommendVideoHistoryPopover::backdrop{backdrop-filter:blur(3px)}#indexRecommendVideoHistoryPopover #indexRecommendVideoHistoryPopoverTitle{display:flex;margin-bottom:16px;text-align:center;font-size:22px;align-items:center;justify-content:space-between}#indexRecommendVideoHistoryPopover ul{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:space-between!important}#indexRecommendVideoHistoryPopover ul li{padding:7px 0;width:100%;border-color:#ededed!important;border-style:solid!important;line-height:24px!important;border-bottom-width:1px!important}#indexRecommendVideoHistoryPopover ul li:first-child{border-top-width:1px!important}#indexRecommendVideoHistoryPopover ul li a{color:#333!important}#indexRecommendVideoHistoryPopover ul li:hover a{color:#00a1d6!important}#clearRecommendVideoHistoryButton{position:sticky!important;display:flex!important;padding:10px!important;width:80px!important;border-radius:6px!important;background:#00a1d6!important;color:#fff!important;font-size:15px!important;line-height:16px!important;cursor:pointer!important;align-items:center!important;justify-content:center}',
+    BilibiliAdjustment: '.adjustment_popover{position:fixed!important;top:50%!important;left:50%!important;box-sizing:border-box!important;margin:0!important;padding:20px!important;width:400px!important;max-height:70vh!important;border:none!important;border-radius:6px!important;font-size:1em!important;transform:translate(-50%,-50%)!important;overscroll-behavior:contain!important}.adjustment_popover::backdrop{backdrop-filter:blur(3px)!important}.adjustment_popoverTitle{margin-bottom:15px!important;text-align:center!important;font-weight:700!important;font-size:22px!important}.adjustment_buttonGroup{display:flex!important;align-items:center!important;justify-content:end!important}.adjustment_button{display:inline-block;box-sizing:border-box;margin:0;padding:10px 20px;outline:0;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;text-align:center;white-space:nowrap;font-weight:500;font-size:14px;line-height:1;cursor:pointer;transition:.1s;-webkit-appearance:none;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none}.adjustment_button.primary{border-color:#409eff;background-color:#409eff;color:#fff}.adjustment_tips{}',
+    IndexAdjustment: '#indexRecommendVideoHistoryOpenButton{margin-top:10px!important}#indexRecommendVideoHistoryPopover{width:600px!important}#indexRecommendVideoHistoryPopover #indexRecommendVideoHistoryPopoverTitle{display:flex;margin-bottom:15px;text-align:center;font-weight:700!important;font-size:22px;align-items:center;justify-content:space-between}#indexRecommendVideoHistoryPopover ul{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:space-between!important}#indexRecommendVideoHistoryPopover ul li{padding:7px 0;width:100%;border-color:#ededed!important;border-style:solid!important;line-height:24px!important;border-bottom-width:1px!important}#indexRecommendVideoHistoryPopover ul li:first-child{border-top-width:1px!important}#indexRecommendVideoHistoryPopover ul li a{color:#333!important}#indexRecommendVideoHistoryPopover ul li:hover a{color:#00a1d6!important}#clearRecommendVideoHistoryButton{position:sticky!important;display:flex!important;padding:10px!important;width:80px!important;border-radius:6px!important;background:#00a1d6!important;color:#fff!important;font-size:15px!important;line-height:16px!important;cursor:pointer!important;align-items:center!important;justify-content:center}',
     VideoPageAdjustment: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:134px!important;line-height:20px!important;}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#uploadSkipTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#uploadSkipTimeNodesButton:hover{background:#00b5e5!important}#skipTimeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}',
     BodyHidden: 'body{overflow:hidden!important}',
     ResetPlayerLayout: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
     UnlockWebscreen: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}',
     FreezeHeaderAndVideoTitle: '#biliMainHeader{height:64px!important}#viewbox_report{height:108px!important;padding-top:22px!important}.members-info-container{height:86px!important;overflow:hidden!important;padding-top:11px!important}.membersinfo-wide .header{display:none!important}',
+    DynamicSetting: '#dynamicSettingPopoverTitle{margin-bottom:15px!important;text-align:center!important;font-weight:700!important;font-size:21px!important}#dynamicSettingPopover::backdrop{backdrop-filter:blur(3px)}#Web-Video-Link{display:inline-flex!important;padding:1px 11px!important;outline:0!important;border: 1px solid #dcdfe6!important;border-radius:6px!important;background:#f5f5f5!important;line-height:32px!important;cursor:text!important;flex-grow:1!important;align-items:center!important;justify-content:center!important}#dynamicSettingSaveButton{margin-top:10px!important}#dynamicSettingPopover .#dynamicSettingPopoverTips{}'
   }
   const regexps = {
     // 如果使用全局检索符(g)，则在多次使用 RegExp.prototype.test() 时会导致脚本执行失败，
@@ -1172,7 +1178,7 @@
           }, []);
         }
         const setSkipTimeNodesPopoverToggleButtonHtml = `
-                <button id="setSkipTimeNodesPopoverToggleButton" popovertarget="setSkipTimeNodesPopover" class="bpx-player-ctrl-btn bpx-player-ctrl-skip" role="button" aria-label="插入时间节点" tabindex="0">
+                <button id="${selectors.setSkipTimeNodesPopoverToggleButton.slice(1)}" popovertarget="${selectors.setSkipTimeNodesPopover.slice(1)}" class="bpx-player-ctrl-btn bpx-player-ctrl-skip" role="button" aria-label="插入时间节点" tabindex="0">
                     <div class="bpx-player-ctrl-btn-icon">
                         <span class="bpx-common-svg-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="88" height="88" class="icon" viewBox="0 0 1024 1024">
@@ -1183,7 +1189,7 @@
                 </button>
                 `
         const setSkipTimeNodesPopoverHtml = `
-                <div id="setSkipTimeNodesPopover" popover>
+                <div id="${selectors.setSkipTimeNodesPopover.slice(1)}" popover>
                     <div class="setSkipTimeNodesWrapper">
                         <div class="header">
                             <span class="title">上传时间节点(${videoID})</span>
@@ -1211,15 +1217,15 @@
                         </div>
                         <span style="display:flex;color:#f56c6c">🈲请勿随意上传无意义时间点，否则将严重影响其他用户观看体验！</span>
                         <div class="records">
-                            <span id="skipTimeNodesRecordsArray"></span>
+                            <span id="${selectors.skipTimeNodesRecordsArray.slice(1)}"></span>
                             <div class="recordsButtonsGroup">
-                                <button id="clearRecordsButton">清除数据</button>
-                                <button id="saveRecordsButton">保存数据</button>
+                                <button id="${selectors.clearRecordsButton.slice(1)}">清除数据</button>
+                                <button id="${selectors.saveRecordsButton.slice(1)}">保存数据</button>
                             </div>
                         </div>
                         <div class="handles">
-                            <input id="setSkipTimeNodesInput" value="">
-                            <button id="uploadSkipTimeNodesButton">上传</button>
+                            <input id="${selectors.AutoSkipSwitchInput.slice(1)}" value="">
+                            <button id="${selectors.uploadSkipTimeNodesButton.slice(1)}">上传</button>
                         </div>
                         <div class="result" style="display:none"></div>
                     </div>
@@ -1325,7 +1331,7 @@
         const skipTimeNodesSwitchButtonHtml = `
                 <div id="autoSkipSwitchButton" class="bpx-player-dm-switch bui bui-danmaku-switch" aria-label="跳过开启关闭">
                 <div class="bui-area">
-                    <input id="Auto-Skip-Switch" class="bui-danmaku-switch-input" type="checkbox" ${vals.auto_skip() ? 'checked' : ''}>
+                    <input id="${selectors.AutoSkipSwitchInput.slice(1)}" class="bui-danmaku-switch-input" type="checkbox" ${vals.auto_skip() ? 'checked' : ''}>
                     <label class="bui-danmaku-switch-label">
                     <span class="bui-danmaku-switch-on">
                         <svg xmlns="http://www.w3.org/2000/svg" data-pointer="none" viewBox="0 0 24 24">
@@ -1463,14 +1469,14 @@
       if (document.getElementById(selectors.indexRecommendVideoHistoryPopover)) document.getElementById(selectors.indexRecommendVideoHistoryPopover).remove()
       const $indexRecommendVideoRollButtonWrapper = await elmGetter.get(selectors.indexRecommendVideoRollButtonWrapper)
       const indexRecommendVideoHistoryOpenButtonHtml = `
-            <button id="indexRecommendVideoHistoryOpenButton" popovertarget="indexRecommendVideoHistoryPopover" class="primary-btn roll-btn">
+            <button id="${selectors.indexRecommendVideoHistoryOpenButton.slice(1)}" popovertarget="${selectors.indexRecommendVideoHistoryPopover.slice(1)}" class="primary-btn roll-btn">
                 <span>历史记录</span>
             </button>`
       const indexRecommendVideoHistoryPopoverHtml = `
-            <div id="indexRecommendVideoHistoryPopover" popover>
-                <div id="indexRecommendVideoHistoryPopoverTitle">
+            <div id="${selectors.indexRecommendVideoHistoryPopover.slice(1)}"  class="adjustment_popover" popover>
+                <div id="${selectors.indexRecommendVideoHistoryPopoverTitle.slice(1)}">
                     <span>首页视频推荐历史记录</span>
-                    <div id="clearRecommendVideoHistoryButton">清空记录</div>
+                    <div id="${selectors.clearRecommendVideoHistoryButton.slice(1)}">清空记录</div>
                 </div>
                 <ul></ul>
             </div>`
@@ -1509,6 +1515,53 @@
       $indexRecommendVideoHistoryPopover.hidePopover()
     },
     //** ----------------------- 脚本最终执行函数 ----------------------- **//
+    async registerMenuCommand () {
+      if (regexps.dynamic.test(window.location.href)) {
+        const dynamicSettingPopoverHtml = `
+          <div id="${selectors.dynamicSettingPopover.slice(1)}" class="adjustment_popover" popover>
+              <div class="adjustment_popoverTitle">哔哩哔哩动态页设置</div>
+              <label class="bilibili-adjustment-setting-label" style="padding-top:0!important;display: grid;grid-gap: 10px">
+                  「投稿视频」链接：
+                  <input id="${selectors.WebVideoLinkInput.slice(1)}" value="${utils.getValue('web_video_link')}">
+              </label>
+              <div class="adjustment_tips">手动选择「投稿视频」选项后，填入当前浏览器地址栏链接，即可自动跳转至该链接</div>
+              <div class="adjustment_buttonGroup">
+                <button id="${selectors.dynamicSettingSaveButton.slice(1)}" class="adjustment_button primary">保存</button>
+              </div>
+          </div>
+          `
+        if (document.getElementById(selectors.dynamicSettingPopover)) document.getElementById(selectors.dynamicSettingPopover).remove()
+        const $dynamicSettingPopover = utils.createElementAndInsert(dynamicSettingPopoverHtml, document.body, 'append')
+        const [$app, $dynamicHeaderContainer, $WebVideoLinkInput, $dynamicSettingSaveButton] = await elmGetter.get([selectors.app, selectors.dynamicHeaderContainer, selectors.WebVideoLinkInput, selectors.dynamicSettingSaveButton])
+        $WebVideoLinkInput.addEventListener('input', event => {
+          utils.setValue('web_video_link', event.target.value.trim())
+        })
+        $dynamicSettingPopover.addEventListener('toggle', event => {
+          if (event.newState === 'open') {
+            $app.style.pointerEvents = 'none'
+            $dynamicHeaderContainer.style.pointerEvents = 'none'
+          }
+          if (event.newState === 'closed') {
+            $app.style.pointerEvents = 'auto'
+            $dynamicHeaderContainer.style.pointerEvents = 'auto'
+          }
+        })
+        $dynamicSettingSaveButton.addEventListener('click', () => {
+          $dynamicSettingPopover.hidePopover()
+        })
+        GM_registerMenuCommand('设置', () => {
+          $dynamicSettingPopover.showPopover()
+        })
+      }
+      if (regexps.video.test(window.location.href)) {
+        const videoSettingPopoverHtml = ``
+        if (document.getElementById(selectors.videoSettingPopover)) document.getElementById(selectors.videoSettingPopover).remove()
+        const $videoSettingPopover = utils.createElementAndInsert(videoSettingPopoverHtml, document.body, 'append')
+        GM_registerMenuCommand('设置', () => {
+          $videoSettingPopover.showPopover()
+        })
+      }
+    },
     /**
      * 前期准备函数
      * 提前执行其他脚本功能所依赖的其他函数
@@ -1517,6 +1570,8 @@
       if (++vars.thePrepFunctionRunningCount === 1) {
         utils.initValue()
         utils.clearAllTimersWhenCloseTab()
+        modules.registerMenuCommand()
+        utils.insertStyleToDocument('BilibiliAdjustmentStyle', styles.BilibiliAdjustment)
         if (window.location.href === 'https://www.bilibili.com/') {
           utils.insertStyleToDocument('IndexAdjustmentStyle', styles.IndexAdjustment)
         }
@@ -1525,6 +1580,9 @@
           utils.insertStyleToDocument('VideoPageAdjustmentStyle', styles.VideoPageAdjustment)
           utils.insertStyleToDocument('FreezeHeaderAndVideoTitleStyle', styles.FreezeHeaderAndVideoTitle)
           modules.observerPlayerDataScreenChanges()
+        }
+        if (regexps.dynamic.test(window.location.href)) {
+          utils.insertStyleToDocument('DynamicSettingStyle', styles.DynamicSetting)
         }
       }
     },
@@ -1578,4 +1636,4 @@
     arrays.intervalIds.push(timer)
   }
   else utils.logger.warn('请登录｜本脚本只能在登录状态下使用')
-})()
+})();
