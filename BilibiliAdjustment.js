@@ -3,9 +3,8 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.18
-// @description       一、首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位；）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
-// @author            QIAN
+// @version           0.1.19
+// @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位；）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；// @author            QIAN
 // @match             *://www.bilibili.com
 // @match             *://www.bilibili.com/video/*
 // @match             *://www.bilibili.com/bangumi/play/*
@@ -158,6 +157,7 @@
     auto_skip: () => { return utils.getValue('auto_skip') },
     insert_video_description_to_comment: () => { return utils.getValue('insert_video_description_to_comment') },
     web_video_link: () => { return utils.getValue('web_video_link') },
+    signIn_date: () => { return utils.getValue('signIn_date') },
   }
   const styles = {
     BilibiliAdjustment: '.adjustment_popover{position:fixed;top:50%;left:50%;box-sizing:border-box;margin:0;padding:20px;width:400px;max-height:70vh;border:none;border-radius:6px;font-size:1em;transform:translate(-50%,-50%);overscroll-behavior:contain}.adjustment_popover::backdrop{backdrop-filter:blur(3px)}.adjustment_popoverTitle{margin-bottom:15px;padding-bottom:20px;border-bottom:1px solid #dcdfe6;text-align:center;font-weight:700;font-size:22px}.adjustment_buttonGroup{display:flex;margin-top:10px;align-items:center;justify-content:end;gap:10px}.adjustment_button{display:inline-block;box-sizing:border-box;margin:0;padding:10px 20px;outline:0;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;text-align:center;white-space:nowrap;font-weight:500;font-size:14px;line-height:1;cursor:pointer;transition:.1s;-webkit-appearance:none;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none}.adjustment_button.plain:disabled,.adjustment_button.plain:disabled:active,.adjustment_button.plain:disabled:focus,.adjustment_button.plain:disabled:hover,.adjustment_button:disabled,.adjustment_button:disabled:active,.adjustment_button:disabled:focus,.adjustment_button:disabled:hover{border-color:#ebeef5;background-color:#fff;background-image:none;color:#c0c4cc;cursor:not-allowed}.adjustment_button.primary{border-color:#409eff;background-color:#409eff;color:#fff}.adjustment_button.success{border-color:#67c23a;background-color:#67c23a;color:#fff}.adjustment_button.info{border-color:#909399;background-color:#909399;color:#fff}.adjustment_button.warning{border-color:#e6a23c;background-color:#e6a23c;color:#fff}.adjustment_button.danger{border-color:#f56c6c;background-color:#f56c6c;color:#fff}.adjustment_button.primary:focus,.adjustment_button.primary:hover{border-color:#66b1ff;background:#66b1ff;color:#fff}.adjustment_button.success:focus,.adjustment_button.success:hover{border-color:#85ce61;background:#85ce61;color:#fff}.adjustment_button.info:focus,.adjustment_button.info:hover{border-color:#a6a9ad;background:#a6a9ad;color:#fff}.adjustment_button.warning:focus,.adjustment_button.warning:hover{border-color:#ebb563;background:#ebb563;color:#fff}.adjustment_button.danger:focus,.adjustment_button.danger:hover{border-color:#f78989;background:#f78989;color:#fff}.adjustment_button.primary.plain{border-color:#b3d8ff;background:#ecf5ff;color:#409eff}.adjustment_button.success.plain{border-color:#c2e7b0;background:#f0f9eb;color:#67c23a}.adjustment_button.info.plain{border-color:#a6a9ad;background:#a6a9ad;color:#fff}.adjustment_button.warning.plain{border-color:#f5dab1;background:#fdf6ec;color:#e6a23c}.adjustment_button.danger.plain{border-color:#fbc4c4;background:#fef0f0;color:#f56c6c}.adjustment_button.primary.plain:focus,.adjustment_button.primary.plain:hover{border-color:#409eff;background:#409eff;color:#fff}.adjustment_button.success.plain:focus,.adjustment_button.success.plain:hover{border-color:#67c23a;background-color:#67c23a;color:#fff}.adjustment_button.info.plain:focus,.adjustment_button.info.plain:hover{border-color:#909399;background-color:#909399;color:#fff}.adjustment_button.warning.plain:focus,.adjustment_button.warning.plain:hover{border-color:#e6a23c;background-color:#e6a23c;color:#fff}.adjustment_button.danger.plain:focus,.adjustment_button.danger.plain:hover{border-color:#f56c6c;background-color:#f56c6c;color:#fff}.adjustment_button.primary:disabled,.adjustment_button.primary:disabled:active,.adjustment_button.primary:disabled:focus,.adjustment_button.primary:disabled:hover{border-color:#a0cfff;background-color:#a0cfff;color:#fff}.adjustment_button.success:disabled,.adjustment_button.success:disabled:active,.adjustment_button.success:disabled:focus,.adjustment_button.success:disabled:hover{border-color:#b3e19d;background-color:#b3e19d;color:#fff}.adjustment_button.info:disabled,.adjustment_button.info:disabled:active,.adjustment_button.info:disabled:focus,.adjustment_button.info:disabled:hover{border-color:#c8c9cc;background-color:#c8c9cc;color:#fff}.adjustment_button.warning:disabled,.adjustment_button.warning:disabled:active,.adjustment_button.warning:disabled:focus,.adjustment_button.warning:disabled:hover{border-color:#f3d19e;background-color:#f3d19e;color:#fff}.adjustment_button.danger:disabled,.adjustment_button.danger:disabled:active,.adjustment_button.danger:disabled:focus,.adjustment_button.danger:disabled:hover{border-color:#fab6b6;background-color:#fab6b6;color:#fff}.adjustment_button.primary.plain:disabled,.adjustment_button.primary.plain:disabled:active,.adjustment_button.primary.plain:disabled:focus,.adjustment_button.primary.plain:disabled:hover{border-color:#d9ecff;background-color:#ecf5ff;color:#8cc5ff}.adjustment_button.success.plain:disabled,.adjustment_button.success.plain:disabled:active,.adjustment_button.success.plain:disabled:focus,.adjustment_button.success.plain:disabled:hover{border-color:#e1f3d8;background-color:#f0f9eb;color:#a4da89}.adjustment_button.info.plain:disabled,.adjustment_button.info.plain:disabled:active,.adjustment_button.info.plain:disabled:focus,.adjustment_button.info.plain:disabled:hover{border-color:#e9e9eb;background-color:#f4f4f5;color:#bcbec2}.adjustment_button.warning.plain:disabled,.adjustment_button.warning.plain:disabled:active,.adjustment_button.warning.plain:disabled:focus,.adjustment_button.warning.plain:disabled:hover{border-color:#faecd8;background-color:#fdf6ec;color:#f0c78a}.adjustment_button.danger.plain:disabled,.adjustment_button.danger.plain:disabled:active,.adjustment_button.danger.plain:disabled:focus,.adjustment_button.danger.plain:disabled:hover{border-color:#fde2e2;background-color:#fef0f0;color:#f9a7a7}.adjustment_tips{display:inline-block;box-sizing:border-box;padding:3px 5px;height:fit-content;border:1px solid #d9ecff;border-radius:4px;background-color:#ecf5ff;color:#409eff;font-size:14px;line-height:1.5}.adjustment_tips.info{border-color:#e9e9eb;background-color:#f4f4f5;color:#909399}.adjustment_tips.success{border-color:#e1f3d8;background-color:#f0f9eb;color:#67c23a}.adjustment_tips.warning{border-color:#faecd8;background-color:#fdf6ec;color:#e6a23c}.adjustment_tips.danger{border-color:#fde2e2;background-color:#fef0f0;color:#f56c6c}.adjustment_form,.adjustment_form_item{display:flex;flex-direction:column}.adjustment_form{gap:5px}.adjustment_form_item{gap:5px}.adjustment_checkbox,.adjustment_form_item_content{display:flex;align-items:center;justify-content:space-between}.adjustment_form_item label{font-size:18px}.adjustment_checkboxGroup{display:flex;align-items:center;justify-content:flex-start;gap:10px}.adjustment_checkbox{font-size:16px;gap:3px}.adjustment_input{display:inline-flex;padding:1px 11px;outline:0;border:1px solid #dcdfe6;border-radius:6px;background:#f5f5f5;line-height:32px;cursor:text;flex-grow:1;align-items:center;justify-content:center}',
@@ -247,6 +247,10 @@
       }, {
         name: 'web_video_link',
         value: 'https://t.bilibili.com/?tab=video'
+      }, {
+        // 0:未签到 1:已签到 2:签到异常
+        name: 'signIn_date',
+        value: ''
       } ]
       value.forEach(v => {
         if (utils.getValue(v.name) === undefined) {
@@ -527,7 +531,7 @@
     }
   }
   const modules = {
-    //** ----------------------- 视频播放页相关功能 ----------------------- **//
+    //** ----------------------- 通用功能 ----------------------- **//
     /**
      * 判断用户是否登录
      */
@@ -535,11 +539,35 @@
       return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || window.UserStatus.userInfo.isLogin || null)
     },
     /**
+     * 自动签到
+     */
+    async autoSignIn() {
+      const now = new Date()
+      const signInDate = `${now.getFullYear()}-${(now.getMonth() + 1)}-${now.getDate()}`
+      if (!vals.signIn_date() || vals.signIn_date() !== signInDate) {
+        const url = `https://api.live.bilibili.com/sign/doSign`
+        const { data: { code } } = await axios.get(url, { withCredentials: true })
+        if (code === 0) {
+          utils.logger.info("自动签到丨签到成功")
+          utils.setValue('signIn_date', signInDate)
+        } else if (code === 1011040) {
+          utils.logger.info("自动签到丨今日已签")
+          utils.setValue('signIn_date', signInDate)
+        } else {
+          utils.logger.warn("自动签到丨签到异常")
+          utils.setValue('signIn_date', '')
+        }
+      } else {
+        utils.logger.info("自动签到丨今日已签")
+      }
+    },
+    //** ----------------------- 视频播放页相关功能 ----------------------- **//
+    /**
      * 获取当前视频ID/video BVID/bangumi EPID
      */
     getCurrentVideoID() {
       const currentUrl = window.location.href
-      return currentUrl.includes('www.bilibili.com/video') ? currentUrl.split('/')[ 4 ] : currentUrl.includes('www.bilibili.com/bangumi') ? currentUrl.split('/')[ 5 ].split('?')[ 0 ] : 'error'
+      return currentUrl.startsWith('https://www.bilibili.com/video') ? currentUrl.split('/')[ 4 ] : currentUrl.startsWith('https://www.bilibili.com/bangumi') ? currentUrl.split('/')[ 5 ].split('?')[ 0 ] : 'error'
     },
     /**
      * 获取当前视频类型(video/bangumi)
@@ -547,7 +575,8 @@
      * @returns 当前视频类型
      */
     async getCurrentPlayerType() {
-      const playerType = (window.location.href.startsWith('https://www.bilibili.com/video') || window.location.href.startsWith('https://www.bilibili.com/list/')) ? 'video' : window.location.href.startsWith('https://www.bilibili.com/bangumi') ? 'bangumi' : false
+      const currentUrl = window.location.href
+      const playerType = (currentUrl.startsWith('https://www.bilibili.com/video') || currentUrl.startsWith('https://www.bilibili.com/list/')) ? 'video' : currentUrl.startsWith('https://www.bilibili.com/bangumi') ? 'bangumi' : false
       if (!playerType) {
         utils.logger.debug('视频类型丨未匹配')
         alert('未匹配到当前视频类型，请反馈当前地址栏链接。')
@@ -1101,7 +1130,7 @@
       if (videoID !== 'error') {
         const timeNodesArraySafe = decodeURIComponent(timeNodesArray)
         const url = `https://hn216.api.yesapi.cn/?s=SVIP.Swxqian_MyApi.AUpdateSkipTimeNodes&return_data=0&videoID=${videoID}&timeNodesArray=${timeNodesArraySafe}&videoTitle=${videoTitle}&videoAuthor=${videoAuthor}&videoUrl=${videoUrl}&app_key=A11B09901609FA722CFDFEB981EC31DB&sign=6BAEA5FDE94074B8C3ADF35789AE8B18&yesapi_allow_origin=1`
-        const result = await axios.post(url).then(response => {
+        const result = axios.post(url).then(response => {
           // utils.logger.debug(response)
           const responseData = response.data
           const { msg, ret, data } = responseData
@@ -1136,7 +1165,7 @@
       const videoID = modules.getCurrentVideoID()
       if (videoID !== 'error') {
         const url = `https://hn216.api.yesapi.cn/?s=SVIP.Swxqian_MyApi.AGetSkipTimeNodes&return_data=0&videoID=${videoID}&app_key=A11B09901609FA722CFDFEB981EC31DB&sign=574181B06EBD07D9252199563CD7D9D3&yesapi_allow_origin=1`
-        const result = await axios.post(url).then(response => {
+        const result = axios.post(url).then(response => {
           const skipNodesInfo = response.data.data
           const success = skipNodesInfo.success
           const timeNodesArray = skipNodesInfo.info?.timeNodesArray
@@ -1819,6 +1848,7 @@
         utils.clearAllTimersWhenCloseTab()
         modules.registerMenuCommand()
         utils.insertStyleToDocument('BilibiliAdjustmentStyle', styles.BilibiliAdjustment)
+        modules.autoSignIn()
         if (window.location.href === 'https://www.bilibili.com/') {
           utils.insertStyleToDocument('IndexAdjustmentStyle', styles.IndexAdjustment)
         }
