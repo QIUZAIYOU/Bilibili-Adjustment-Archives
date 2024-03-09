@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.19
+// @version           0.1.20
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；// @author            QIAN
 // @match             *://www.bilibili.com
 // @match             *://www.bilibili.com/video/*
@@ -293,7 +293,6 @@
      * @param {String} id 样式表id
      * @param {String} css 样式内容
      */
-
     insertStyleToDocument(id, css) {
       const styleElement = GM_addStyle(css)
       styleElement.id = id
@@ -343,7 +342,7 @@
      */
     async addEventListenerToElement() {
       if (window.location.href === 'https://www.bilibili.com/') {
-        const [ $indexRecommendVideoRollButton, $clearRecommendVideoHistoryButton ] = await elmGetter.get([ selectors.indexRecommendVideoRollButton, selectors.clearRecommendVideoHistoryButton ])
+        const [ $indexRecommendVideoRollButton, $clearRecommendVideoHistoryButton ] = await utils.getElementAndCheckExistence([ selectors.indexRecommendVideoRollButton, selectors.clearRecommendVideoHistoryButton ])
         $indexRecommendVideoRollButton.addEventListener('click', () => {
           modules.setIndexRecordRecommendVideoHistory()
           modules.getIndexRecordRecommendVideoHistory()
@@ -365,7 +364,7 @@
         window.addEventListener("popstate", () => {
           modules.autoLocationAndInsertVideoDescriptionToComment()
         })
-        const [ $playerContainer, $AutoSkipSwitchInput ] = await elmGetter.get([ selectors.playerContainer, selectors.AutoSkipSwitchInput ])
+        const [ $playerContainer, $AutoSkipSwitchInput ] = await utils.getElementAndCheckExistence([ selectors.playerContainer, selectors.AutoSkipSwitchInput ])
         $playerContainer.addEventListener('fullscreenchange', (event) => {
           let isFullscreen = document.fullscreenElement === event.target
           if (!isFullscreen) modules.locationToPlayer()
@@ -376,7 +375,7 @@
           }
         })
         if (vals.auto_skip()) {
-          const [ $video, $setSkipTimeNodesPopoverToggleButton, $setSkipTimeNodesPopoverRecords, $skipTimeNodesRecordsArray, $saveRecordsButton ] = await elmGetter.get([ selectors.video, selectors.setSkipTimeNodesPopoverToggleButton, selectors.setSkipTimeNodesPopoverRecords, selectors.skipTimeNodesRecordsArray, selectors.saveRecordsButton ])
+          const [ $video, $setSkipTimeNodesPopoverToggleButton, $setSkipTimeNodesPopoverRecords, $skipTimeNodesRecordsArray, $saveRecordsButton ] = await utils.getElementAndCheckExistence([ selectors.video, selectors.setSkipTimeNodesPopoverToggleButton, selectors.setSkipTimeNodesPopoverRecords, selectors.skipTimeNodesRecordsArray, selectors.saveRecordsButton ])
           document.addEventListener('keydown', (event) => {
             if (event.key === 'k') {
               const currentTime = Math.ceil($video.currentTime)
@@ -426,7 +425,7 @@
      * @returns 属性值
      */
     async getMetaContent(attribute) {
-      const meta = await elmGetter.get(`meta[${attribute}]`)
+      const meta = await utils.getElementAndCheckExistence(`meta[${attribute}]`)
       if (meta) {
         return meta.getAttribute('content')
       } else {
@@ -528,6 +527,27 @@
           }
         }
       }
+    },
+    /**
+     * 检查元素数组中元素是否存在
+     * @param {Array} elementsArray 元素数组
+     */
+    checkElementExistence(elementsArray) {
+      if (Array.isArray(elementsArray)) return elementsArray.map(element => Boolean(element))
+      else return Boolean(elementsArray)
+    },
+    /**
+     * 获取元素并检查元素是否存在
+     * @param {String | String[]} selectors 元素选择器
+     * @param {Number} delay 超时时间
+     * @param {Boolean} debug debug 开关
+     * @returns 获取的元素
+     * TODO:可选参数的实现
+     */
+    async getElementAndCheckExistence(selectors, delay = 100, debug = false) {
+      const result = await elmGetter.get(selectors, delay)
+      if (debug) utils.logger.debug(utils.checkElementExistence(result))
+      return result
     }
   }
   const modules = {
@@ -592,7 +612,7 @@
      * - 若不存在则抛出异常
      */
     async checkVideoExistence() {
-      const $video = await elmGetter.get(selectors.video)
+      const $video = await utils.getElementAndCheckExistence(selectors.video)
       if ($video) return { message: '播放器｜已找到' }
       else throw new Error('播放器｜未找到')
     },
@@ -616,7 +636,7 @@
             clearInterval(timer)
           }
           attempts--
-        }, 100)
+        })
         arrays.intervalIds.push(timer)
       })
     },
@@ -624,7 +644,7 @@
      * 监听屏幕模式变化(normal/wide/web/full)
      */
     async observerPlayerDataScreenChanges() {
-      const $playerContainer = await elmGetter.get(selectors.playerContainer, 100)
+      const $playerContainer = await utils.getElementAndCheckExistence(selectors.playerContainer)
       const observer = new MutationObserver(() => {
         const playerDataScreen = $playerContainer.getAttribute('data-screen')
         utils.setValue('current_screen_mode', playerDataScreen)
@@ -639,15 +659,13 @@
      * @param {Number} 延时
      * @returns
      */
-    async getCurrentScreenMode(delay = 0) {
+    async getCurrentScreenMode() {
       // if (vals.player_type() === 'bangumi') await utils.sleep(1000)
-      const $playerContainer = await elmGetter.get(selectors.playerContainer, delay)
-      // utils.logger.debug($playerContainer)
+      const $playerContainer = await utils.getElementAndCheckExistence(selectors.playerContainer)
       return $playerContainer.getAttribute('data-screen')
     },
     /**
      * 执行自动切换屏幕模式
-
      * - 功能未开启，不执行切换函数，直接返回成功
      * - 功能开启，但当前屏幕已为宽屏或网页全屏，则直接返回成功
      * - 功能开启，执行切换函数
@@ -672,8 +690,8 @@
      */
     async checkScreenModeSwitchSuccess(expectScreenMode) {
       const enterBtnMap = {
-        wide: async () => { return await elmGetter.get(selectors.screenModeWideEnterButton) },
-        web: async () => { return await elmGetter.get(selectors.screenModeWebEnterButton) },
+        wide: async () => { return await utils.getElementAndCheckExistence(selectors.screenModeWideEnterButton) },
+        web: async () => { return await utils.getElementAndCheckExistence(selectors.screenModeWebEnterButton) },
       }
       if (enterBtnMap[ expectScreenMode ]) {
         const enterBtn = await enterBtnMap[ expectScreenMode ]()
@@ -696,16 +714,15 @@
       const getOffsetMethod = vals.get_offset_method()
       let playerOffsetTop
       if (getOffsetMethod === 'elements') {
-        const $header = await elmGetter.get(selectors.header, 100)
-        const $placeholderElement = await elmGetter.get(selectors.videoTitleArea, 100) || await elmGetter.get(selectors.bangumiMainContainer, 100)
+        const $header = await utils.getElementAndCheckExistence(selectors.header)
+        const $placeholderElement = await utils.getElementAndCheckExistence(selectors.videoTitleArea) || await utils.getElementAndCheckExistence(selectors.bangumiMainContainer)
         const headerHeight = $header.getBoundingClientRect().height
         const placeholderElementHeight = $placeholderElement.getBoundingClientRect().height
         playerOffsetTop = vals.player_type() === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle($placeholderElement)[ 'margin-top' ].slice(0, -2)
       }
       if (getOffsetMethod === 'function') {
-        const $player = await elmGetter.get(selectors.player)
+        const $player = await utils.getElementAndCheckExistence(selectors.player)
         playerOffsetTop = utils.getElementOffsetToDocument($player).top
-
       }
       // utils.logger.debug(playerOffsetTop)
       vals.player_type() === 'video' ? utils.setValue('video_player_offset_top', playerOffsetTop) : utils.setValue('bangumi_player_offset_top', playerOffsetTop)
@@ -739,7 +756,7 @@
      * - 文档滚动距离：videoOffsetTop - targetOffset
      */
     async checkAutoLocationSuccess(expectOffset) {
-      const $video = await elmGetter.get(selectors.video)
+      const $video = await utils.getElementAndCheckExistence(selectors.video)
       utils.documentScrollTo(expectOffset)
       await utils.sleep(300)
       const videoClientTop = Math.trunc($video.getBoundingClientRect().top)
@@ -775,7 +792,7 @@
      */
     async clickPlayerAutoLocation() {
       if (vals.click_player_auto_locate()) {
-        const $video = await elmGetter.get(selectors.video)
+        const $video = await utils.getElementAndCheckExistence(selectors.video)
         $video.addEventListener('click', async () => {
           const currentScreenMode = await modules.getCurrentScreenMode()
           if ([ 'full', 'mini' ].includes(currentScreenMode)) return
@@ -788,7 +805,7 @@
      */
     async autoCancelMute() {
       if (++vars.autoCancelMuteRunningCount === 1) {
-        const [ $mutedButton, $volumeButton ] = await elmGetter.get([ selectors.mutedButton, selectors.volumeButton ])
+        const [ $mutedButton, $volumeButton ] = await utils.getElementAndCheckExistence([ selectors.mutedButton, selectors.volumeButton ])
         // const mutedButtonDisplay = getComputedStyle(mutedButton)['display']
         // const volumeButtonDisplay = getComputedStyle(volumeButton)['display']
         const mutedButtonDisplay = $mutedButton.style.display
@@ -874,7 +891,7 @@
      * - 快速返回至播放器
      */
     async insertFloatSideNavToolsButton() {
-      const $floatNav = vals.player_type() === 'video' ? await elmGetter.get(selectors.videoFloatNav) : await elmGetter.get(selectors.bangumiFloatNav, 100)
+      const $floatNav = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.videoFloatNav) : await utils.getElementAndCheckExistence(selectors.bangumiFloatNav)
       const dataV = $floatNav.lastChild.attributes[ 1 ].name
       let $locateButton
       if (vals.player_type() === 'video') {
@@ -895,8 +912,8 @@
      */
     async clickVideoTimeAutoLocation() {
       await utils.sleep(100)
-      const $video = await elmGetter.get('video')
-      const $clickTarget = vals.player_type() === 'video' ? await elmGetter.get(selectors.videoComment, 100) : await elmGetter.get(selectors.bangumiComment, 100)
+      const $video = await utils.getElementAndCheckExistence('video')
+      const $clickTarget = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.videoComment) : await utils.getElementAndCheckExistence(selectors.bangumiComment)
       await elmGetter.each(selectors.videoTime, $clickTarget, async (target) => {
         target.addEventListener('click', async (event) => {
           event.stopPropagation()
@@ -915,7 +932,7 @@
     async webfullScreenModeUnlock() {
       if (vals.webfull_unlock() && vals.selected_screen_mode() === 'web' && ++vars.webfullUnlockRunningCount === 1) {
         if (vals.player_type() === 'bangumi') return
-        const [ $app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton ] = await elmGetter.get([ selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton ])
+        const [ $app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton ] = await utils.getElementAndCheckExistence([ selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton ])
         const resetPlayerLayout = async () => {
           if (document.getElementById('UnlockWebscreenStyle')) document.getElementById('UnlockWebscreenStyle').remove()
           if (!document.getElementById('ResetPlayerLayoutStyle')) utils.insertStyleToDocument('ResetPlayerLayoutStyle', styles.ResetPlayerLayout)
@@ -959,7 +976,7 @@
      */
     async insertGoToCommentButton() {
       if (vals.player_type() === 'video' && vals.webfull_unlock() && ++vars.insertGoToCommentButtonCount === 1) {
-        const [ $comment, $playerControllerBottomRight ] = await elmGetter.get([ selectors.videoComment, selectors.playerControllerBottomRight ])
+        const [ $comment, $playerControllerBottomRight ] = await utils.getElementAndCheckExistence([ selectors.videoComment, selectors.playerControllerBottomRight ])
         const goToCommentBtnHtml = '<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>'
         const $goToCommentButton = utils.createElementAndInsert(goToCommentBtnHtml, $playerControllerBottomRight, 'append')
         $goToCommentButton.addEventListener('click', (event) => {
@@ -980,8 +997,7 @@
       if (!vals.insert_video_description_to_comment() || vals.player_type() === 'bangumi') return
       const $commentDescription = document.getElementById('comment-description')
       if ($commentDescription) $commentDescription.remove()
-
-      const [ $videoDescription, $videoDescriptionInfo, $videoCommentReplyList ] = await elmGetter.get([ selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList ])
+      const [ $videoDescription, $videoDescriptionInfo, $videoCommentReplyList ] = await utils.getElementAndCheckExistence([ selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList ])
       const getTotalSecondsFromTimeString = (timeString) => {
         if (timeString.length === 5) timeString = '00:' + timeString
         const [ hours, minutes, seconds ] = timeString.split(':').map(Number)
@@ -1000,10 +1016,10 @@
         let $upAvatarFace, $upAvatarIcon, upAvatarFaceLink
         const $membersContainer = document.querySelector(selectors.membersContainer)
         if ($membersContainer) {
-          const $membersUpAvatarFace = await elmGetter.get(selectors.membersUpAvatarFace)
+          const $membersUpAvatarFace = await utils.getElementAndCheckExistence(selectors.membersUpAvatarFace)
           upAvatarFaceLink = $membersUpAvatarFace.getAttribute('src')
         } else {
-          [ $upAvatarFace, $upAvatarIcon ] = await elmGetter.get([ selectors.upAvatarFace, selectors.upAvatarIcon ])
+          [ $upAvatarFace, $upAvatarIcon ] = await utils.getElementAndCheckExistence([ selectors.upAvatarFace, selectors.upAvatarIcon ])
           upAvatarFaceLink = $upAvatarFace.dataset.src.replace('@96w_96h_1c_1s_!web-avatar', '@160w_160h_1c_1s_!web-avatar-comment')
         }
         // 先将内容编码后替换特殊空白符(%09)为普通空格(%20)后再解码供后续使用
@@ -1189,7 +1205,7 @@
     async autoSkipTimeNodes() {
       if (!vals.auto_skip()) return
       const videoID = modules.getCurrentVideoID()
-      const $video = await elmGetter.get(selectors.video)
+      const $video = await utils.getElementAndCheckExistence(selectors.video)
       const skipTo = (seconds) => {
         $video.currentTime = seconds
         if ($video.paused) {
@@ -1233,7 +1249,7 @@
     async insertSetSkipTimeNodesButton() {
       const videoID = modules.getCurrentVideoID()
       if (++vars.insertSetSkipTimeNodesButtonCount === 1 && vals.auto_skip()) {
-        const [ $video, $playerContainer, $playerControllerBottomRight, $playerTooltipArea ] = await elmGetter.get([ selectors.video, selectors.playerContainer, selectors.playerControllerBottomRight, selectors.playerTooltipArea ])
+        const [ $video, $playerContainer, $playerControllerBottomRight, $playerTooltipArea ] = await utils.getElementAndCheckExistence([ selectors.video, selectors.playerContainer, selectors.playerControllerBottomRight, selectors.playerTooltipArea ])
         const validateInputValue = (inputValue) => {
           const regex = /^\[\d+,\d+\](,\[\d+,\d+\])*?$/g;
           const numbers = inputValue.match(/\[(\d+),(\d+)\]/g)?.flatMap(match => match.slice(1, -1).split(',')).map(Number) || [];
@@ -1331,13 +1347,12 @@
           $setSkipTimeNodesButtonTip.style.opacity = 1
           $setSkipTimeNodesButtonTip.style.visibility = 'visible'
           $setSkipTimeNodesButtonTip.style.transition = 'opacity .3s'
-
         })
         $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseout', () => {
           $setSkipTimeNodesButtonTip.style.opacity = 0
           $setSkipTimeNodesButtonTip.style.visibility = 'hidden'
         })
-        const [ $setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail, $setSkipTimeNodesPopoverRecords, $setSkipTimeNodesInput, $skipTimeNodesRecordsArray, $setSkipTimeNodesPopoverResult, $clearRecordsButton, $saveRecordsButton, $uploadSkipTimeNodesButton ] = await elmGetter.get([ selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail, selectors.setSkipTimeNodesPopoverRecords, selectors.setSkipTimeNodesInput, selectors.skipTimeNodesRecordsArray, selectors.setSkipTimeNodesPopoverResult, selectors.clearRecordsButton, selectors.saveRecordsButton, selectors.uploadSkipTimeNodesButton ])
+        const [ $setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail, $setSkipTimeNodesPopoverRecords, $setSkipTimeNodesInput, $skipTimeNodesRecordsArray, $setSkipTimeNodesPopoverResult, $clearRecordsButton, $saveRecordsButton, $uploadSkipTimeNodesButton ] = await utils.getElementAndCheckExistence([ selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail, selectors.setSkipTimeNodesPopoverRecords, selectors.setSkipTimeNodesInput, selectors.skipTimeNodesRecordsArray, selectors.setSkipTimeNodesPopoverResult, selectors.clearRecordsButton, selectors.saveRecordsButton, selectors.uploadSkipTimeNodesButton ])
         $setSkipTimeNodesPopoverTipsDetail.addEventListener('click', function (event) {
           event.stopPropagation()
           const detailClassList = [ ...this.classList ]
@@ -1440,12 +1455,14 @@
           <div id="autoSkipTips" class="bpx-player-tooltip-item" style="visibility: hidden; opacity: 0; transform: translate(0px, 0px);">
               <div class="bpx-player-tooltip-title">关闭自动跳过(j)</div>
           </div>`
-        const [ playerDanmuSetting, playerTooltipArea ] = await elmGetter.get([ selectors.playerDanmuSetting, selectors.playerTooltipArea ])
+        const [ playerDanmuSetting, playerTooltipArea ] = await utils.getElementAndCheckExistence([ selectors.playerDanmuSetting, selectors.playerTooltipArea ])
         const $skipTimeNodesSwitchButton = utils.createElementAndInsert(skipTimeNodesSwitchButtonHtml, playerDanmuSetting, 'after')
         const $autoSkipTips = utils.createElementAndInsert(skipTimeNodesSwitchButtonTipHtml, playerTooltipArea, 'append')
-        const $AutoSkipSwitchInput = await elmGetter.get(selectors.AutoSkipSwitchInput)
-        $AutoSkipSwitchInput.addEventListener('change', event => {
+        const $AutoSkipSwitchInput = await utils.getElementAndCheckExistence(selectors.AutoSkipSwitchInput)
+        $AutoSkipSwitchInput.addEventListener('change', async event => {
+          const $AutoSkipInput = await utils.getElementAndCheckExistence(selectors.AutoSkip)
           utils.setValue('auto_skip', event.target.checked)
+          $AutoSkipInput.checked = event.target.checked
           $autoSkipTips.querySelector(selectors.playerTooltipTitle).innerText = event.target.checked ? '关闭自动跳过(j)' : '开启自动跳过(j)'
         })
         $skipTimeNodesSwitchButton.addEventListener('mouseover', async function () {
@@ -1455,7 +1472,6 @@
           $autoSkipTips.style.opacity = 1
           $autoSkipTips.style.visibility = 'visible'
           $autoSkipTips.style.transition = 'opacity .3s'
-
         })
         $skipTimeNodesSwitchButton.addEventListener('mouseout', function () {
           $autoSkipTips.style.opacity = 0
@@ -1558,7 +1574,7 @@
     async insertIndexRecommendVideoHistoryOpenButton() {
       if (document.getElementById(selectors.indexRecommendVideoHistoryOpenButton)) document.getElementById(selectors.indexRecommendVideoHistoryOpenButton).remove()
       if (document.getElementById(selectors.indexRecommendVideoHistoryPopover)) document.getElementById(selectors.indexRecommendVideoHistoryPopover).remove()
-      const $indexRecommendVideoRollButtonWrapper = await elmGetter.get(selectors.indexRecommendVideoRollButtonWrapper)
+      const $indexRecommendVideoRollButtonWrapper = await utils.getElementAndCheckExistence(selectors.indexRecommendVideoRollButtonWrapper)
       const indexRecommendVideoHistoryOpenButtonHtml = `
         <button id="${selectors.indexRecommendVideoHistoryOpenButton.slice(1)}" popovertarget="${selectors.indexRecommendVideoHistoryPopover.slice(1)}" class="primary-btn roll-btn">
             <span>历史记录</span>
@@ -1574,7 +1590,7 @@
       utils.createElementAndInsert(indexRecommendVideoHistoryOpenButtonHtml, $indexRecommendVideoRollButtonWrapper, 'append')
       const $indexRecommendVideoHistoryPopover = utils.createElementAndInsert(indexRecommendVideoHistoryPopoverHtml, document.body, 'append')
       $indexRecommendVideoHistoryPopover.addEventListener('toggle', async (event) => {
-        const [ $indexApp, $indexRecommendVideoHistoryPopoverTitle ] = await elmGetter.get([ selectors.indexApp, selectors.indexRecommendVideoHistoryPopoverTitle ])
+        const [ $indexApp, $indexRecommendVideoHistoryPopoverTitle ] = await utils.getElementAndCheckExistence([ selectors.indexApp, selectors.indexRecommendVideoHistoryPopoverTitle ])
         if (event.newState === 'open') {
           $indexApp.style.pointerEvents = 'none'
           $indexRecommendVideoHistoryPopoverTitle.querySelector('span').append(`(${$indexRecommendVideoHistoryPopover.querySelector('ul').childElementCount})`)
@@ -1589,19 +1605,18 @@
       const indexRecommendVideoHistory = localforage.createInstance({
         name: 'indexRecommendVideoHistory',
       })
-      const $indexRecommendVideoHistoryPopover = await elmGetter.get(selectors.indexRecommendVideoHistoryPopover)
+      const $indexRecommendVideoHistoryPopover = await utils.getElementAndCheckExistence(selectors.indexRecommendVideoHistoryPopover)
       $indexRecommendVideoHistoryPopover.querySelector('ul').innerHTML = ''
       await indexRecommendVideoHistory.iterate(function (value, key) {
         utils.createElementAndInsert(`<li><a href="${value}" target="_blank">${key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector('ul'), 'append')
       })
-
     },
     async clearRecommendVideoHistory() {
       const indexRecommendVideoHistory = localforage.createInstance({
         name: 'indexRecommendVideoHistory',
       })
       indexRecommendVideoHistory.clear()
-      const $indexRecommendVideoHistoryPopover = await elmGetter.get(selectors.indexRecommendVideoHistoryPopover)
+      const $indexRecommendVideoHistoryPopover = await utils.getElementAndCheckExistence(selectors.indexRecommendVideoHistoryPopover)
       $indexRecommendVideoHistoryPopover.querySelector('ul').innerHTML = ''
       $indexRecommendVideoHistoryPopover.hidePopover()
     },
@@ -1628,7 +1643,7 @@
         GM_registerMenuCommand('设置', () => {
           $dynamicSettingPopover.showPopover()
         })
-        const [ $app, $dynamicHeaderContainer, $WebVideoLinkInput, $dynamicSettingSaveButton ] = await elmGetter.get([ selectors.app, selectors.dynamicHeaderContainer, selectors.WebVideoLinkInput, selectors.dynamicSettingSaveButton ])
+        const [ $app, $dynamicHeaderContainer, $WebVideoLinkInput, $dynamicSettingSaveButton ] = await utils.getElementAndCheckExistence([ selectors.app, selectors.dynamicHeaderContainer, selectors.WebVideoLinkInput, selectors.dynamicSettingSaveButton ])
         $WebVideoLinkInput.addEventListener('input', event => {
           utils.setValue('web_video_link', event.target.value.trim())
         })
@@ -1647,7 +1662,7 @@
         })
       }
       if (regexps.video.test(window.location.href)) {
-        const $player = await elmGetter.get(selectors.player)
+        const $player = await utils.getElementAndCheckExistence(selectors.player, 10)
         const playerOffsetTop = Math.trunc(utils.getElementOffsetToDocument($player).top)
         const videoSettingPopoverHtml = `
           <div id="${selectors.videoSettingPopover.slice(1)}" class="adjustment_popover" popover>
@@ -1656,23 +1671,23 @@
               <div class="adjustment_form_item">
                 <div class="adjustment_form_item_content">
                   <label>是否为大会员</label>
-                  <input type="checkbox" id="${selectors.IsVip.slice(1)}" ${utils.getValue('is_vip') ? 'checked' : ''} class="adjustment_checkbox">
+                  <input type="checkbox" id="${selectors.IsVip.slice(1)}" ${vals.is_vip() ? 'checked' : ''} class="adjustment_checkbox">
                 </div>
                 <span class="adjustment_tips info"> -> 请如实勾选，否则影响自动选择清晰度</span>
               </div>
               <div class="adjustment_form_item">
                 <div class="adjustment_form_item_content">
                   <label>自动定位至播放器</label>
-                  <input type="checkbox" id="${selectors.AutoLocate.slice(1)}" ${utils.getValue('auto_locate') ? 'checked' : ''} class="adjustment_checkbox">
+                  <input type="checkbox" id="${selectors.AutoLocate.slice(1)}" ${vals.auto_locate() ? 'checked' : ''} class="adjustment_checkbox">
                 </div>
                 <div class="adjustment_checkboxGroup">
                   <div class="adjustment_checkbox video">
                     <span>普通视频(video)</span>
-                    <input type="checkbox" id="${selectors.AutoLocateVideo.slice(1)}" ${utils.getValue('auto_locate_video') ? 'checked' : ''} class="adjustment_checkbox">
+                    <input type="checkbox" id="${selectors.AutoLocateVideo.slice(1)}" ${vals.auto_locate_video() ? 'checked' : ''} class="adjustment_checkbox">
                   </div>
                   <div class="adjustment_checkbox bangumi">
                     <span>其他视频(bangumi)</span>
-                    <input type="checkbox" id="${selectors.AutoLocateBangumi.slice(1)}" ${utils.getValue('auto_locate_bangumi') ? 'checked' : ''} class="adjustment_checkbox">
+                    <input type="checkbox" id="${selectors.AutoLocateBangumi.slice(1)}" ${vals.auto_locate_bangumi() ? 'checked' : ''} class="adjustment_checkbox">
                   </div>
                 </div>
                 <span class="adjustment_tips info">
@@ -1683,7 +1698,7 @@
               <div class="adjustment_form_item">
                 <div class="adjustment_form_item_content">
                   <label>播放器顶部偏移(px)</label>
-                  <input id="${selectors.TopOffset.slice(1)}" class="adjustment_input" value="${utils.getValue('offset_top')}">
+                  <input id="${selectors.TopOffset.slice(1)}" class="adjustment_input" value="${vals.offset_top()}">
                 </div>
                 <span class="adjustment_tips info">
                   -> 播放器距离浏览器窗口默认距离为 ${playerOffsetTop}；请填写小于 ${playerOffsetTop} 的正整数或 0；当值为 0 时，播放器上沿将紧贴浏览器窗口上沿、值为 ${playerOffsetTop} 时，将保持B站默认。
@@ -1692,7 +1707,7 @@
               <div class="adjustment_form_item">
                 <div class="adjustment_form_item_content">
                   <label>点击播放器时定位</label>
-                  <input type="checkbox" id="${selectors.ClickPlayerAutoLocation.slice(1)}" ${utils.getValue('click_player_auto_locate') ? 'checked' : ''} class="adjustment_checkbox">
+                  <input type="checkbox" id="${selectors.ClickPlayerAutoLocation.slice(1)}" ${vals.click_player_auto_locate() ? 'checked' : ''} class="adjustment_checkbox">
                 </div>
               </div>
               <div class="adjustment_form_item screen-mode">
@@ -1700,15 +1715,15 @@
                   <label>播放器默认模式</label>
                   <div class="adjustment_checkboxGroup">
                     <div class="adjustment_checkbox">
-                      <input type="radio" name="Screen-Mode" value="close" ${utils.getValue('selected_screen_mode') === 'close' ? 'checked' : ''}>
+                      <input type="radio" name="Screen-Mode" value="close" ${vals.selected_screen_mode() === 'close' ? 'checked' : ''}>
                       <span>关闭</span>
                     </div>
                     <div class="adjustment_checkbox">
-                      <input type="radio" name="Screen-Mode" value="wide" ${utils.getValue('selected_screen_mode') === 'wide' ? 'checked' : ''}>
+                      <input type="radio" name="Screen-Mode" value="wide" ${vals.selected_screen_mode() === 'wide' ? 'checked' : ''}>
                       <span>宽屏</span>
                     </div>
                     <div class="adjustment_checkbox">
-                      <input type="radio" name="Screen-Mode" value="web" ${utils.getValue('selected_screen_mode') === 'web' ? 'checked' : ''}>
+                      <input type="radio" name="Screen-Mode" value="web" ${vals.selected_screen_mode() === 'web' ? 'checked' : ''}>
                       <span>网页全屏</span>
                     </div>
                   </div>
@@ -1718,7 +1733,7 @@
               <div class="adjustment_form_item">
                 <div class="adjustment_form_item_content">
                   <label>网页全屏模式解锁</label>
-                  <input type="checkbox" id="${selectors.WebfullUnlock.slice(1)}" ${utils.getValue('webfull_unlock') ? 'checked' : ''} class="adjustment_checkbox">
+                  <input type="checkbox" id="${selectors.WebfullUnlock.slice(1)}" ${vals.webfull_unlock() ? 'checked' : ''} class="adjustment_checkbox">
                 </div>
                 <span class="adjustment_tips info">
                   ->*实验性功能(不稳，可能会有这样或那样的问题)：勾选后网页全屏模式下可以滑动滚动条查看下方评论等内容，2秒延迟后解锁（番剧播放页不支持）
@@ -1727,16 +1742,16 @@
               <div class="adjustment_form_item">
                 <div class="adjustment_form_item_content">
                   <label>自动选择最高画质</label>
-                  <input type="checkbox" id="${selectors.AutoQuality.slice(1)}" ${utils.getValue('auto_select_video_highest_quality') ? 'checked' : ''} class="adjustment_checkbox">
+                  <input type="checkbox" id="${selectors.AutoQuality.slice(1)}" ${vals.auto_select_video_highest_quality() ? 'checked' : ''} class="adjustment_checkbox">
                 </div>
                 <div class="adjustment_checkboxGroup">
                   <div class="adjustment_checkbox fourK" style="display:${vals.is_vip() ? 'flex' : 'none'}">
                     <span>是否包含4K画质</span>
-                    <input type="checkbox" id="${selectors.Quality4K.slice(1)}" ${utils.getValue('contain_quality_4k') ? 'checked' : ''} class="adjustment_checkbox">
+                    <input type="checkbox" id="${selectors.Quality4K.slice(1)}" ${vals.contain_quality_4k() ? 'checked' : ''} class="adjustment_checkbox">
                   </div>
                   <div class="adjustment_checkbox eightK" style="display:${vals.is_vip() ? 'flex' : 'none'}">
                     <span>是否包含8K画质</span>
-                    <input type="checkbox" id="${selectors.Quality8K.slice(1)}" ${utils.getValue('contain_quality_8k') ? 'checked' : ''} class="adjustment_checkbox">
+                    <input type="checkbox" id="${selectors.Quality8K.slice(1)}" ${vals.contain_quality_8k() ? 'checked' : ''} class="adjustment_checkbox">
                   </div>
                 </div>
                 <span class="adjustment_tips info"> -> 网络条件好时可以启用此项，勾哪项选哪项，都勾选8k，否则选择4k及8k外最高画质。</span>
@@ -1745,7 +1760,7 @@
                 <div class="adjustment_form_item_content">
                     <label>优化视频简介并插入评论区</label>
                     <input type="checkbox" id="${selectors.InsertVideoDescriptionToComment.slice(1)}"
-                        ${utils.getValue('insert_video_description_to_comment') ? 'checked' : ''}
+                        ${vals.insert_video_description_to_comment() ? 'checked' : ''}
                         class="adjustment_checkbox">
                 </div>
                 <span class="adjustment_tips info"> -> 将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)。</span>
@@ -1753,14 +1768,14 @@
               <div class="adjustment_form_item">
                 <div class="adjustment_form_item_content">
                   <label>自动跳过时间节点</label>
-                  <input type="checkbox" id="${selectors.AutoSkip.slice(1)}" ${utils.getValue('auto_skip') ? 'checked' : ''} class="adjustment_checkbox">
+                  <input type="checkbox" id="${selectors.AutoSkip.slice(1)}" ${vals.auto_skip() ? 'checked' : ''} class="adjustment_checkbox">
                 </div>
                 <span class="adjustment_tips info"> -> 自动跳过视频已设置设置时间节点，视频播放到相应时间点时将触发跳转至设定时间点。</span>
               </div>
               <div class="adjustment_form_item">
                 <div class="adjustment_form_item_content">
                   <label>自动刷新</label>
-                  <input type="checkbox" id="${selectors.AutoReload.slice(1)}" ${utils.getValue('auto_reload') ? 'checked' : ''} class="adjustment_checkbox">
+                  <input type="checkbox" id="${selectors.AutoReload.slice(1)}" ${vals.auto_reload() ? 'checked' : ''} class="adjustment_checkbox">
                 </div>
                 <span class="adjustment_tips info"> ->
                   （不建议开启）若脚本执行失败是否自动刷新页面重试，开启后可能会对使用体验起到一定改善作用，但若是因为B站页面改版导致脚本失效，则会陷入页面无限刷新的情况，此时则必须在页面加载时看准时机关闭此项才能恢复正常，请自行选择是否开启。</span>
@@ -1775,8 +1790,8 @@
         GM_registerMenuCommand('设置', () => {
           $videoSettingPopover.showPopover()
         })
-        const $app = vals.player_type() === 'video' ? await elmGetter.get(selectors.app) : await elmGetter.get(selectors.bangumiApp)
-        const [ $IsVip, $AutoLocate, $AutoLocateVideo, $AutoLocateBangumi, $TopOffset, $ClickPlayerAutoLocation, $AutoQuality, $Quality4K, $Quality8K, $Checkbox4K, $Checkbox8K, $WebfullUnlock, $AutoReload, $videoSettingSaveButton, $AutoSkip, $InsertVideoDescriptionToComment ] = await elmGetter.get([ selectors.IsVip, selectors.AutoLocate, selectors.AutoLocateVideo, selectors.AutoLocateBangumi, selectors.TopOffset, selectors.ClickPlayerAutoLocation, selectors.AutoQuality, selectors.Quality4K, selectors.Quality8K, selectors.Checkbox4K, selectors.Checkbox8K, selectors.WebfullUnlock, selectors.AutoReload, selectors.videoSettingSaveButton, selectors.AutoSkip, selectors.InsertVideoDescriptionToComment ])
+        const $app = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.app) : await utils.getElementAndCheckExistence(selectors.bangumiApp)
+        const [ $IsVip, $AutoLocate, $AutoLocateVideo, $AutoLocateBangumi, $TopOffset, $ClickPlayerAutoLocation, $AutoQuality, $Quality4K, $Quality8K, $Checkbox4K, $Checkbox8K, $WebfullUnlock, $AutoReload, $videoSettingSaveButton, $AutoSkip, $InsertVideoDescriptionToComment ] = await utils.getElementAndCheckExistence([ selectors.IsVip, selectors.AutoLocate, selectors.AutoLocateVideo, selectors.AutoLocateBangumi, selectors.TopOffset, selectors.ClickPlayerAutoLocation, selectors.AutoQuality, selectors.Quality4K, selectors.Quality8K, selectors.Checkbox4K, selectors.Checkbox8K, selectors.WebfullUnlock, selectors.AutoReload, selectors.videoSettingSaveButton, selectors.AutoSkip, selectors.InsertVideoDescriptionToComment ])
         $videoSettingPopover.addEventListener('toggle', event => {
           if (event.newState === 'open') {
             // document.querySelector('*:not(#videoSettingPopover *)').style.pointerEvents = 'none'
