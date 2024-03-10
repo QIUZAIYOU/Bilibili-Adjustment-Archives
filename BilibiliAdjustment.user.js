@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.20
+// @version           0.1.21
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；// @author            QIAN
 // @match             *://www.bilibili.com
 // @match             *://www.bilibili.com/video/*
@@ -34,6 +34,7 @@
     insertGoToCommentButtonCount: 0,
     insertSetSkipTimeNodesButtonCount: 0,
     insertSetSkipTimeNodesSwitchButtonCount: 0,
+    setIndexRecordRecommendVideoHistoryArrayCount: 0,
     functionExecutionsCount: 0,
     checkScreenModeSwitchSuccessDepths: 0,
     autoLocationToPlayerRetryDepths: 0,
@@ -42,6 +43,71 @@
     screenModes: [ 'wide', 'web' ],
     intervalIds: [],
     skipNodesRecords: [],
+    indexRecommendVideoHistoryArray: [],
+    videoCategories: [ {
+      name: '动画',
+      tid: [ 1, 24, 25, 47, 210, 86, 253, 27 ]
+    }, {
+      name: '番剧',
+      tid: [ 13, 51, 152, 32, 33 ]
+    }, {
+      name: '国创',
+      tid: [ 167, 153, 168, 169, 170, 195 ]
+    }, {
+      name: '音乐',
+      tid: [ 3, 28, 31, 30, 59, 193, 29, 130, 243, 244 ]
+    }, {
+      name: '舞蹈',
+      tid: [ 129, 20, 154, 156, 198, 199, 200 ]
+    }, {
+      name: '游戏',
+      tid: [ 4, 17, 171, 172, 65, 173, 121, 136, 19 ]
+    }, {
+      name: '知识',
+      tid: [ 36, 201, 124, 228, 207, 208, 209, 229, 122 ]
+    }, {
+      name: '科技',
+      tid: [ 188, 95, 230, 231, 232, 233 ]
+    }, {
+      name: '运动',
+      tid: [ 234, 235, 249, 164, 236, 237, 238 ]
+    }, {
+      name: '汽车',
+      tid: [ 223, 245, 246, 247, 248, 240, 227, 176 ]
+    }, {
+      name: '生活',
+      tid: [ 160, 138, 250, 251, 239, 161, 162, 21, 254 ]
+    }, {
+      name: '美食',
+      tid: [ 211, 76, 212, 213, 214, 215 ]
+    }, {
+      name: '动物圈',
+      tid: [ 217, 218, 219, 220, 221, 222, 75 ]
+    }, {
+      name: '鬼畜',
+      tid: [ 119, 22, 26, 126, 216, 127 ]
+    }, {
+      name: '时尚',
+      tid: [ 155, 157, 252, 158, 159 ]
+    }, {
+      name: '资讯',
+      tid: [ 202, 203, 204, 205, 206 ]
+    }, {
+      name: '娱乐',
+      tid: [ 5, 71, 241, 242, 137 ]
+    }, {
+      name: '影视',
+      tid: [ 181, 182, 183, 85, 184 ]
+    }, {
+      name: '纪录片',
+      tid: [ 177, 37, 178, 179, 180 ]
+    }, {
+      name: '电影',
+      tid: [ 23, 147, 145, 146, 83 ]
+    }, {
+      name: '电视剧',
+      tid: [ 11, 185, 187 ]
+    } ]
   }
   const selectors = {
     app: '#app',
@@ -109,6 +175,10 @@
     indexRecommendVideoRollButton: '.recommended-container_floor-aside .feed-roll-btn button.roll-btn',
     indexRecommendVideoHistoryOpenButton: '#indexRecommendVideoHistoryOpenButton',
     indexRecommendVideoHistoryPopover: '#indexRecommendVideoHistoryPopover',
+    indexRecommendVideoHistoryCategory: '#indexRecommendVideoHistoryCategory',
+    indexRecommendVideoHistoryCategoryButton: '#indexRecommendVideoHistoryCategory li:not(.all)',
+    indexRecommendVideoHistoryCategoryButtonAll: '#indexRecommendVideoHistoryCategory li.all',
+    indexRecommendVideoHistoryList: '#indexRecommendVideoHistoryList',
     clearRecommendVideoHistoryButton: '#clearRecommendVideoHistoryButton',
     dynamicSettingPopover: '#dynamicSettingPopover',
     dynamicSettingSaveButton: '#dynamicSettingSaveButton',
@@ -161,7 +231,7 @@
   }
   const styles = {
     BilibiliAdjustment: '.adjustment_popover{position:fixed;top:50%;left:50%;box-sizing:border-box;margin:0;padding:20px;width:400px;max-height:70vh;border:none;border-radius:6px;font-size:1em;transform:translate(-50%,-50%);overscroll-behavior:contain}.adjustment_popover::backdrop{backdrop-filter:blur(3px)}.adjustment_popoverTitle{margin-bottom:15px;padding-bottom:20px;border-bottom:1px solid #dcdfe6;text-align:center;font-weight:700;font-size:22px}.adjustment_buttonGroup{display:flex;margin-top:10px;align-items:center;justify-content:end;gap:10px}.adjustment_button{display:inline-block;box-sizing:border-box;margin:0;padding:10px 20px;outline:0;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;text-align:center;white-space:nowrap;font-weight:500;font-size:14px;line-height:1;cursor:pointer;transition:.1s;-webkit-appearance:none;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none}.adjustment_button.plain:disabled,.adjustment_button.plain:disabled:active,.adjustment_button.plain:disabled:focus,.adjustment_button.plain:disabled:hover,.adjustment_button:disabled,.adjustment_button:disabled:active,.adjustment_button:disabled:focus,.adjustment_button:disabled:hover{border-color:#ebeef5;background-color:#fff;background-image:none;color:#c0c4cc;cursor:not-allowed}.adjustment_button.primary{border-color:#409eff;background-color:#409eff;color:#fff}.adjustment_button.success{border-color:#67c23a;background-color:#67c23a;color:#fff}.adjustment_button.info{border-color:#909399;background-color:#909399;color:#fff}.adjustment_button.warning{border-color:#e6a23c;background-color:#e6a23c;color:#fff}.adjustment_button.danger{border-color:#f56c6c;background-color:#f56c6c;color:#fff}.adjustment_button.primary:focus,.adjustment_button.primary:hover{border-color:#66b1ff;background:#66b1ff;color:#fff}.adjustment_button.success:focus,.adjustment_button.success:hover{border-color:#85ce61;background:#85ce61;color:#fff}.adjustment_button.info:focus,.adjustment_button.info:hover{border-color:#a6a9ad;background:#a6a9ad;color:#fff}.adjustment_button.warning:focus,.adjustment_button.warning:hover{border-color:#ebb563;background:#ebb563;color:#fff}.adjustment_button.danger:focus,.adjustment_button.danger:hover{border-color:#f78989;background:#f78989;color:#fff}.adjustment_button.primary.plain{border-color:#b3d8ff;background:#ecf5ff;color:#409eff}.adjustment_button.success.plain{border-color:#c2e7b0;background:#f0f9eb;color:#67c23a}.adjustment_button.info.plain{border-color:#a6a9ad;background:#a6a9ad;color:#fff}.adjustment_button.warning.plain{border-color:#f5dab1;background:#fdf6ec;color:#e6a23c}.adjustment_button.danger.plain{border-color:#fbc4c4;background:#fef0f0;color:#f56c6c}.adjustment_button.primary.plain:focus,.adjustment_button.primary.plain:hover{border-color:#409eff;background:#409eff;color:#fff}.adjustment_button.success.plain:focus,.adjustment_button.success.plain:hover{border-color:#67c23a;background-color:#67c23a;color:#fff}.adjustment_button.info.plain:focus,.adjustment_button.info.plain:hover{border-color:#909399;background-color:#909399;color:#fff}.adjustment_button.warning.plain:focus,.adjustment_button.warning.plain:hover{border-color:#e6a23c;background-color:#e6a23c;color:#fff}.adjustment_button.danger.plain:focus,.adjustment_button.danger.plain:hover{border-color:#f56c6c;background-color:#f56c6c;color:#fff}.adjustment_button.primary:disabled,.adjustment_button.primary:disabled:active,.adjustment_button.primary:disabled:focus,.adjustment_button.primary:disabled:hover{border-color:#a0cfff;background-color:#a0cfff;color:#fff}.adjustment_button.success:disabled,.adjustment_button.success:disabled:active,.adjustment_button.success:disabled:focus,.adjustment_button.success:disabled:hover{border-color:#b3e19d;background-color:#b3e19d;color:#fff}.adjustment_button.info:disabled,.adjustment_button.info:disabled:active,.adjustment_button.info:disabled:focus,.adjustment_button.info:disabled:hover{border-color:#c8c9cc;background-color:#c8c9cc;color:#fff}.adjustment_button.warning:disabled,.adjustment_button.warning:disabled:active,.adjustment_button.warning:disabled:focus,.adjustment_button.warning:disabled:hover{border-color:#f3d19e;background-color:#f3d19e;color:#fff}.adjustment_button.danger:disabled,.adjustment_button.danger:disabled:active,.adjustment_button.danger:disabled:focus,.adjustment_button.danger:disabled:hover{border-color:#fab6b6;background-color:#fab6b6;color:#fff}.adjustment_button.primary.plain:disabled,.adjustment_button.primary.plain:disabled:active,.adjustment_button.primary.plain:disabled:focus,.adjustment_button.primary.plain:disabled:hover{border-color:#d9ecff;background-color:#ecf5ff;color:#8cc5ff}.adjustment_button.success.plain:disabled,.adjustment_button.success.plain:disabled:active,.adjustment_button.success.plain:disabled:focus,.adjustment_button.success.plain:disabled:hover{border-color:#e1f3d8;background-color:#f0f9eb;color:#a4da89}.adjustment_button.info.plain:disabled,.adjustment_button.info.plain:disabled:active,.adjustment_button.info.plain:disabled:focus,.adjustment_button.info.plain:disabled:hover{border-color:#e9e9eb;background-color:#f4f4f5;color:#bcbec2}.adjustment_button.warning.plain:disabled,.adjustment_button.warning.plain:disabled:active,.adjustment_button.warning.plain:disabled:focus,.adjustment_button.warning.plain:disabled:hover{border-color:#faecd8;background-color:#fdf6ec;color:#f0c78a}.adjustment_button.danger.plain:disabled,.adjustment_button.danger.plain:disabled:active,.adjustment_button.danger.plain:disabled:focus,.adjustment_button.danger.plain:disabled:hover{border-color:#fde2e2;background-color:#fef0f0;color:#f9a7a7}.adjustment_tips{display:inline-block;box-sizing:border-box;padding:3px 5px;height:fit-content;border:1px solid #d9ecff;border-radius:4px;background-color:#ecf5ff;color:#409eff;font-size:14px;line-height:1.5}.adjustment_tips.info{border-color:#e9e9eb;background-color:#f4f4f5;color:#909399}.adjustment_tips.success{border-color:#e1f3d8;background-color:#f0f9eb;color:#67c23a}.adjustment_tips.warning{border-color:#faecd8;background-color:#fdf6ec;color:#e6a23c}.adjustment_tips.danger{border-color:#fde2e2;background-color:#fef0f0;color:#f56c6c}.adjustment_form,.adjustment_form_item{display:flex;flex-direction:column}.adjustment_form{gap:5px}.adjustment_form_item{gap:5px}.adjustment_checkbox,.adjustment_form_item_content{display:flex;align-items:center;justify-content:space-between}.adjustment_form_item label{font-size:18px}.adjustment_checkboxGroup{display:flex;align-items:center;justify-content:flex-start;gap:10px}.adjustment_checkbox{font-size:16px;gap:3px}.adjustment_input{display:inline-flex;padding:1px 11px;outline:0;border:1px solid #dcdfe6;border-radius:6px;background:#f5f5f5;line-height:32px;cursor:text;flex-grow:1;align-items:center;justify-content:center}',
-    IndexAdjustment: '#indexRecommendVideoHistoryOpenButton{margin-top:10px}#indexRecommendVideoHistoryPopover{width:600px}#indexRecommendVideoHistoryPopover #indexRecommendVideoHistoryPopoverTitle{display:flex;box-sizing:border-box;padding-bottom:15px;border-bottom:1px solid #dcdfe6;font-weight:700;font-size:22px;align-items:center;justify-content:space-between}#indexRecommendVideoHistoryPopover ul{display:flex;flex-direction:column;align-items:center;justify-content:space-between}#indexRecommendVideoHistoryPopover ul li{padding:7px 0;width:100%;border-color:#dcdfe6!important;border-style:solid;line-height:24px;border-bottom-width:1px}#indexRecommendVideoHistoryPopover ul li a{color:#333!important}#indexRecommendVideoHistoryPopover ul li:hover a{color:#00a1d6}#clearRecommendVideoHistoryButton{position:sticky;display:flex;padding:10px;width:80px;border-radius:6px;background:#00a1d6;color:#fff;font-size:15px;line-height:16px;cursor:pointer;align-items:center;justify-content:center}',
+    IndexAdjustment: '#indexRecommendVideoHistoryOpenButton{margin-top:10px}#indexRecommendVideoHistoryPopover{width:600px}#indexRecommendVideoHistoryPopover #indexRecommendVideoHistoryPopoverTitle{display:flex;box-sizing:border-box;padding-bottom:15px;border-bottom:1px solid #dcdfe6;font-weight:700;font-size:22px;align-items:center;justify-content:space-between}#indexRecommendVideoHistoryPopover ul{display:flex;flex-direction:column;align-items:center;justify-content:space-between}ul#indexRecommendVideoHistoryCategory{display:grid;margin:10px 0 0;padding-bottom:10px;border-bottom:1px solid #dcdfe6!important;gap:5px;grid-template-columns:repeat(8,1fr);align-items:center;justify-content:center}ul#indexRecommendVideoHistoryCategory li{padding:3px 0!important;border:1px solid;border-radius:6px;text-align:center}#indexRecommendVideoHistoryPopover ul li{padding:7px 0;width:100%;border-color:#dcdfe6!important;border-style:solid;line-height:24px;border-bottom-width:1px}#indexRecommendVideoHistoryPopover #indexRecommendVideoHistoryList li a{color:#333!important}#indexRecommendVideoHistoryPopover #indexRecommendVideoHistoryList li:hover a{color:#00a1d6!important}#clearRecommendVideoHistoryButton{position:sticky;display:flex;padding:10px;width:80px;border-radius:6px;background:#00a1d6;color:#fff;font-size:15px;line-height:16px;cursor:pointer;align-items:center;justify-content:center}',
     VideoPageAdjustment: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:134px!important;line-height:20px!important;}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#uploadSkipTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#uploadSkipTimeNodesButton:hover{background:#00b5e5!important}#skipTimeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}',
     BodyHidden: 'body{overflow:hidden!important}',
     ResetPlayerLayout: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
@@ -344,8 +414,13 @@
       if (window.location.href === 'https://www.bilibili.com/') {
         const [ $indexRecommendVideoRollButton, $clearRecommendVideoHistoryButton ] = await utils.getElementAndCheckExistence([ selectors.indexRecommendVideoRollButton, selectors.clearRecommendVideoHistoryButton ])
         $indexRecommendVideoRollButton.addEventListener('click', () => {
-          modules.setIndexRecordRecommendVideoHistory()
-          modules.getIndexRecordRecommendVideoHistory()
+          const functionsArray = [
+            modules.setIndexRecordRecommendVideoHistory,
+            modules.getIndexRecordRecommendVideoHistoryArray,
+            modules.getIndexRecordRecommendVideoHistory,
+            modules.generatorVideoCategories
+          ]
+          utils.executeFunctionsSequentially(functionsArray)
         })
         $clearRecommendVideoHistoryButton.addEventListener('click', () => {
           modules.clearRecommendVideoHistory()
@@ -542,11 +617,20 @@
      * @param {Number} delay 超时时间
      * @param {Boolean} debug debug 开关
      * @returns 获取的元素
-     * TODO:可选参数的实现
      */
-    async getElementAndCheckExistence(selectors, delay = 100, debug = false) {
-      const result = await elmGetter.get(selectors, delay)
-      if (debug) utils.logger.debug(utils.checkElementExistence(result))
+    async getElementAndCheckExistence(selectors, ...args) {
+      let delay, debug
+      if (args.length === 1) {
+        const type = typeof args[ 0 ]
+        if (type === 'number') delay = args[ 0 ]
+        if (type === 'boolean') debug = args[ 0 ]
+      }
+      if (args.length === 2) {
+        delay = args[ 0 ]
+        debug = args[ 1 ]
+      }
+      const result = await elmGetter.get(selectors, delay = 1000)
+      if (debug = false) utils.logger.debug(utils.checkElementExistence(result))
       return result
     }
   }
@@ -557,6 +641,45 @@
      */
     isLogin() {
       return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || window.UserStatus.userInfo.isLogin || null)
+    },
+    /**
+     * 获取视频ID/video BVID/bangumi EPID
+     */
+    getCurrentVideoID(url = window.location.href) {
+      return url.startsWith('https://www.bilibili.com/video') ? url.split('/')[ 4 ] : url.startsWith('https://www.bilibili.com/bangumi') ? url.split('/')[ 5 ].split('?')[ 0 ] : 'error'
+    },
+    /**
+     * 获取视频类型(video/bangumi)
+     * 如果都没匹配上则弹窗报错
+     * @returns 当前视频类型
+     */
+    async getCurrentPlayerType(url = window.location.href) {
+      const playerType = (url.startsWith('https://www.bilibili.com/video') || url.startsWith('https://www.bilibili.com/list/')) ? 'video' : url.startsWith('https://www.bilibili.com/bangumi') ? 'bangumi' : false
+      if (!playerType) {
+        utils.logger.debug('视频类型丨未匹配')
+        alert('未匹配到当前视频类型，请反馈当前地址栏链接。')
+      }
+      utils.setValue('player_type', playerType)
+      // utils.logger.debug(`${playerType} ${vals.player_type()}`)
+      if (vals.player_type() === playerType) return { message: `视频类型丨${playerType}` }
+      else modules.getCurrentPlayerType()
+    },
+    /**
+     * 获取视频基本信息
+     * @param {String} videoId 视频id(video BVID)
+     * @returns videoInfo
+     */
+    async getVideoInformation(videoId) {
+      const url = `https://api.bilibili.com/x/web-interface/view?bvid=${videoId}`
+      const { data } = await axios.get(url, { withCredentials: true })
+      const code = data.code
+      if (code === 0) return data
+      else if (code === -400) utils.logger.info("获取视频基本信息丨请求错误")
+      else if (code === -403) utils.logger.info("获取视频基本信息丨权限不足")
+      else if (code === -404) utils.logger.info("获取视频基本信息丨无视频")
+      else if (code === 62002) utils.logger.info("获取视频基本信息丨稿件不可见")
+      else if (code === 62004) utils.logger.info("获取视频基本信息丨稿件审核中")
+      else utils.logger.warn("获取视频基本信息丨请求失败")
     },
     /**
      * 自动签到
@@ -582,30 +705,6 @@
       }
     },
     //** ----------------------- 视频播放页相关功能 ----------------------- **//
-    /**
-     * 获取当前视频ID/video BVID/bangumi EPID
-     */
-    getCurrentVideoID() {
-      const currentUrl = window.location.href
-      return currentUrl.startsWith('https://www.bilibili.com/video') ? currentUrl.split('/')[ 4 ] : currentUrl.startsWith('https://www.bilibili.com/bangumi') ? currentUrl.split('/')[ 5 ].split('?')[ 0 ] : 'error'
-    },
-    /**
-     * 获取当前视频类型(video/bangumi)
-     * 如果都没匹配上则弹窗报错
-     * @returns 当前视频类型
-     */
-    async getCurrentPlayerType() {
-      const currentUrl = window.location.href
-      const playerType = (currentUrl.startsWith('https://www.bilibili.com/video') || currentUrl.startsWith('https://www.bilibili.com/list/')) ? 'video' : currentUrl.startsWith('https://www.bilibili.com/bangumi') ? 'bangumi' : false
-      if (!playerType) {
-        utils.logger.debug('视频类型丨未匹配')
-        alert('未匹配到当前视频类型，请反馈当前地址栏链接。')
-      }
-      utils.setValue('player_type', playerType)
-      // utils.logger.debug(`${playerType} ${vals.player_type()}`)
-      if (vals.player_type() === playerType) return { message: `视频类型丨${playerType}` }
-      else modules.getCurrentPlayerType()
-    },
     /**
      * 检查视频元素是否存在
      * - 若存在返回成功消息
@@ -1567,9 +1666,23 @@
         const url = video.querySelector('a').href
         const title = video.querySelector('h3').title
         if (window.location.host.includes('bilibili.com') && !url.includes('cm.bilibili.com')) {
-          indexRecommendVideoHistory.setItem(title, url)
+          const { data: { tid } } = await modules.getVideoInformation(modules.getCurrentVideoID(url))
+          indexRecommendVideoHistory.setItem(title, [ tid, url ])
         }
       })
+    },
+    async getIndexRecordRecommendVideoHistoryArray() {
+      arrays.indexRecommendVideoHistoryArray = []
+      const indexRecommendVideoHistory = localforage.createInstance({
+        name: 'indexRecommendVideoHistory',
+      })
+      await indexRecommendVideoHistory.iterate((value, key) => {
+        arrays.indexRecommendVideoHistoryArray.push({ key, value })
+      })
+      if (!arrays.indexRecommendVideoHistoryArray.length || arrays.indexRecommendVideoHistoryArray.length !== await indexRecommendVideoHistory.length()) {
+        return await modules.getIndexRecordRecommendVideoHistoryArray()
+      }
+      else return arrays.indexRecommendVideoHistoryArray
     },
     async insertIndexRecommendVideoHistoryOpenButton() {
       if (document.getElementById(selectors.indexRecommendVideoHistoryOpenButton)) document.getElementById(selectors.indexRecommendVideoHistoryOpenButton).remove()
@@ -1585,15 +1698,18 @@
                 <span>首页视频推荐历史记录</span>
                 <div id="${selectors.clearRecommendVideoHistoryButton.slice(1)}">清空记录</div>
             </div>
-            <ul></ul>
-        </div>`
+            <ul id="${selectors.indexRecommendVideoHistoryCategory.slice(1)}">
+              <li class='all'>全部</li>
+            </ul>
+            <ul id="${selectors.indexRecommendVideoHistoryList.slice(1)}"></ul>
+        </ul>`
       utils.createElementAndInsert(indexRecommendVideoHistoryOpenButtonHtml, $indexRecommendVideoRollButtonWrapper, 'append')
       const $indexRecommendVideoHistoryPopover = utils.createElementAndInsert(indexRecommendVideoHistoryPopoverHtml, document.body, 'append')
       $indexRecommendVideoHistoryPopover.addEventListener('toggle', async (event) => {
         const [ $indexApp, $indexRecommendVideoHistoryPopoverTitle ] = await utils.getElementAndCheckExistence([ selectors.indexApp, selectors.indexRecommendVideoHistoryPopoverTitle ])
         if (event.newState === 'open') {
           $indexApp.style.pointerEvents = 'none'
-          $indexRecommendVideoHistoryPopoverTitle.querySelector('span').append(`(${$indexRecommendVideoHistoryPopover.querySelector('ul').childElementCount})`)
+          $indexRecommendVideoHistoryPopoverTitle.querySelector('span').append(`(${$indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).childElementCount})`)
         }
         if (event.newState === 'closed') {
           $indexApp.style.pointerEvents = 'auto'
@@ -1602,13 +1718,44 @@
       })
     },
     async getIndexRecordRecommendVideoHistory() {
-      const indexRecommendVideoHistory = localforage.createInstance({
-        name: 'indexRecommendVideoHistory',
-      })
+      const getIndexRecordRecommendVideoHistoryArray = await modules.getIndexRecordRecommendVideoHistoryArray()
       const $indexRecommendVideoHistoryPopover = await utils.getElementAndCheckExistence(selectors.indexRecommendVideoHistoryPopover)
-      $indexRecommendVideoHistoryPopover.querySelector('ul').innerHTML = ''
-      await indexRecommendVideoHistory.iterate(function (value, key) {
-        utils.createElementAndInsert(`<li><a href="${value}" target="_blank">${key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector('ul'), 'append')
+      $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).innerHTML = ''
+      for (const record of getIndexRecordRecommendVideoHistoryArray) {
+        utils.createElementAndInsert(`<li><a href="${record.value[ 1 ]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
+      }
+    },
+    async generatorVideoCategories() {
+      const getIndexRecordRecommendVideoHistoryArray = await modules.getIndexRecordRecommendVideoHistoryArray()
+      const $indexRecommendVideoHistoryPopover = await utils.getElementAndCheckExistence(selectors.indexRecommendVideoHistoryPopover)
+      $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategory).innerHTML = "<li class='all'>全部</li>"
+      let categoryHasVideoSet = new Set()
+      arrays.videoCategories.filter(category => {
+        getIndexRecordRecommendVideoHistoryArray.filter(record => {
+          if (category.tid.includes(record.value[ 0 ])) {
+            categoryHasVideoSet.add(category)
+          }
+        })
+      })
+      for (const category of Array.from(categoryHasVideoSet)) {
+        utils.createElementAndInsert(`<li data-tid="[${category.tid}]">${category.name}</li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategory), 'append')
+      }
+      await elmGetter.each(selectors.indexRecommendVideoHistoryCategoryButton, $indexRecommendVideoHistoryPopover, category => {
+        category.addEventListener('click', async function () {
+          $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).innerHTML = ''
+          const categoryIds = this.dataset.tid
+          for (const record of getIndexRecordRecommendVideoHistoryArray) {
+            if (categoryIds.includes(record.value[ 0 ])) {
+              utils.createElementAndInsert(`<li><a href="${record.value[ 1 ]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
+            }
+          }
+        })
+      })
+      $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategoryButtonAll).addEventListener('click', async () => {
+        $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).innerHTML = ''
+        for (const record of getIndexRecordRecommendVideoHistoryArray) {
+          utils.createElementAndInsert(`<li><a href="${record.value[ 1 ]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
+        }
       })
     },
     async clearRecommendVideoHistory() {
@@ -1616,8 +1763,10 @@
         name: 'indexRecommendVideoHistory',
       })
       indexRecommendVideoHistory.clear()
+      arrays.indexRecommendVideoHistoryArray = []
       const $indexRecommendVideoHistoryPopover = await utils.getElementAndCheckExistence(selectors.indexRecommendVideoHistoryPopover)
-      $indexRecommendVideoHistoryPopover.querySelector('ul').innerHTML = ''
+      $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).innerHTML = ''
+      $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategory).innerHTML = "<li class='all'>全部</li>"
       $indexRecommendVideoHistoryPopover.hidePopover()
     },
     //** ----------------------- 脚本最终执行函数 ----------------------- **//
@@ -1916,8 +2065,10 @@
         if (window.location.href === 'https://www.bilibili.com/') {
           functionsArray = [
             modules.setIndexRecordRecommendVideoHistory,
+            modules.getIndexRecordRecommendVideoHistoryArray,
             modules.insertIndexRecommendVideoHistoryOpenButton,
             modules.getIndexRecordRecommendVideoHistory,
+            modules.generatorVideoCategories
           ]
         }
         utils.addEventListenerToElement()
