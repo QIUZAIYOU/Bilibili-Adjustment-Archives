@@ -17,7 +17,7 @@
 // @grant              GM.info
 // ==/UserScript==
 /*——默认显示"投稿视频"内容开始——*/
-$(function() {
+$(function () {
   const utils = {
     getValue(name) {
       return GM_getValue(name)
@@ -29,10 +29,10 @@ $(function() {
   const main = {
     initValue() {
       const value = [
-      {
-        name: 'web_video_link',
-        value: 'https://t.bilibili.com/?tab=video'
-      }]
+        {
+          name: 'web_video_link',
+          value: 'https://t.bilibili.com/?tab=video'
+        }]
       value.forEach((v) => {
         if (utils.getValue(v.name) === undefined) {
           utils.setValue(v.name, v.value)
@@ -42,13 +42,12 @@ $(function() {
     registerMenuCommand() {
       GM_registerMenuCommand('设置', () => {
         const html = `
-                  <div style="font-size: 1em;">
-                      <label class="player-adjustment-setting-label" style="padding-top:0!important;display: grid;grid-gap: 10px">
-                          「投稿视频」链接：
-                          <input id="Web-Video-Link" value="${utils.getValue('web_video_link')}" style="padding:5px;text-align: center"  >
-                      </label>
-            </div>
-                  `
+          <div style="font-size: 1em;">
+              <label class="player-adjustment-setting-label" style="padding-top:0!important;display: grid;grid-gap: 10px">
+                  「投稿视频」链接：
+                  <input id="Web-Video-Link" value="${utils.getValue('web_video_link')}" style="padding:5px;text-align: center"  >
+              </label>
+          </div>`
         Swal.fire({
           title: '动态页调整设置',
           html,
