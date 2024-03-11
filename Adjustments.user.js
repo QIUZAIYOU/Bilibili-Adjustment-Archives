@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.21
+// @version           0.1.22
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；// @author            QIAN
 // @match             *://www.bilibili.com
 // @match             *://www.bilibili.com/video/*
@@ -12,7 +12,7 @@
 // @match             *://t.bilibili.com/*
 // @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
 // @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
-// @require           https://scriptcat.org/lib/513/2.0.0/ElementGetter.js#sha256=KbLWud5OMbbXZHRoU/GLVgvIgeosObRYkDEbE/YanRU=
+// @require           https://scriptcat.org/lib/513/2.0.0/ElementGetter.js
 // @grant             GM_setValue
 // @grant             GM_getValue
 // @grant             GM_addStyle
@@ -22,6 +22,7 @@
 // @homepageURL       https://github.com/QIUZAIYOU/Bilibili-VideoPage-Adjustment-Further
 // @icon              https://www.bilibili.com/favicon.ico?v=1
 // ==/UserScript==
+// #sha256=KbLWud5OMbbXZHRoU/GLVgvIgeosObRYkDEbE/YanRU=
 (function () {
   'use strict';
   let vars = {
@@ -408,76 +409,6 @@
       return undefined
     },
     /**
-     * 为元素添加监听器并执行相应函数
-     */
-    async addEventListenerToElement() {
-      if (window.location.href === 'https://www.bilibili.com/') {
-        const [$indexRecommendVideoRollButton, $clearRecommendVideoHistoryButton] = await utils.getElementAndCheckExistence([selectors.indexRecommendVideoRollButton, selectors.clearRecommendVideoHistoryButton])
-        $indexRecommendVideoRollButton.addEventListener('click', () => {
-          const functionsArray = [
-            modules.setIndexRecordRecommendVideoHistory,
-            modules.getIndexRecordRecommendVideoHistoryArray,
-            modules.getIndexRecordRecommendVideoHistory,
-            modules.generatorVideoCategories
-          ]
-          utils.executeFunctionsSequentially(functionsArray)
-        })
-        $clearRecommendVideoHistoryButton.addEventListener('click', () => {
-          modules.clearRecommendVideoHistory()
-        })
-      }
-      if (regexps.video.test(window.location.href)) {
-        if (window.onurlchange === null) {
-          window.addEventListener('urlchange', () => {
-            modules.locationToPlayer()
-            modules.insertVideoDescriptionToComment()
-            // utils.logger.debug('URL改变了！')
-          })
-        } else {
-          modules.clickRelatedVideoAutoLocation()
-        }
-        window.addEventListener("popstate", () => {
-          modules.autoLocationAndInsertVideoDescriptionToComment()
-        })
-        const [$playerContainer, $AutoSkipSwitchInput] = await utils.getElementAndCheckExistence([selectors.playerContainer, selectors.AutoSkipSwitchInput])
-        $playerContainer.addEventListener('fullscreenchange', (event) => {
-          let isFullscreen = document.fullscreenElement === event.target
-          if (!isFullscreen) modules.locationToPlayer()
-        })
-        document.addEventListener('keydown', (event) => {
-          if (event.key === 'j') {
-            $AutoSkipSwitchInput.click()
-          }
-        })
-        if (vals.auto_skip()) {
-          const [$video, $setSkipTimeNodesPopoverToggleButton, $setSkipTimeNodesPopoverRecords, $skipTimeNodesRecordsArray, $saveRecordsButton] = await utils.getElementAndCheckExistence([selectors.video, selectors.setSkipTimeNodesPopoverToggleButton, selectors.setSkipTimeNodesPopoverRecords, selectors.skipTimeNodesRecordsArray, selectors.saveRecordsButton])
-          document.addEventListener('keydown', (event) => {
-            if (event.key === 'k') {
-              const currentTime = Math.ceil($video.currentTime)
-              arrays.skipNodesRecords.push(currentTime)
-              arrays.skipNodesRecords = Array.from(new Set(arrays.skipNodesRecords))
-              if (arrays.skipNodesRecords.length > 0) {
-                $setSkipTimeNodesPopoverRecords.style.display = 'flex'
-                $skipTimeNodesRecordsArray.innerText = `打点数据：${JSON.stringify(arrays.skipNodesRecords)}`
-                if (utils.isArrayLengthEven(arrays.skipNodesRecords)) {
-                  $skipTimeNodesRecordsArray.classList.remove('danger')
-                  $skipTimeNodesRecordsArray.classList.add('success')
-                  $saveRecordsButton.removeAttribute('disabled')
-                } else {
-                  $skipTimeNodesRecordsArray.classList.remove('success')
-                  $skipTimeNodesRecordsArray.classList.add('danger')
-                  $saveRecordsButton.setAttribute('disabled', true)
-                }
-              }
-            }
-            if (event.key === 'g') {
-              $setSkipTimeNodesPopoverToggleButton.click()
-            }
-          })
-        }
-      }
-    },
-    /**
      * 刷新当前页面
      */
     reloadCurrentTab() {
@@ -619,7 +550,7 @@
      * @returns 获取的元素
      */
     async getElementAndCheckExistence(selectors, ...args) {
-      let delay, debug
+      let delay = 100, debug = false
       if (args.length === 1) {
         const type = typeof args[0]
         if (type === 'number') delay = args[0]
@@ -629,9 +560,79 @@
         delay = args[0]
         debug = args[1]
       }
-      const result = await elmGetter.get(selectors, delay = 1000)
-      if (debug = false) utils.logger.debug(utils.checkElementExistence(result))
+      const result = await elmGetter.get(selectors, delay)
+      if (debug) utils.logger.debug(utils.checkElementExistence(result))
       return result
+    },
+    /**
+     * 为元素添加监听器并执行相应函数
+     */
+    async addEventListenerToElement() {
+      if (window.location.href === 'https://www.bilibili.com/') {
+        const [$indexRecommendVideoRollButton, $clearRecommendVideoHistoryButton] = await utils.getElementAndCheckExistence([selectors.indexRecommendVideoRollButton, selectors.clearRecommendVideoHistoryButton])
+        $indexRecommendVideoRollButton.addEventListener('click', () => {
+          const functionsArray = [
+            modules.setIndexRecordRecommendVideoHistory,
+            modules.getIndexRecordRecommendVideoHistory,
+            modules.generatorVideoCategories
+          ]
+          vars.setIndexRecordRecommendVideoHistoryArrayCount = 0
+          utils.executeFunctionsSequentially(functionsArray)
+        })
+        $clearRecommendVideoHistoryButton.addEventListener('click', () => {
+          modules.clearRecommendVideoHistory()
+        })
+      }
+      if (regexps.video.test(window.location.href)) {
+        if (window.onurlchange === null) {
+          window.addEventListener('urlchange', () => {
+            modules.locationToPlayer()
+            modules.insertVideoDescriptionToComment()
+            // utils.logger.debug('URL改变了！')
+          })
+        } else {
+          modules.clickRelatedVideoAutoLocation()
+        }
+        window.addEventListener("popstate", () => {
+          modules.autoLocationAndInsertVideoDescriptionToComment()
+        })
+        const [$playerContainer, $AutoSkipSwitchInput] = await utils.getElementAndCheckExistence([selectors.playerContainer, selectors.AutoSkipSwitchInput])
+        $playerContainer.addEventListener('fullscreenchange', (event) => {
+          let isFullscreen = document.fullscreenElement === event.target
+          if (!isFullscreen) modules.locationToPlayer()
+        })
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'j') {
+            $AutoSkipSwitchInput.click()
+          }
+        })
+        if (vals.auto_skip()) {
+          const [$video, $setSkipTimeNodesPopoverToggleButton, $setSkipTimeNodesPopoverRecords, $skipTimeNodesRecordsArray, $saveRecordsButton] = await utils.getElementAndCheckExistence([selectors.video, selectors.setSkipTimeNodesPopoverToggleButton, selectors.setSkipTimeNodesPopoverRecords, selectors.skipTimeNodesRecordsArray, selectors.saveRecordsButton])
+          document.addEventListener('keydown', (event) => {
+            if (event.key === 'k') {
+              const currentTime = Math.ceil($video.currentTime)
+              arrays.skipNodesRecords.push(currentTime)
+              arrays.skipNodesRecords = Array.from(new Set(arrays.skipNodesRecords))
+              if (arrays.skipNodesRecords.length > 0) {
+                $setSkipTimeNodesPopoverRecords.style.display = 'flex'
+                $skipTimeNodesRecordsArray.innerText = `打点数据：${JSON.stringify(arrays.skipNodesRecords)}`
+                if (utils.isArrayLengthEven(arrays.skipNodesRecords)) {
+                  $skipTimeNodesRecordsArray.classList.remove('danger')
+                  $skipTimeNodesRecordsArray.classList.add('success')
+                  $saveRecordsButton.removeAttribute('disabled')
+                } else {
+                  $skipTimeNodesRecordsArray.classList.remove('success')
+                  $skipTimeNodesRecordsArray.classList.add('danger')
+                  $saveRecordsButton.setAttribute('disabled', true)
+                }
+              }
+            }
+            if (event.key === 'g') {
+              $setSkipTimeNodesPopoverToggleButton.click()
+            }
+          })
+        }
+      }
     }
   }
   const modules = {
@@ -1659,17 +1660,19 @@
      * 记录首页推荐的前 6 个视频
      */
     async setIndexRecordRecommendVideoHistory() {
-      const indexRecommendVideoHistory = localforage.createInstance({
-        name: 'indexRecommendVideoHistory',
-      })
-      await elmGetter.each(selectors.indexRecommendVideoSix, document.body, async video => {
-        const url = video.querySelector('a').href
-        const title = video.querySelector('h3').title
-        if (window.location.host.includes('bilibili.com') && !url.includes('cm.bilibili.com')) {
-          const { data: { tid } } = await modules.getVideoInformation(modules.getCurrentVideoID(url))
-          indexRecommendVideoHistory.setItem(title, [tid, url])
-        }
-      })
+      if (++vars.setIndexRecordRecommendVideoHistoryArrayCount === 1) {
+        const indexRecommendVideoHistory = localforage.createInstance({
+          name: 'indexRecommendVideoHistory',
+        })
+        await elmGetter.each(selectors.indexRecommendVideoSix, document.body, async video => {
+          const url = video.querySelector('a').href
+          const title = video.querySelector('h3').title
+          if (window.location.host.includes('bilibili.com') && !url.includes('cm.bilibili.com')) {
+            const { data: { tid } } = await modules.getVideoInformation(modules.getCurrentVideoID(url))
+            indexRecommendVideoHistory.setItem(title, [tid, url])
+          }
+        })
+      }
     },
     async getIndexRecordRecommendVideoHistoryArray() {
       arrays.indexRecommendVideoHistoryArray = []
@@ -2066,7 +2069,6 @@
           functionsArray = [
             modules.insertIndexRecommendVideoHistoryOpenButton,
             modules.setIndexRecordRecommendVideoHistory,
-            modules.getIndexRecordRecommendVideoHistoryArray,
             modules.getIndexRecordRecommendVideoHistory,
             modules.generatorVideoCategories
           ]
