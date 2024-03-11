@@ -40,74 +40,74 @@
     autoLocationToPlayerRetryDepths: 0,
   }
   let arrays = {
-    screenModes: [ 'wide', 'web' ],
+    screenModes: ['wide', 'web'],
     intervalIds: [],
     skipNodesRecords: [],
     indexRecommendVideoHistoryArray: [],
-    videoCategories: [ {
+    videoCategories: [{
       name: '动画',
-      tid: [ 1, 24, 25, 47, 210, 86, 253, 27 ]
+      tid: [1, 24, 25, 47, 210, 86, 253, 27]
     }, {
       name: '番剧',
-      tid: [ 13, 51, 152, 32, 33 ]
+      tid: [13, 51, 152, 32, 33]
     }, {
       name: '国创',
-      tid: [ 167, 153, 168, 169, 170, 195 ]
+      tid: [167, 153, 168, 169, 170, 195]
     }, {
       name: '音乐',
-      tid: [ 3, 28, 31, 30, 59, 193, 29, 130, 243, 244 ]
+      tid: [3, 28, 31, 30, 59, 193, 29, 130, 243, 244]
     }, {
       name: '舞蹈',
-      tid: [ 129, 20, 154, 156, 198, 199, 200 ]
+      tid: [129, 20, 154, 156, 198, 199, 200]
     }, {
       name: '游戏',
-      tid: [ 4, 17, 171, 172, 65, 173, 121, 136, 19 ]
+      tid: [4, 17, 171, 172, 65, 173, 121, 136, 19]
     }, {
       name: '知识',
-      tid: [ 36, 201, 124, 228, 207, 208, 209, 229, 122 ]
+      tid: [36, 201, 124, 228, 207, 208, 209, 229, 122]
     }, {
       name: '科技',
-      tid: [ 188, 95, 230, 231, 232, 233 ]
+      tid: [188, 95, 230, 231, 232, 233]
     }, {
       name: '运动',
-      tid: [ 234, 235, 249, 164, 236, 237, 238 ]
+      tid: [234, 235, 249, 164, 236, 237, 238]
     }, {
       name: '汽车',
-      tid: [ 223, 245, 246, 247, 248, 240, 227, 176 ]
+      tid: [223, 245, 246, 247, 248, 240, 227, 176]
     }, {
       name: '生活',
-      tid: [ 160, 138, 250, 251, 239, 161, 162, 21, 254 ]
+      tid: [160, 138, 250, 251, 239, 161, 162, 21, 254]
     }, {
       name: '美食',
-      tid: [ 211, 76, 212, 213, 214, 215 ]
+      tid: [211, 76, 212, 213, 214, 215]
     }, {
       name: '动物圈',
-      tid: [ 217, 218, 219, 220, 221, 222, 75 ]
+      tid: [217, 218, 219, 220, 221, 222, 75]
     }, {
       name: '鬼畜',
-      tid: [ 119, 22, 26, 126, 216, 127 ]
+      tid: [119, 22, 26, 126, 216, 127]
     }, {
       name: '时尚',
-      tid: [ 155, 157, 252, 158, 159 ]
+      tid: [155, 157, 252, 158, 159]
     }, {
       name: '资讯',
-      tid: [ 202, 203, 204, 205, 206 ]
+      tid: [202, 203, 204, 205, 206]
     }, {
       name: '娱乐',
-      tid: [ 5, 71, 241, 242, 137 ]
+      tid: [5, 71, 241, 242, 137]
     }, {
       name: '影视',
-      tid: [ 181, 182, 183, 85, 184 ]
+      tid: [181, 182, 183, 85, 184]
     }, {
       name: '纪录片',
-      tid: [ 177, 37, 178, 179, 180 ]
+      tid: [177, 37, 178, 179, 180]
     }, {
       name: '电影',
-      tid: [ 23, 147, 145, 146, 83 ]
+      tid: [23, 147, 145, 146, 83]
     }, {
       name: '电视剧',
-      tid: [ 11, 185, 187 ]
-    } ]
+      tid: [11, 185, 187]
+    }]
   }
   const selectors = {
     app: '#app',
@@ -257,7 +257,7 @@
      * 初始化所有数据
      */
     initValue() {
-      const value = [ {
+      const value = [{
         name: 'is_vip',
         value: true,
       }, {
@@ -321,7 +321,7 @@
         // 0:未签到 1:已签到 2:签到异常
         name: 'signIn_date',
         value: ''
-      } ]
+      }]
       value.forEach(v => {
         if (utils.getValue(v.name) === undefined) {
           utils.setValue(v.name, v.value)
@@ -390,10 +390,10 @@
      * 检查当前文档是否被激活
      */
     checkDocumentIsHidden() {
-      const visibilityChangeEventNames = [ 'visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange' ]
+      const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
       const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null
       if (documentHiddenPropertyName !== null) {
-        const isHidden = () => document[ documentHiddenPropertyName ]
+        const isHidden = () => document[documentHiddenPropertyName]
         const onChange = () => isHidden()
         // 添加各种事件监听器
         visibilityChangeEventNames.forEach(eventName => document.addEventListener(eventName, onChange))
@@ -412,7 +412,7 @@
      */
     async addEventListenerToElement() {
       if (window.location.href === 'https://www.bilibili.com/') {
-        const [ $indexRecommendVideoRollButton, $clearRecommendVideoHistoryButton ] = await utils.getElementAndCheckExistence([ selectors.indexRecommendVideoRollButton, selectors.clearRecommendVideoHistoryButton ])
+        const [$indexRecommendVideoRollButton, $clearRecommendVideoHistoryButton] = await utils.getElementAndCheckExistence([selectors.indexRecommendVideoRollButton, selectors.clearRecommendVideoHistoryButton])
         $indexRecommendVideoRollButton.addEventListener('click', () => {
           const functionsArray = [
             modules.setIndexRecordRecommendVideoHistory,
@@ -439,7 +439,7 @@
         window.addEventListener("popstate", () => {
           modules.autoLocationAndInsertVideoDescriptionToComment()
         })
-        const [ $playerContainer, $AutoSkipSwitchInput ] = await utils.getElementAndCheckExistence([ selectors.playerContainer, selectors.AutoSkipSwitchInput ])
+        const [$playerContainer, $AutoSkipSwitchInput] = await utils.getElementAndCheckExistence([selectors.playerContainer, selectors.AutoSkipSwitchInput])
         $playerContainer.addEventListener('fullscreenchange', (event) => {
           let isFullscreen = document.fullscreenElement === event.target
           if (!isFullscreen) modules.locationToPlayer()
@@ -450,7 +450,7 @@
           }
         })
         if (vals.auto_skip()) {
-          const [ $video, $setSkipTimeNodesPopoverToggleButton, $setSkipTimeNodesPopoverRecords, $skipTimeNodesRecordsArray, $saveRecordsButton ] = await utils.getElementAndCheckExistence([ selectors.video, selectors.setSkipTimeNodesPopoverToggleButton, selectors.setSkipTimeNodesPopoverRecords, selectors.skipTimeNodesRecordsArray, selectors.saveRecordsButton ])
+          const [$video, $setSkipTimeNodesPopoverToggleButton, $setSkipTimeNodesPopoverRecords, $skipTimeNodesRecordsArray, $saveRecordsButton] = await utils.getElementAndCheckExistence([selectors.video, selectors.setSkipTimeNodesPopoverToggleButton, selectors.setSkipTimeNodesPopoverRecords, selectors.skipTimeNodesRecordsArray, selectors.saveRecordsButton])
           document.addEventListener('keydown', (event) => {
             if (event.key === 'k') {
               const currentTime = Math.ceil($video.currentTime)
@@ -481,7 +481,7 @@
      * 刷新当前页面
      */
     reloadCurrentTab() {
-      if ([ ...arguments ][ 0 ] === true) {
+      if ([...arguments][0] === true) {
         location.reload()
       } else {
         if (vals.auto_reload()) location.reload()
@@ -556,7 +556,7 @@
      */
     createElementAndInsert(HtmlString, target, method) {
       const element = elmGetter.create(HtmlString, target)
-      target[ method ](element)
+      target[method](element)
       return element
     },
     /**
@@ -621,13 +621,13 @@
     async getElementAndCheckExistence(selectors, ...args) {
       let delay, debug
       if (args.length === 1) {
-        const type = typeof args[ 0 ]
-        if (type === 'number') delay = args[ 0 ]
-        if (type === 'boolean') debug = args[ 0 ]
+        const type = typeof args[0]
+        if (type === 'number') delay = args[0]
+        if (type === 'boolean') debug = args[0]
       }
       if (args.length === 2) {
-        delay = args[ 0 ]
-        debug = args[ 1 ]
+        delay = args[0]
+        debug = args[1]
       }
       const result = await elmGetter.get(selectors, delay = 1000)
       if (debug = false) utils.logger.debug(utils.checkElementExistence(result))
@@ -646,7 +646,7 @@
      * 获取视频ID/video BVID/bangumi EPID
      */
     getCurrentVideoID(url = window.location.href) {
-      return url.startsWith('https://www.bilibili.com/video') ? url.split('/')[ 4 ] : url.startsWith('https://www.bilibili.com/bangumi') ? url.split('/')[ 5 ].split('?')[ 0 ] : 'error'
+      return url.startsWith('https://www.bilibili.com/video') ? url.split('/')[4] : url.startsWith('https://www.bilibili.com/bangumi') ? url.split('/')[5].split('?')[0] : 'error'
     },
     /**
      * 获取视频类型(video/bangumi)
@@ -750,7 +750,7 @@
       })
       observer.observe($playerContainer, {
         attributes: true,
-        attributeFilter: [ 'data-screen' ],
+        attributeFilter: ['data-screen'],
       })
     },
     /**
@@ -792,12 +792,12 @@
         wide: async () => { return await utils.getElementAndCheckExistence(selectors.screenModeWideEnterButton) },
         web: async () => { return await utils.getElementAndCheckExistence(selectors.screenModeWebEnterButton) },
       }
-      if (enterBtnMap[ expectScreenMode ]) {
-        const enterBtn = await enterBtnMap[ expectScreenMode ]()
+      if (enterBtnMap[expectScreenMode]) {
+        const enterBtn = await enterBtnMap[expectScreenMode]()
         enterBtn.click()
         const currentScreenMode = await modules.getCurrentScreenMode()
         const equal = expectScreenMode === currentScreenMode
-        const success = vals.player_type() === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selectors.danmukuBox))[ 'margin-top' ].slice(0, -2) > 0 : equal : equal
+        const success = vals.player_type() === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selectors.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
         // utils.logger.debug(`${vals.player_type()} ${expectScreenMode} ${currentScreenMode} ${equal} ${success}`)
         if (success) return success
         else {
@@ -817,7 +817,7 @@
         const $placeholderElement = await utils.getElementAndCheckExistence(selectors.videoTitleArea) || await utils.getElementAndCheckExistence(selectors.bangumiMainContainer)
         const headerHeight = $header.getBoundingClientRect().height
         const placeholderElementHeight = $placeholderElement.getBoundingClientRect().height
-        playerOffsetTop = vals.player_type() === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle($placeholderElement)[ 'margin-top' ].slice(0, -2)
+        playerOffsetTop = vals.player_type() === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle($placeholderElement)['margin-top'].slice(0, -2)
       }
       if (getOffsetMethod === 'function') {
         const $player = await utils.getElementAndCheckExistence(selectors.player)
@@ -894,7 +894,7 @@
         const $video = await utils.getElementAndCheckExistence(selectors.video)
         $video.addEventListener('click', async () => {
           const currentScreenMode = await modules.getCurrentScreenMode()
-          if ([ 'full', 'mini' ].includes(currentScreenMode)) return
+          if (['full', 'mini'].includes(currentScreenMode)) return
           await modules.locationToPlayer()
         })
       }
@@ -904,7 +904,7 @@
      */
     async autoCancelMute() {
       if (++vars.autoCancelMuteRunningCount === 1) {
-        const [ $mutedButton, $volumeButton ] = await utils.getElementAndCheckExistence([ selectors.mutedButton, selectors.volumeButton ])
+        const [$mutedButton, $volumeButton] = await utils.getElementAndCheckExistence([selectors.mutedButton, selectors.volumeButton])
         // const mutedButtonDisplay = getComputedStyle(mutedButton)['display']
         // const volumeButtonDisplay = getComputedStyle(volumeButton)['display']
         const mutedButtonDisplay = $mutedButton.style.display
@@ -933,7 +933,7 @@
         await elmGetter.each(selectors.qualitySwitchButtons, document.body, button => {
           qualitySwitchButtonsMap.set(button.dataset.value, button)
         })
-        const qualitySwitchButtonsArray = [ ...qualitySwitchButtonsMap ]
+        const qualitySwitchButtonsArray = [...qualitySwitchButtonsMap]
         const select4K = () => {
           qualitySwitchButtonsMap.get('120').click()
           message = '最高画质｜VIP｜4K｜切换成功'
@@ -944,8 +944,8 @@
         }
         const selectNo4K8K = () => {
           qualitySwitchButtonsArray.filter(quality => {
-            return +quality[ 0 ] < 120
-          })[ 0 ][ 1 ].click()
+            return +quality[0] < 120
+          })[0][1].click()
           message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
         }
         if (vals.is_vip()) {
@@ -977,8 +977,8 @@
           }
         } else {
           qualitySwitchButtonsArray.filter(button => {
-            return button[ 1 ].children.length < 2
-          })[ 0 ][ 1 ].click()
+            return button[1].children.length < 2
+          })[0][1].click()
           message = '最高画质｜非VIP｜切换成功'
         }
         // utils.logger.info(message)
@@ -991,7 +991,7 @@
      */
     async insertFloatSideNavToolsButton() {
       const $floatNav = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.videoFloatNav) : await utils.getElementAndCheckExistence(selectors.bangumiFloatNav)
-      const dataV = $floatNav.lastChild.attributes[ 1 ].name
+      const dataV = $floatNav.lastChild.attributes[1].name
       let $locateButton
       if (vals.player_type() === 'video') {
         const locateButtonHtml = '<div class="fixed-sidenav-storage-item locate" title="定位至播放器"><svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg>定位</div>'.replace('title="定位至播放器"', `title="定位至播放器" ${dataV}`)
@@ -1031,7 +1031,7 @@
     async webfullScreenModeUnlock() {
       if (vals.webfull_unlock() && vals.selected_screen_mode() === 'web' && ++vars.webfullUnlockRunningCount === 1) {
         if (vals.player_type() === 'bangumi') return
-        const [ $app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton ] = await utils.getElementAndCheckExistence([ selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton ])
+        const [$app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton] = await utils.getElementAndCheckExistence([selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton])
         const resetPlayerLayout = async () => {
           if (document.getElementById('UnlockWebscreenStyle')) document.getElementById('UnlockWebscreenStyle').remove()
           if (!document.getElementById('ResetPlayerLayoutStyle')) utils.insertStyleToDocument('ResetPlayerLayoutStyle', styles.ResetPlayerLayout)
@@ -1075,7 +1075,7 @@
      */
     async insertGoToCommentButton() {
       if (vals.player_type() === 'video' && vals.webfull_unlock() && ++vars.insertGoToCommentButtonCount === 1) {
-        const [ $comment, $playerControllerBottomRight ] = await utils.getElementAndCheckExistence([ selectors.videoComment, selectors.playerControllerBottomRight ])
+        const [$comment, $playerControllerBottomRight] = await utils.getElementAndCheckExistence([selectors.videoComment, selectors.playerControllerBottomRight])
         const goToCommentBtnHtml = '<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>'
         const $goToCommentButton = utils.createElementAndInsert(goToCommentBtnHtml, $playerControllerBottomRight, 'append')
         $goToCommentButton.addEventListener('click', (event) => {
@@ -1096,10 +1096,10 @@
       if (!vals.insert_video_description_to_comment() || vals.player_type() === 'bangumi') return
       const $commentDescription = document.getElementById('comment-description')
       if ($commentDescription) $commentDescription.remove()
-      const [ $videoDescription, $videoDescriptionInfo, $videoCommentReplyList ] = await utils.getElementAndCheckExistence([ selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList ])
+      const [$videoDescription, $videoDescriptionInfo, $videoCommentReplyList] = await utils.getElementAndCheckExistence([selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList])
       const getTotalSecondsFromTimeString = (timeString) => {
         if (timeString.length === 5) timeString = '00:' + timeString
-        const [ hours, minutes, seconds ] = timeString.split(':').map(Number)
+        const [hours, minutes, seconds] = timeString.split(':').map(Number)
         const totalSeconds = hours * 3600 + minutes * 60 + seconds
         return totalSeconds
       }
@@ -1118,7 +1118,7 @@
           const $membersUpAvatarFace = await utils.getElementAndCheckExistence(selectors.membersUpAvatarFace)
           upAvatarFaceLink = $membersUpAvatarFace.getAttribute('src')
         } else {
-          [ $upAvatarFace, $upAvatarIcon ] = await utils.getElementAndCheckExistence([ selectors.upAvatarFace, selectors.upAvatarIcon ])
+          [$upAvatarFace, $upAvatarIcon] = await utils.getElementAndCheckExistence([selectors.upAvatarFace, selectors.upAvatarIcon])
           upAvatarFaceLink = $upAvatarFace.dataset.src.replace('@96w_96h_1c_1s_!web-avatar', '@160w_160h_1c_1s_!web-avatar-comment')
         }
         // 先将内容编码后替换特殊空白符(%09)为普通空格(%20)后再解码供后续使用
@@ -1312,9 +1312,9 @@
         }
       }
       const findTargetTimeNode = (num, arr) => {
-        for (let i = 0; i < arr[ 0 ].length; i++) {
-          if (arr[ 0 ][ i ] === num) {
-            return arr[ 1 ][ i ];
+        for (let i = 0; i < arr[0].length; i++) {
+          if (arr[0][i] === num) {
+            return arr[1][i];
           }
         }
         return null;
@@ -1348,7 +1348,7 @@
     async insertSetSkipTimeNodesButton() {
       const videoID = modules.getCurrentVideoID()
       if (++vars.insertSetSkipTimeNodesButtonCount === 1 && vals.auto_skip()) {
-        const [ $video, $playerContainer, $playerControllerBottomRight, $playerTooltipArea ] = await utils.getElementAndCheckExistence([ selectors.video, selectors.playerContainer, selectors.playerControllerBottomRight, selectors.playerTooltipArea ])
+        const [$video, $playerContainer, $playerControllerBottomRight, $playerTooltipArea] = await utils.getElementAndCheckExistence([selectors.video, selectors.playerContainer, selectors.playerControllerBottomRight, selectors.playerTooltipArea])
         const validateInputValue = (inputValue) => {
           const regex = /^\[\d+,\d+\](,\[\d+,\d+\])*?$/g;
           const numbers = inputValue.match(/\[(\d+),(\d+)\]/g)?.flatMap(match => match.slice(1, -1).split(',')).map(Number) || [];
@@ -1356,12 +1356,12 @@
           if (inputValue === '' || !regex.test(inputValue) || hasDuplicates) {
             return false
           }
-          const isAscending = numbers.every((num, i) => i === 0 || num >= numbers[ i - 1 ])
+          const isAscending = numbers.every((num, i) => i === 0 || num >= numbers[i - 1])
           return isAscending
         }
         // [[10,20],[30,40]] → [[10,30],[20,40]]
         const convertArrayReadableToSave = (arr) => {
-          return arr[ 0 ].map((col, i) => arr.map(row => row[ i ]))
+          return arr[0].map((col, i) => arr.map(row => row[i]))
         }
         // [10,20,30,40] → [[10,30],[20,40]]
         // const convertArrayRecordToSave = (arr) => {
@@ -1451,10 +1451,10 @@
           $setSkipTimeNodesButtonTip.style.opacity = 0
           $setSkipTimeNodesButtonTip.style.visibility = 'hidden'
         })
-        const [ $setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail, $setSkipTimeNodesPopoverRecords, $setSkipTimeNodesInput, $skipTimeNodesRecordsArray, $setSkipTimeNodesPopoverResult, $clearRecordsButton, $saveRecordsButton, $uploadSkipTimeNodesButton ] = await utils.getElementAndCheckExistence([ selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail, selectors.setSkipTimeNodesPopoverRecords, selectors.setSkipTimeNodesInput, selectors.skipTimeNodesRecordsArray, selectors.setSkipTimeNodesPopoverResult, selectors.clearRecordsButton, selectors.saveRecordsButton, selectors.uploadSkipTimeNodesButton ])
+        const [$setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail, $setSkipTimeNodesPopoverRecords, $setSkipTimeNodesInput, $skipTimeNodesRecordsArray, $setSkipTimeNodesPopoverResult, $clearRecordsButton, $saveRecordsButton, $uploadSkipTimeNodesButton] = await utils.getElementAndCheckExistence([selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail, selectors.setSkipTimeNodesPopoverRecords, selectors.setSkipTimeNodesInput, selectors.skipTimeNodesRecordsArray, selectors.setSkipTimeNodesPopoverResult, selectors.clearRecordsButton, selectors.saveRecordsButton, selectors.uploadSkipTimeNodesButton])
         $setSkipTimeNodesPopoverTipsDetail.addEventListener('click', function (event) {
           event.stopPropagation()
-          const detailClassList = [ ...this.classList ]
+          const detailClassList = [...this.classList]
           if (detailClassList.includes('open')) {
             this.classList.replace('open', 'close')
             $setSkipTimeNodesPopoverTips.classList.replace('close', 'open')
@@ -1554,7 +1554,7 @@
           <div id="autoSkipTips" class="bpx-player-tooltip-item" style="visibility: hidden; opacity: 0; transform: translate(0px, 0px);">
               <div class="bpx-player-tooltip-title">关闭自动跳过(j)</div>
           </div>`
-        const [ playerDanmuSetting, playerTooltipArea ] = await utils.getElementAndCheckExistence([ selectors.playerDanmuSetting, selectors.playerTooltipArea ])
+        const [playerDanmuSetting, playerTooltipArea] = await utils.getElementAndCheckExistence([selectors.playerDanmuSetting, selectors.playerTooltipArea])
         const $skipTimeNodesSwitchButton = utils.createElementAndInsert(skipTimeNodesSwitchButtonHtml, playerDanmuSetting, 'after')
         const $autoSkipTips = utils.createElementAndInsert(skipTimeNodesSwitchButtonTipHtml, playerTooltipArea, 'append')
         const $AutoSkipSwitchInput = await utils.getElementAndCheckExistence(selectors.AutoSkipSwitchInput)
@@ -1667,7 +1667,7 @@
         const title = video.querySelector('h3').title
         if (window.location.host.includes('bilibili.com') && !url.includes('cm.bilibili.com')) {
           const { data: { tid } } = await modules.getVideoInformation(modules.getCurrentVideoID(url))
-          indexRecommendVideoHistory.setItem(title, [ tid, url ])
+          indexRecommendVideoHistory.setItem(title, [tid, url])
         }
       })
     },
@@ -1706,7 +1706,7 @@
       utils.createElementAndInsert(indexRecommendVideoHistoryOpenButtonHtml, $indexRecommendVideoRollButtonWrapper, 'append')
       const $indexRecommendVideoHistoryPopover = utils.createElementAndInsert(indexRecommendVideoHistoryPopoverHtml, document.body, 'append')
       $indexRecommendVideoHistoryPopover.addEventListener('toggle', async (event) => {
-        const [ $indexApp, $indexRecommendVideoHistoryPopoverTitle ] = await utils.getElementAndCheckExistence([ selectors.indexApp, selectors.indexRecommendVideoHistoryPopoverTitle ])
+        const [$indexApp, $indexRecommendVideoHistoryPopoverTitle] = await utils.getElementAndCheckExistence([selectors.indexApp, selectors.indexRecommendVideoHistoryPopoverTitle])
         if (event.newState === 'open') {
           $indexApp.style.pointerEvents = 'none'
           $indexRecommendVideoHistoryPopoverTitle.querySelector('span').append(`(${$indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).childElementCount})`)
@@ -1722,7 +1722,7 @@
       const $indexRecommendVideoHistoryPopover = await utils.getElementAndCheckExistence(selectors.indexRecommendVideoHistoryPopover)
       $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).innerHTML = ''
       for (const record of getIndexRecordRecommendVideoHistoryArray) {
-        utils.createElementAndInsert(`<li><a href="${record.value[ 1 ]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
+        utils.createElementAndInsert(`<li><a href="${record.value[1]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
       }
     },
     async generatorVideoCategories() {
@@ -1732,7 +1732,7 @@
       let categoryHasVideoSet = new Set()
       arrays.videoCategories.filter(category => {
         getIndexRecordRecommendVideoHistoryArray.filter(record => {
-          if (category.tid.includes(record.value[ 0 ])) {
+          if (category.tid.includes(record.value[0])) {
             categoryHasVideoSet.add(category)
           }
         })
@@ -1745,8 +1745,8 @@
           $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).innerHTML = ''
           const categoryIds = this.dataset.tid
           for (const record of getIndexRecordRecommendVideoHistoryArray) {
-            if (categoryIds.includes(record.value[ 0 ])) {
-              utils.createElementAndInsert(`<li><a href="${record.value[ 1 ]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
+            if (categoryIds.includes(record.value[0])) {
+              utils.createElementAndInsert(`<li><a href="${record.value[1]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
             }
           }
         })
@@ -1754,7 +1754,7 @@
       $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategoryButtonAll).addEventListener('click', async () => {
         $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).innerHTML = ''
         for (const record of getIndexRecordRecommendVideoHistoryArray) {
-          utils.createElementAndInsert(`<li><a href="${record.value[ 1 ]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
+          utils.createElementAndInsert(`<li><a href="${record.value[1]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
         }
       })
     },
@@ -1792,7 +1792,7 @@
         GM_registerMenuCommand('设置', () => {
           $dynamicSettingPopover.showPopover()
         })
-        const [ $app, $dynamicHeaderContainer, $WebVideoLinkInput, $dynamicSettingSaveButton ] = await utils.getElementAndCheckExistence([ selectors.app, selectors.dynamicHeaderContainer, selectors.WebVideoLinkInput, selectors.dynamicSettingSaveButton ])
+        const [$app, $dynamicHeaderContainer, $WebVideoLinkInput, $dynamicSettingSaveButton] = await utils.getElementAndCheckExistence([selectors.app, selectors.dynamicHeaderContainer, selectors.WebVideoLinkInput, selectors.dynamicSettingSaveButton])
         $WebVideoLinkInput.addEventListener('input', event => {
           utils.setValue('web_video_link', event.target.value.trim())
         })
@@ -1940,7 +1940,7 @@
           $videoSettingPopover.showPopover()
         })
         const $app = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.app) : await utils.getElementAndCheckExistence(selectors.bangumiApp)
-        const [ $IsVip, $AutoLocate, $AutoLocateVideo, $AutoLocateBangumi, $TopOffset, $ClickPlayerAutoLocation, $AutoQuality, $Quality4K, $Quality8K, $Checkbox4K, $Checkbox8K, $WebfullUnlock, $AutoReload, $videoSettingSaveButton, $AutoSkip, $InsertVideoDescriptionToComment ] = await utils.getElementAndCheckExistence([ selectors.IsVip, selectors.AutoLocate, selectors.AutoLocateVideo, selectors.AutoLocateBangumi, selectors.TopOffset, selectors.ClickPlayerAutoLocation, selectors.AutoQuality, selectors.Quality4K, selectors.Quality8K, selectors.Checkbox4K, selectors.Checkbox8K, selectors.WebfullUnlock, selectors.AutoReload, selectors.videoSettingSaveButton, selectors.AutoSkip, selectors.InsertVideoDescriptionToComment ])
+        const [$IsVip, $AutoLocate, $AutoLocateVideo, $AutoLocateBangumi, $TopOffset, $ClickPlayerAutoLocation, $AutoQuality, $Quality4K, $Quality8K, $Checkbox4K, $Checkbox8K, $WebfullUnlock, $AutoReload, $videoSettingSaveButton, $AutoSkip, $InsertVideoDescriptionToComment] = await utils.getElementAndCheckExistence([selectors.IsVip, selectors.AutoLocate, selectors.AutoLocateVideo, selectors.AutoLocateBangumi, selectors.TopOffset, selectors.ClickPlayerAutoLocation, selectors.AutoQuality, selectors.Quality4K, selectors.Quality8K, selectors.Checkbox4K, selectors.Checkbox8K, selectors.WebfullUnlock, selectors.AutoReload, selectors.videoSettingSaveButton, selectors.AutoSkip, selectors.InsertVideoDescriptionToComment])
         $videoSettingPopover.addEventListener('toggle', event => {
           if (event.newState === 'open') {
             // document.querySelector('*:not(#videoSettingPopover *)').style.pointerEvents = 'none'
@@ -2064,9 +2064,9 @@
         }
         if (window.location.href === 'https://www.bilibili.com/') {
           functionsArray = [
+            modules.insertIndexRecommendVideoHistoryOpenButton,
             modules.setIndexRecordRecommendVideoHistory,
             modules.getIndexRecordRecommendVideoHistoryArray,
-            modules.insertIndexRecommendVideoHistoryOpenButton,
             modules.getIndexRecordRecommendVideoHistory,
             modules.generatorVideoCategories
           ]
