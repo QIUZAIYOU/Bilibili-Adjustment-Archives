@@ -49,8 +49,8 @@
         playerWrap: '#playerWrap',
         playerWebscreen: '#bilibili-player.mode-webscreen',
         playerContainer: '#bilibili-player .bpx-player-container',
-        playerControler: '#bilibili-player .bpx-player-ctrl-btn',
-        playerControlerBottomRight: '.bpx-player-control-bottom-right',
+        playerController: '#bilibili-player .bpx-player-ctrl-btn',
+        playerControllerBottomRight: '.bpx-player-control-bottom-right',
         playerTooltipArea: '.bpx-player-tooltip-area',
         playerTooltipTitle: '.bpx-player-tooltip-title',
         playerDanmuSetting: '.bpx-player-dm-setting',
@@ -68,11 +68,11 @@
         videoDescriptionInfo: '#v_desc .basic-desc-info',
         videoDescriptionText: '#v_desc .desc-info-text',
         videoNextPlayAndRecommendLink: '.video-page-card-small .card-box',
-        videoSectonsEpisodeLink: '.video-sections-content-list .video-episode-card',
+        videoSectionsEpisodeLink: '.video-sections-content-list .video-episode-card',
         bangumiComment: '#comment_module',
         bangumiFloatNav: '#__next div[class*="navTools_floatNavExp"] div[class*="navTools_navMenu"]',
         bangumiMainContainer: '.main-container',
-        bangumiSectonsEpisodeLink: '#__next div[class*="numberList_wrapper"] div[class*="numberListItem_number_list_item"] ',
+        bangumiSectionsEpisodeLink: '#__next div[class*="numberList_wrapper"] div[class*="numberListItem_number_list_item"] ',
         qualitySwitchButtons: '.bpx-player-ctrl-quality-menu-item',
         screenModeWideEnterButton: '.bpx-player-ctrl-wide-enter',
         screenModeWideLeaveButton: '.bpx-player-ctrl-wide-leave',
@@ -81,9 +81,9 @@
         screenModeFullControlButton: '.bpx-player-ctrl-full',
         danmukuBox: '#danmukuBox',
         danmuShowHideTip: 'div[aria-label="弹幕显示隐藏"]',
-        upAvatorFace: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-face',
-        upAvatorDecoration: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-pendent-dom .bili-avatar-img',
-        upAvatorIcon: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-icon',
+        upAvatarFace: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-face',
+        upAvatarDecoration: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-pendent-dom .bili-avatar-img',
+        upAvatarIcon: '.up-info-container .up-avatar-wrap .bili-avatar .bili-avatar-icon',
         setSkipTimeNodesPopover: '#setSkipTimeNodesPopover',
         setSkipTimeNodesPopoverToggleButton: '#setSkipTimeNodesPopoverToggleButton',
         setSkipTimeNodesPopoverHeaderExtra: '#setSkipTimeNodesPopover .header .extra',
@@ -104,7 +104,7 @@
         player_type: () => { return utils.getValue('player_type') },
         offset_top: () => { return Math.trunc(utils.getValue('offset_top')) },
         auto_locate: () => { return utils.getValue('auto_locate') },
-        get_offest_method: () => { return utils.getValue('get_offest_method') },
+        get_offset_method: () => { return utils.getValue('get_offset_method') },
         auto_locate_video: () => { return utils.getValue('auto_locate_video') },
         auto_locate_bangumi: () => { return utils.getValue('auto_locate_bangumi') },
         click_player_auto_locate: () => { return utils.getValue('click_player_auto_locate') },
@@ -123,7 +123,7 @@
         AdjustmentStyle: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:134px!important;line-height:20px!important;}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#uploadSkipTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#uploadSkipTimeNodesButton:hover{background:#00b5e5!important}#skipTimeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}',
         BodyHidden: 'body{overflow:hidden!important}',
         ResetPlayerLayoutStyle: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
-        UnlockWebscreenStlye: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}'
+        UnlockWebscreenStyle: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}'
     }
     const utils = {
         /**
@@ -149,7 +149,7 @@
                 name: 'auto_locate',
                 value: true,
             }, {
-                name: 'get_offest_method',
+                name: 'get_offset_method',
                 value: 'function',
             }, {
                 name: 'auto_locate_video',
@@ -573,17 +573,17 @@
             }
         },
         // 设置位置数据并滚动至播放器
-        async setlocationDataAndScrollToPlayer() {
-            const getOffestMethod = vals.get_offest_method()
+        async setLocationDataAndScrollToPlayer() {
+            const getOffsetMethod = vals.get_offset_method()
             let playerOffsetTop
-            if (getOffestMethod === 'elements') {
+            if (getOffsetMethod === 'elements') {
                 const $header = await elmGetter.get(selectors.header, 100)
                 const $placeholderElement = await elmGetter.get(selectors.videoTitleArea, 100) || await elmGetter.get(selectors.bangumiMainContainer, 100)
                 const headerHeight = $header.getBoundingClientRect().height
                 const placeholderElementHeight = $placeholderElement.getBoundingClientRect().height
                 playerOffsetTop = vals.player_type() === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle($placeholderElement)['margin-top'].slice(0, -2)
             }
-            if (getOffestMethod === 'function') {
+            if (getOffsetMethod === 'function') {
                 const $player = await elmGetter.get(selectors.player)
                 playerOffsetTop = utils.getElementOffsetToDocument($player).top
 
@@ -602,7 +602,7 @@
             }
             const onAutoLocate = vals.auto_locate() && ((!vals.auto_locate_video() && !vals.auto_locate_bangumi()) || (vals.auto_locate_video() && vals.player_type() === 'video') || (vals.auto_locate_bangumi() && vals.player_type() === 'bangumi'))
             if (!onAutoLocate || vals.selected_screen_mode() === 'web') return { callback: unlockbody }
-            await modules.setlocationDataAndScrollToPlayer()
+            await modules.setLocationDataAndScrollToPlayer()
             await utils.sleep(100)
             const playerOffsetTop = vals.player_type() === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
             const result = await modules.checkAutoLocationSuccess(playerOffsetTop - vals.offset_top())
@@ -611,7 +611,7 @@
         },
         /**
          * 递归检查屏自动定位是否成功
-         * @param {*} expectOffest 期望文档滚动偏移量
+         * @param {*} expectOffset 期望文档滚动偏移量
          * - 未定位成功自动重试，递归超过 10 次则返回失败
          * - 基础数据：
          * - videoOffsetTop：播放器相对文档顶部距离，大小不随页面滚动变化
@@ -619,9 +619,9 @@
          * - targetOffset：用户期望的播放器相对浏览器视口顶部距离，由用户自定义
          * - 文档滚动距离：videoOffsetTop - targetOffset   
          */
-        async checkAutoLocationSuccess(expectOffest) {
+        async checkAutoLocationSuccess(expectOffset) {
             const $video = await elmGetter.get(selectors.video)
-            utils.documentScrollTo(expectOffest)
+            utils.documentScrollTo(expectOffset)
             await utils.sleep(300)
             const videoClientTop = Math.trunc($video.getBoundingClientRect().top)
             const playerOffsetTop = vals.player_type() === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
@@ -641,7 +641,7 @@
                     设置偏移量：${vals.offset_top()}`)
                 utils.documentScrollTo(0)
                 await utils.sleep(300)
-                return modules.checkAutoLocationSuccess(expectOffest)
+                return modules.checkAutoLocationSuccess(expectOffset)
             }
         },
         /**
@@ -774,7 +774,7 @@
                 if (vals.player_type() === 'bangumi') return
                 const [$app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton] = await elmGetter.get([selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton])
                 const resetPlayerLayout = async () => {
-                    if (document.getElementById('UnlockWebscreenStlye')) document.getElementById('UnlockWebscreenStlye').remove()
+                    if (document.getElementById('UnlockWebscreenStyle')) document.getElementById('UnlockWebscreenStyle').remove()
                     if (!document.getElementById('ResetPlayerLayoutStyle')) utils.insertStyleToDocument('ResetPlayerLayoutStyle', styles.ResetPlayerLayoutStyle)
                     $playerWrap.append($player)
                     utils.setValue('current_screen_mode', 'wide')
@@ -782,14 +782,14 @@
                     await modules.locationToPlayer()
                 }
                 const bodyHeight = utils.getBodyHeight()
-                utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreenStlye.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
+                utils.insertStyleToDocument('UnlockWebscreenStyle', styles.UnlockWebscreenStyle.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
                 $app.prepend($playerWebscreen)
                 $webLeaveButton.addEventListener('click', async () => {
                     await utils.sleep(100)
                     await resetPlayerLayout()
                 })
                 $webEnterButton.addEventListener('click', async () => {
-                    if (!document.getElementById('UnlockWebscreenStlye')) utils.insertStyleToDocument('UnlockWebscreenStlye', styles.UnlockWebscreenStlye.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
+                    if (!document.getElementById('UnlockWebscreenStyle')) utils.insertStyleToDocument('UnlockWebscreenStyle', styles.UnlockWebscreenStyle.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
                     $app.prepend($playerWebscreen)
                     await modules.locationToPlayer()
                 })
@@ -816,9 +816,9 @@
          */
         async insertGoToCommentButton() {
             if (vals.player_type() === 'video' && vals.webfull_unlock() && ++vars.insertGoToCommentButtonCount === 1) {
-                const [$comment, $playerControlerBottomRight] = await elmGetter.get([selectors.videoComment, selectors.playerControlerBottomRight])
+                const [$comment, $playerControllerBottomRight] = await elmGetter.get([selectors.videoComment, selectors.playerControllerBottomRight])
                 const goToCommentBtnHtml = '<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>'
-                const $goToCommentButton = utils.createElementAndInsert(goToCommentBtnHtml, $playerControlerBottomRight, 'append')
+                const $goToCommentButton = utils.createElementAndInsert(goToCommentBtnHtml, $playerControllerBottomRight, 'append')
                 $goToCommentButton.addEventListener('click', (event) => {
                     event.stopPropagation()
                     utils.documentScrollTo(utils.getElementOffsetToDocument($comment).top - 10)
@@ -837,7 +837,7 @@
             if (vals.player_type() === 'bangumi') return
             const $commentDescription = document.getElementById('comment-description')
             if ($commentDescription) $commentDescription.remove()
-            const [$upAvatorFace, $upAvatorIcon, $videoDescription, $videoDescriptionInfo, $videoCommentReplyList] = await elmGetter.get([selectors.upAvatorFace, selectors.upAvatorIcon, selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList])
+            const [$upAvatarFace, $upAvatarIcon, $videoDescription, $videoDescriptionInfo, $videoCommentReplyList] = await elmGetter.get([selectors.upAvatarFace, selectors.upAvatarIcon, selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList])
             const getTotalSecondsFromTimeString = (timeString) => {
                 if (timeString.length === 5) timeString = '00:' + timeString
                 const [hours, minutes, seconds] = timeString.split(':').map(Number)
@@ -857,19 +857,19 @@
                 }).replace(plaintVideoIdRegexp, (match) => {
                     return `<a href="https://www.bilibili.com/video/${match}" target="_blank">${match}</a>`
                 }).replace(blankRegexp, '')
-                const upAvatorFace = $upAvatorFace.dataset.src.replace('@96w_96h_1c_1s_!web-avatar', '@160w_160h_1c_1s_!web-avatar-comment')
-                const upAvatorDecoration = document.querySelector(selectors.upAvatorDecoration) ? document.querySelector(selectors.upAvatorDecoration).dataset.src.replace('@144w_144h_!web-avatar', '@240w_240h_!web-avatar-comment') : ''
+                const upAvatarFace = $upAvatarFace.dataset.src.replace('@96w_96h_1c_1s_!web-avatar', '@160w_160h_1c_1s_!web-avatar-comment')
+                const upAvatarDecoration = document.querySelector(selectors.upAvatarDecoration) ? document.querySelector(selectors.upAvatarDecoration).dataset.src.replace('@144w_144h_!web-avatar', '@240w_240h_!web-avatar-comment') : ''
                 const videoDescriptionReplyTemplate = `
                 <div data-v-eb69efad="" data-v-bad1995c="" id="comment-description" class="reply-item">
                     <div data-v-eb69efad="" class="root-reply-container">
                         <div data-v-eb69efad="" class="root-reply-avatar" >
                             <div data-v-eb69efad="" class="avatar">
                                 <div class="bili-avatar" style="width:48px;height:48px">
-                                    <img class="bili-avatar-img bili-avatar-face bili-avatar-img-radius" data-src="${upAvatorFace}" src="${upAvatorFace}">
+                                    <img class="bili-avatar-img bili-avatar-face bili-avatar-img-radius" data-src="${upAvatarFace}" src="${upAvatarFace}">
                                     <div class="bili-avatar-pendent-dom">
-                                        <img class="bili-avatar-img" data-src="${upAvatorDecoration}" alt="" src="${upAvatorDecoration}">
+                                        <img class="bili-avatar-img" data-src="${upAvatarDecoration}" alt="" src="${upAvatarDecoration}">
                                     </div>
-                                    <span class="${$upAvatorIcon.classList}"></span>
+                                    <span class="${$upAvatarIcon.classList}"></span>
                                 </div>
                             </div>
                         </div>
@@ -963,10 +963,10 @@
             if (videoID !== 'error') {
                 const timeNodesArraySafe = decodeURIComponent(timeNodesArray)
                 const url = `https://hn216.api.yesapi.cn/?s=SVIP.Swxqian_MyApi.AUpdateSkipTimeNodes&return_data=0&videoID=${videoID}&timeNodesArray=${timeNodesArraySafe}&videoTitle=${videoTitle}&videoAuthor=${videoAuthor}&videoUrl=${videoUrl}&app_key=A11B09901609FA722CFDFEB981EC31DB&sign=6BAEA5FDE94074B8C3ADF35789AE8B18&yesapi_allow_origin=1`
-                const result = await axios.post(url).then(respones => {
-                    // utils.logger.debug(respones)
-                    const responesData = respones.data
-                    const { msg, ret, data } = responesData
+                const result = await axios.post(url).then(response => {
+                    // utils.logger.debug(response)
+                    const responseData = response.data
+                    const { msg, ret, data } = responseData
                     const { err_msg } = data
                     if (Object.keys(data).length === 0) {
                         return {
@@ -999,8 +999,8 @@
             const videoID = modules.getCurrentVideoID()
             if (videoID !== 'error') {
                 const url = `https://hn216.api.yesapi.cn/?s=SVIP.Swxqian_MyApi.AGetSkipTimeNodes&return_data=0&videoID=${videoID}&app_key=A11B09901609FA722CFDFEB981EC31DB&sign=574181B06EBD07D9252199563CD7D9D3&yesapi_allow_origin=1`
-                const result = await axios.post(url).then(respones => {
-                    const skipNodesInfo = respones.data.data
+                const result = await axios.post(url).then(response => {
+                    const skipNodesInfo = response.data.data
                     const success = skipNodesInfo.success
                     const timeNodesArray = skipNodesInfo.info?.timeNodesArray
                     if (success && timeNodesArray !== '') {
@@ -1067,7 +1067,7 @@
         async insertSetSkipTimeNodesButton() {
             const videoID = modules.getCurrentVideoID()
             if (++vars.insertSetSkipTimeNodesButtonCount === 1 && vals.auto_skip()) {
-                const [$video, $playerContainer, $playerControlerBottomRight, $playerTooltipArea] = await elmGetter.get([selectors.video, selectors.playerContainer, selectors.playerControlerBottomRight, selectors.playerTooltipArea])
+                const [$video, $playerContainer, $playerControllerBottomRight, $playerTooltipArea] = await elmGetter.get([selectors.video, selectors.playerContainer, selectors.playerControllerBottomRight, selectors.playerTooltipArea])
                 const validateInputValue = (inputValue) => {
                     const regex = /^\[\d+,\d+\](,\[\d+,\d+\])*?$/g;
                     const numbers = inputValue.match(/\[(\d+),(\d+)\]/g)?.flatMap(match => match.slice(1, -1).split(',')).map(Number) || [];
@@ -1157,7 +1157,7 @@
                     <div class="bpx-player-tooltip-title">上传节点</div>
                 </div>
                 `
-                const $setSkipTimeNodesPopoverToggleButton = utils.createElementAndInsert(setSkipTimeNodesPopoverToggleButtonHtml, $playerControlerBottomRight, 'append')
+                const $setSkipTimeNodesPopoverToggleButton = utils.createElementAndInsert(setSkipTimeNodesPopoverToggleButtonHtml, $playerControllerBottomRight, 'append')
                 const $setSkipTimeNodesPopover = utils.createElementAndInsert(setSkipTimeNodesPopoverHtml, $playerContainer, 'append')
                 const $setSkipTimeNodesButtonTip = utils.createElementAndInsert(setSkipTimeNodesButtonTipHtml, $playerTooltipArea, 'append')
                 $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseover', function () {
@@ -1319,7 +1319,7 @@
         async clickRelatedVideoAutoLocation() {
 
             if (vals.player_type() === 'video') {
-                await elmGetter.each(selectors.videoSectonsEpisodeLink, (link) => {
+                await elmGetter.each(selectors.videoSectionsEpisodeLink, (link) => {
                     link.addEventListener('click', () => {
                         modules.autoLocationAndInsertVideoDescriptionToComment()
                     })
@@ -1337,7 +1337,7 @@
             }
 
             if (vals.player_type() === 'bangumi') {
-                await elmGetter.each(selectors.bangumiSectonsEpisodeLink, (link) => {
+                await elmGetter.each(selectors.bangumiSectionsEpisodeLink, (link) => {
                     link.addEventListener('click', async () => {
                         await utils.sleep(100)
                         modules.locationToPlayer()
@@ -1368,8 +1368,8 @@
                 if (videoPlayerExists) {
                     utils.logger.info('播放器｜已找到')
                     const isCanPlayThrough = await modules.checkVideoCanPlayThrough()
-                    const videoControlerBtnExists = await elmGetter.get(selectors.playerControler)
-                    if (isCanPlayThrough || (!isCanPlayThrough && videoControlerBtnExists)) {
+                    const videoControllerBtnExists = await elmGetter.get(selectors.playerController)
+                    if (isCanPlayThrough || (!isCanPlayThrough && videoControllerBtnExists)) {
                         utils.logger.info('视频资源｜可以播放')
                         const selectedScreenMode = await modules.autoSelectScreenMode()
                         if (selectedScreenMode) {
@@ -1400,8 +1400,8 @@
     if (modules.isLogin()) {
         modules.thePrepFunction()
         const timer = setInterval(async () => {
-            const dicumentHidden = utils.checkDocumentIsHidden()
-            if (!dicumentHidden) {
+            const documentHidden = utils.checkDocumentIsHidden()
+            if (!documentHidden) {
                 clearInterval(timer)
                 utils.logger.info('当前标签｜已激活｜开始应用配置')
                 // modules.theMainFunction()
