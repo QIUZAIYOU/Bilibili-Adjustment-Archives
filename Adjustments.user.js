@@ -550,7 +550,7 @@
      * @returns 获取的元素
      */
     async getElementAndCheckExistence(selectors, ...args) {
-      let delay = 100, debug = false
+      let delay = 7000, debug = false
       if (args.length === 1) {
         const type = typeof args[0]
         if (type === 'number') delay = args[0]
