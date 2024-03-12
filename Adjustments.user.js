@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.23
+// @version           0.1.24
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -42,74 +42,75 @@
     autoLocationToPlayerRetryDepths: 0,
   }
   let arrays = {
-    screenModes: [ 'wide', 'web' ],
+    screenModes: ['wide', 'web'],
     intervalIds: [],
     skipNodesRecords: [],
-    indexRecommendVideoHistoryArray: [],
-    videoCategories: [ {
+    indexRecommendVideoHistory: [],
+    videoCategoriesActiveClass: ['adjustment_button', 'primary', 'plain'],
+    videoCategories: [{
       name: '动画',
-      tid: [ 1, 24, 25, 47, 210, 86, 253, 27 ]
+      tid: [1, 24, 25, 47, 210, 86, 253, 27]
     }, {
       name: '番剧',
-      tid: [ 13, 51, 152, 32, 33 ]
+      tid: [13, 51, 152, 32, 33]
     }, {
       name: '国创',
-      tid: [ 167, 153, 168, 169, 170, 195 ]
+      tid: [167, 153, 168, 169, 170, 195]
     }, {
       name: '音乐',
-      tid: [ 3, 28, 31, 30, 59, 193, 29, 130, 243, 244 ]
+      tid: [3, 28, 31, 30, 59, 193, 29, 130, 243, 244]
     }, {
       name: '舞蹈',
-      tid: [ 129, 20, 154, 156, 198, 199, 200 ]
+      tid: [129, 20, 154, 156, 198, 199, 200]
     }, {
       name: '游戏',
-      tid: [ 4, 17, 171, 172, 65, 173, 121, 136, 19 ]
+      tid: [4, 17, 171, 172, 65, 173, 121, 136, 19]
     }, {
       name: '知识',
-      tid: [ 36, 201, 124, 228, 207, 208, 209, 229, 122 ]
+      tid: [36, 201, 124, 228, 207, 208, 209, 229, 122]
     }, {
       name: '科技',
-      tid: [ 188, 95, 230, 231, 232, 233 ]
+      tid: [188, 95, 230, 231, 232, 233]
     }, {
       name: '运动',
-      tid: [ 234, 235, 249, 164, 236, 237, 238 ]
+      tid: [234, 235, 249, 164, 236, 237, 238]
     }, {
       name: '汽车',
-      tid: [ 223, 245, 246, 247, 248, 240, 227, 176 ]
+      tid: [223, 245, 246, 247, 248, 240, 227, 176]
     }, {
       name: '生活',
-      tid: [ 160, 138, 250, 251, 239, 161, 162, 21, 254 ]
+      tid: [160, 138, 250, 251, 239, 161, 162, 21, 254]
     }, {
       name: '美食',
-      tid: [ 211, 76, 212, 213, 214, 215 ]
+      tid: [211, 76, 212, 213, 214, 215]
     }, {
       name: '动物圈',
-      tid: [ 217, 218, 219, 220, 221, 222, 75 ]
+      tid: [217, 218, 219, 220, 221, 222, 75]
     }, {
       name: '鬼畜',
-      tid: [ 119, 22, 26, 126, 216, 127 ]
+      tid: [119, 22, 26, 126, 216, 127]
     }, {
       name: '时尚',
-      tid: [ 155, 157, 252, 158, 159 ]
+      tid: [155, 157, 252, 158, 159]
     }, {
       name: '资讯',
-      tid: [ 202, 203, 204, 205, 206 ]
+      tid: [202, 203, 204, 205, 206]
     }, {
       name: '娱乐',
-      tid: [ 5, 71, 241, 242, 137 ]
+      tid: [5, 71, 241, 242, 137]
     }, {
       name: '影视',
-      tid: [ 181, 182, 183, 85, 184 ]
+      tid: [181, 182, 183, 85, 184]
     }, {
       name: '纪录片',
-      tid: [ 177, 37, 178, 179, 180 ]
+      tid: [177, 37, 178, 179, 180]
     }, {
       name: '电影',
-      tid: [ 23, 147, 145, 146, 83 ]
+      tid: [23, 147, 145, 146, 83]
     }, {
       name: '电视剧',
-      tid: [ 11, 185, 187 ]
-    } ]
+      tid: [11, 185, 187]
+    }]
   }
   const selectors = {
     app: '#app',
@@ -127,6 +128,7 @@
     volumeButton: '.bpx-player-ctrl-volume-icon',
     mutedButton: '.bpx-player-ctrl-muted-icon',
     video: '#bilibili-player video',
+    videoWrap: '#bilibili-player .bpx-player-video-wrap',
     videoBwp: 'bwp-video',
     videoTitleArea: '#viewbox_report',
     videoFloatNav: '.fixed-sidenav-storage',
@@ -178,7 +180,8 @@
     indexRecommendVideoHistoryOpenButton: '#indexRecommendVideoHistoryOpenButton',
     indexRecommendVideoHistoryPopover: '#indexRecommendVideoHistoryPopover',
     indexRecommendVideoHistoryCategory: '#indexRecommendVideoHistoryCategory',
-    indexRecommendVideoHistoryCategoryButton: '#indexRecommendVideoHistoryCategory li:not(.all)',
+    indexRecommendVideoHistoryCategoryButtons: '#indexRecommendVideoHistoryCategory li',
+    indexRecommendVideoHistoryCategoryButtonsExceptAll: '#indexRecommendVideoHistoryCategory li:not(.all)',
     indexRecommendVideoHistoryCategoryButtonAll: '#indexRecommendVideoHistoryCategory li.all',
     indexRecommendVideoHistoryList: '#indexRecommendVideoHistoryList',
     clearRecommendVideoHistoryButton: '#clearRecommendVideoHistoryButton',
@@ -230,11 +233,12 @@
     insert_video_description_to_comment: () => { return utils.getValue('insert_video_description_to_comment') },
     web_video_link: () => { return utils.getValue('web_video_link') },
     signIn_date: () => { return utils.getValue('signIn_date') },
+    dev_checkScreenModeSwitchSuccess_method: () => { return utils.getValue('dev_checkScreenModeSwitchSuccess_method') },
   }
   const styles = {
     BilibiliAdjustment: '.adjustment_popover{position:fixed;top:50%;left:50%;box-sizing:border-box;margin:0;padding:20px;width:400px;max-height:70vh;border:none;border-radius:6px;font-size:1em;transform:translate(-50%,-50%);overscroll-behavior:contain}.adjustment_popover::backdrop{backdrop-filter:blur(3px)}.adjustment_popoverTitle{margin-bottom:15px;padding-bottom:20px;border-bottom:1px solid #dcdfe6;text-align:center;font-weight:700;font-size:22px}.adjustment_buttonGroup{display:flex;margin-top:10px;align-items:center;justify-content:end;gap:10px}.adjustment_button{display:inline-block;box-sizing:border-box;margin:0;padding:10px 20px;outline:0;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;text-align:center;white-space:nowrap;font-weight:500;font-size:14px;line-height:1;cursor:pointer;transition:.1s;-webkit-appearance:none;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none}.adjustment_button.plain:disabled,.adjustment_button.plain:disabled:active,.adjustment_button.plain:disabled:focus,.adjustment_button.plain:disabled:hover,.adjustment_button:disabled,.adjustment_button:disabled:active,.adjustment_button:disabled:focus,.adjustment_button:disabled:hover{border-color:#ebeef5;background-color:#fff;background-image:none;color:#c0c4cc;cursor:not-allowed}.adjustment_button.primary{border-color:#409eff;background-color:#409eff;color:#fff}.adjustment_button.success{border-color:#67c23a;background-color:#67c23a;color:#fff}.adjustment_button.info{border-color:#909399;background-color:#909399;color:#fff}.adjustment_button.warning{border-color:#e6a23c;background-color:#e6a23c;color:#fff}.adjustment_button.danger{border-color:#f56c6c;background-color:#f56c6c;color:#fff}.adjustment_button.primary:focus,.adjustment_button.primary:hover{border-color:#66b1ff;background:#66b1ff;color:#fff}.adjustment_button.success:focus,.adjustment_button.success:hover{border-color:#85ce61;background:#85ce61;color:#fff}.adjustment_button.info:focus,.adjustment_button.info:hover{border-color:#a6a9ad;background:#a6a9ad;color:#fff}.adjustment_button.warning:focus,.adjustment_button.warning:hover{border-color:#ebb563;background:#ebb563;color:#fff}.adjustment_button.danger:focus,.adjustment_button.danger:hover{border-color:#f78989;background:#f78989;color:#fff}.adjustment_button.primary.plain{border-color:#b3d8ff;background:#ecf5ff;color:#409eff}.adjustment_button.success.plain{border-color:#c2e7b0;background:#f0f9eb;color:#67c23a}.adjustment_button.info.plain{border-color:#a6a9ad;background:#a6a9ad;color:#fff}.adjustment_button.warning.plain{border-color:#f5dab1;background:#fdf6ec;color:#e6a23c}.adjustment_button.danger.plain{border-color:#fbc4c4;background:#fef0f0;color:#f56c6c}.adjustment_button.primary.plain:focus,.adjustment_button.primary.plain:hover{border-color:#409eff;background:#409eff;color:#fff}.adjustment_button.success.plain:focus,.adjustment_button.success.plain:hover{border-color:#67c23a;background-color:#67c23a;color:#fff}.adjustment_button.info.plain:focus,.adjustment_button.info.plain:hover{border-color:#909399;background-color:#909399;color:#fff}.adjustment_button.warning.plain:focus,.adjustment_button.warning.plain:hover{border-color:#e6a23c;background-color:#e6a23c;color:#fff}.adjustment_button.danger.plain:focus,.adjustment_button.danger.plain:hover{border-color:#f56c6c;background-color:#f56c6c;color:#fff}.adjustment_button.primary:disabled,.adjustment_button.primary:disabled:active,.adjustment_button.primary:disabled:focus,.adjustment_button.primary:disabled:hover{border-color:#a0cfff;background-color:#a0cfff;color:#fff}.adjustment_button.success:disabled,.adjustment_button.success:disabled:active,.adjustment_button.success:disabled:focus,.adjustment_button.success:disabled:hover{border-color:#b3e19d;background-color:#b3e19d;color:#fff}.adjustment_button.info:disabled,.adjustment_button.info:disabled:active,.adjustment_button.info:disabled:focus,.adjustment_button.info:disabled:hover{border-color:#c8c9cc;background-color:#c8c9cc;color:#fff}.adjustment_button.warning:disabled,.adjustment_button.warning:disabled:active,.adjustment_button.warning:disabled:focus,.adjustment_button.warning:disabled:hover{border-color:#f3d19e;background-color:#f3d19e;color:#fff}.adjustment_button.danger:disabled,.adjustment_button.danger:disabled:active,.adjustment_button.danger:disabled:focus,.adjustment_button.danger:disabled:hover{border-color:#fab6b6;background-color:#fab6b6;color:#fff}.adjustment_button.primary.plain:disabled,.adjustment_button.primary.plain:disabled:active,.adjustment_button.primary.plain:disabled:focus,.adjustment_button.primary.plain:disabled:hover{border-color:#d9ecff;background-color:#ecf5ff;color:#8cc5ff}.adjustment_button.success.plain:disabled,.adjustment_button.success.plain:disabled:active,.adjustment_button.success.plain:disabled:focus,.adjustment_button.success.plain:disabled:hover{border-color:#e1f3d8;background-color:#f0f9eb;color:#a4da89}.adjustment_button.info.plain:disabled,.adjustment_button.info.plain:disabled:active,.adjustment_button.info.plain:disabled:focus,.adjustment_button.info.plain:disabled:hover{border-color:#e9e9eb;background-color:#f4f4f5;color:#bcbec2}.adjustment_button.warning.plain:disabled,.adjustment_button.warning.plain:disabled:active,.adjustment_button.warning.plain:disabled:focus,.adjustment_button.warning.plain:disabled:hover{border-color:#faecd8;background-color:#fdf6ec;color:#f0c78a}.adjustment_button.danger.plain:disabled,.adjustment_button.danger.plain:disabled:active,.adjustment_button.danger.plain:disabled:focus,.adjustment_button.danger.plain:disabled:hover{border-color:#fde2e2;background-color:#fef0f0;color:#f9a7a7}.adjustment_tips{display:inline-block;box-sizing:border-box;padding:3px 5px;height:fit-content;border:1px solid #d9ecff;border-radius:4px;background-color:#ecf5ff;color:#409eff;font-size:14px;line-height:1.5}.adjustment_tips.info{border-color:#e9e9eb;background-color:#f4f4f5;color:#909399}.adjustment_tips.success{border-color:#e1f3d8;background-color:#f0f9eb;color:#67c23a}.adjustment_tips.warning{border-color:#faecd8;background-color:#fdf6ec;color:#e6a23c}.adjustment_tips.danger{border-color:#fde2e2;background-color:#fef0f0;color:#f56c6c}.adjustment_form,.adjustment_form_item{display:flex;flex-direction:column}.adjustment_form{gap:5px}.adjustment_form_item{gap:5px}.adjustment_checkbox,.adjustment_form_item_content{display:flex;align-items:center;justify-content:space-between}.adjustment_form_item label{font-size:18px}.adjustment_checkboxGroup{display:flex;align-items:center;justify-content:flex-start;gap:10px}.adjustment_checkbox{font-size:16px;gap:3px}.adjustment_input{display:inline-flex;padding:1px 11px;outline:0;border:1px solid #dcdfe6;border-radius:6px;background:#f5f5f5;line-height:32px;cursor:text;flex-grow:1;align-items:center;justify-content:center}',
     IndexAdjustment: '#indexRecommendVideoHistoryOpenButton{margin-top:10px}#indexRecommendVideoHistoryPopover{width:600px}#indexRecommendVideoHistoryPopover #indexRecommendVideoHistoryPopoverTitle{display:flex;box-sizing:border-box;padding-bottom:15px;border-bottom:1px solid #dcdfe6;font-weight:700;font-size:22px;align-items:center;justify-content:space-between}#indexRecommendVideoHistoryPopover ul{display:flex;flex-direction:column;align-items:center;justify-content:space-between}ul#indexRecommendVideoHistoryCategory{display:grid;margin:10px 0 0;padding-bottom:10px;border-bottom:1px solid #dcdfe6!important;gap:5px;grid-template-columns:repeat(8,1fr);align-items:center;justify-content:center}ul#indexRecommendVideoHistoryCategory li{padding:3px 0!important;border:1px solid;border-radius:6px;text-align:center}#indexRecommendVideoHistoryPopover ul li{padding:7px 0;width:100%;border-color:#dcdfe6!important;border-style:solid;line-height:24px;border-bottom-width:1px}#indexRecommendVideoHistoryPopover #indexRecommendVideoHistoryList li a{color:#333!important}#indexRecommendVideoHistoryPopover #indexRecommendVideoHistoryList li:hover a{color:#00a1d6!important}#clearRecommendVideoHistoryButton{position:sticky;display:flex;padding:10px;width:80px;border-radius:6px;background:#00a1d6;color:#fff;font-size:15px;line-height:16px;cursor:pointer;align-items:center;justify-content:center}',
-    VideoPageAdjustment: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:134px!important;line-height:20px!important;}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#uploadSkipTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#uploadSkipTimeNodesButton:hover{background:#00b5e5!important}#skipTimeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}',
+    VideoPageAdjustment: '.back-to-top-wrap .locate{visibility:hidden}.back-to-top-wrap:has(.visible) .locate{visibility:visible}.bpx-player-container[data-screen=full] #goToComments{opacity:.6;cursor:not-allowed;pointer-events:none}#comment-description .user-name{display:flex;padding:0 5px;height:22px;border:1px solid;border-radius:4px;align-items:center;justify-content:center}.bpx-player-ctrl-skip{border:none!important;background:0 0!important}.bpx-player-container[data-screen=full] #setSkipTimeNodesPopoverToggleButton,.bpx-player-container[data-screen=web] #setSkipTimeNodesPopoverToggleButton{height:32px!important;line-height:32px!important}#setSkipTimeNodesPopover{top:50%!important;left:50%!important;box-sizing:border-box!important;padding:15px!important;max-width:456px!important;border:0!important;border-radius:6px!important;font-size:14px!important;transform:translate(-50%,-50%)!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper{display:flex!important;flex-direction:column!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button{display:flex!important;width:100%;height:34px!important;border-style:solid!important;border-width:1px!important;border-radius:6px!important;text-align:center!important;line-height:34px!important;cursor:pointer;align-items:center!important;justify-content:center!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper button:disabled{cursor:not-allowed}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header{display:flex!important;font-weight:700!important;align-items:center!important;justify-content:space-between!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .title{font-weight:700!important;font-size:16px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra{font-size:12px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .header .extra,#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .result{padding:2px 5px!important;border:1px solid #d9ecff!important;border-radius:6px!important;background-color:#ecf5ff!important;color:#409eff!important;font-weight:400!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .success{display:flex!important;padding:2px 5px!important;border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#67c23a!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .danger{display:flex!important;padding:2px 5px!important;border-color:#fde2e2!important;background-color:#fef0f0!important;color:#f56c6c!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .handles{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips{position:relative!important;overflow:hidden;box-sizing:border-box!important;padding:7px!important;border-color:#e9e9eb!important;border-radius:6px!important;background-color:#f4f4f5!important;color:#909399!important;font-size:13px!important;transition:height .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.open{height:134px!important;line-height:20px!important;}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips.close{height:34px!important;line-height:22px!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail{position:absolute!important;top:9px!important;right:7px!important;display:flex!important;cursor:pointer!important;transition:transform .3s!important}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.open{transform:rotate(0)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .tips .detail.close{transform:rotate(180deg)}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records{display:none;flex-direction:column!important;gap:7px}#setSkipTimeNodesPopover .setSkipTimeNodesWrapper .records .recordsButtonsGroup{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important}#clearRecordsButton{border-color:#d3d4d6!important;background:#f4f4f5!important;color:#909399!important}#clearRecordsButton:disabled{border-color:#e9e9eb!important;background-color:#f4f4f5!important;color:#bcbec2!important}#saveRecordsButton{border-color:#c2e7b0!important;background:#f0f9eb!important;color:#67c23a!important}#saveRecordsButton:disabled{border-color:#e1f3d8!important;background-color:#f0f9eb!important;color:#a4da89!important}#setSkipTimeNodesInput{box-sizing:border-box!important;padding:5px!important;width:calc(100% - 39px)!important;height:34px!important;border:1px solid #cecece!important;border-radius:6px!important;line-height:34px!important}#uploadSkipTimeNodesButton{width:52px!important;height:34px!important;border:none!important;background:#00a1d6!important;color:#fff!important}#uploadSkipTimeNodesButton:hover{background:#00b5e5!important}#skipTimeNodesRecordsArray{display:flex!important;padding:2px 5px!important;border-radius:6px!important}#bilibili-player .bpx-player-video-wrap{position:relative}#bilibili-player .bpx-player-video-wrap:before{position:absolute;display:block;background:var(--video-cover) top left no-repeat;background-size:cover;content:"";inset:0}',
     BodyHidden: 'body{overflow:hidden!important}',
     ResetPlayerLayout: 'body{padding-top:0;position:auto}#playerWrap{display:block}#bilibili-player{height:auto;position:relative}.bpx-player-mini-warp{display:none}',
     UnlockWebscreen: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}',
@@ -259,7 +263,7 @@
      * 初始化所有数据
      */
     initValue() {
-      const value = [ {
+      const value = [{
         name: 'is_vip',
         value: true,
       }, {
@@ -320,10 +324,12 @@
         name: 'web_video_link',
         value: 'https://t.bilibili.com/?tab=video'
       }, {
-        // 0:未签到 1:已签到 2:签到异常
         name: 'signIn_date',
         value: ''
-      } ]
+      }, {
+        name: 'dev_checkScreenModeSwitchSuccess_method',
+        value: 'interval'
+      }]
       value.forEach(v => {
         if (utils.getValue(v.name) === undefined) {
           utils.setValue(v.name, v.value)
@@ -392,10 +398,10 @@
      * 检查当前文档是否被激活
      */
     checkDocumentIsHidden() {
-      const visibilityChangeEventNames = [ 'visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange' ]
+      const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
       const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null
       if (documentHiddenPropertyName !== null) {
-        const isHidden = () => document[ documentHiddenPropertyName ]
+        const isHidden = () => document[documentHiddenPropertyName]
         const onChange = () => isHidden()
         // 添加各种事件监听器
         visibilityChangeEventNames.forEach(eventName => document.addEventListener(eventName, onChange))
@@ -413,7 +419,7 @@
      * 刷新当前页面
      */
     reloadCurrentTab(...args) {
-      if (args && args[ 0 ] === true) {
+      if (args && args[0] === true) {
         location.reload()
       } else {
         if (vals.auto_reload()) location.reload()
@@ -488,7 +494,7 @@
      */
     createElementAndInsert(HtmlString, target, method) {
       const element = elmGetter.create(HtmlString, target)
-      target[ method ](element)
+      target[method](element)
       return element
     },
     /**
@@ -553,13 +559,13 @@
     async getElementAndCheckExistence(selectors, ...args) {
       let delay = 7000, debug = false
       if (args.length === 1) {
-        const type = typeof args[ 0 ]
-        if (type === 'number') delay = args[ 0 ]
-        if (type === 'boolean') debug = args[ 0 ]
+        const type = typeof args[0]
+        if (type === 'number') delay = args[0]
+        if (type === 'boolean') debug = args[0]
       }
       if (args.length === 2) {
-        delay = args[ 0 ]
-        debug = args[ 1 ]
+        delay = args[0]
+        debug = args[1]
       }
       const result = await elmGetter.get(selectors, delay)
       if (debug) utils.logger.debug(utils.checkElementExistence(result))
@@ -570,7 +576,7 @@
      */
     async addEventListenerToElement() {
       if (window.location.href === 'https://www.bilibili.com/') {
-        const [ $indexRecommendVideoRollButton, $clearRecommendVideoHistoryButton ] = await utils.getElementAndCheckExistence([ selectors.indexRecommendVideoRollButton, selectors.clearRecommendVideoHistoryButton ])
+        const [$indexRecommendVideoRollButton, $clearRecommendVideoHistoryButton] = await utils.getElementAndCheckExistence([selectors.indexRecommendVideoRollButton, selectors.clearRecommendVideoHistoryButton])
         $indexRecommendVideoRollButton.addEventListener('click', () => {
           const functionsArray = [
             modules.setIndexRecordRecommendVideoHistory,
@@ -597,7 +603,7 @@
         window.addEventListener("popstate", () => {
           modules.autoLocationAndInsertVideoDescriptionToComment()
         })
-        const [ $playerContainer, $AutoSkipSwitchInput ] = await utils.getElementAndCheckExistence([ selectors.playerContainer, selectors.AutoSkipSwitchInput ])
+        const [$playerContainer, $AutoSkipSwitchInput] = await utils.getElementAndCheckExistence([selectors.playerContainer, selectors.AutoSkipSwitchInput])
         $playerContainer.addEventListener('fullscreenchange', (event) => {
           let isFullscreen = document.fullscreenElement === event.target
           if (!isFullscreen) modules.locationToPlayer()
@@ -608,7 +614,7 @@
           }
         })
         if (vals.auto_skip()) {
-          const [ $video, $setSkipTimeNodesPopoverToggleButton, $setSkipTimeNodesPopoverRecords, $skipTimeNodesRecordsArray, $saveRecordsButton ] = await utils.getElementAndCheckExistence([ selectors.video, selectors.setSkipTimeNodesPopoverToggleButton, selectors.setSkipTimeNodesPopoverRecords, selectors.skipTimeNodesRecordsArray, selectors.saveRecordsButton ])
+          const [$video, $setSkipTimeNodesPopoverToggleButton, $setSkipTimeNodesPopoverRecords, $skipTimeNodesRecordsArray, $saveRecordsButton] = await utils.getElementAndCheckExistence([selectors.video, selectors.setSkipTimeNodesPopoverToggleButton, selectors.setSkipTimeNodesPopoverRecords, selectors.skipTimeNodesRecordsArray, selectors.saveRecordsButton])
           document.addEventListener('keydown', (event) => {
             if (event.key === 'k') {
               const currentTime = Math.ceil($video.currentTime)
@@ -648,7 +654,7 @@
      * 获取视频ID/video BVID/bangumi EPID
      */
     getCurrentVideoID(url = window.location.href) {
-      return url.startsWith('https://www.bilibili.com/video') ? url.split('/')[ 4 ] : url.startsWith('https://www.bilibili.com/bangumi') ? url.split('/')[ 5 ].split('?')[ 0 ] : 'error'
+      return url.startsWith('https://www.bilibili.com/video') ? url.split('/')[4] : url.startsWith('https://www.bilibili.com/bangumi') ? url.split('/')[5].split('?')[0] : 'error'
     },
     /**
      * 获取视频类型(video/bangumi)
@@ -752,7 +758,7 @@
       })
       observer.observe($playerContainer, {
         attributes: true,
-        attributeFilter: [ 'data-screen' ],
+        attributeFilter: ['data-screen'],
       })
     },
     /**
@@ -778,6 +784,19 @@
         arrays.intervalIds.push(timer)
       })
     },
+    async setVideoCover() {
+      const { data: { pic } } = await modules.getVideoInformation(modules.getCurrentVideoID(window.location.href))
+      const [$video, $videoWrap] = await utils.getElementAndCheckExistence([selectors.video, selectors.videoWrap])
+      if (pic) {
+        $videoWrap.style.setProperty('--video-cover', `url(${pic.replace(/^http:/i, 'https:')})`)
+        $video.addEventListener('play', function () {
+          $videoWrap.style.setProperty('--video-cover', '')
+        })
+        // $video.addEventListener('pause', function () {
+        //   $videoWrap.style.setProperty('--video-cover', `url(${pic})`)
+        // })
+      }
+    },
     /**
      * 执行自动切换屏幕模式
      * - 功能未开启，不执行切换函数，直接返回成功
@@ -797,29 +816,58 @@
       }
     },
     /**
-     * 递归检查屏幕模式是否切换成功
+     * 检查屏幕模式是否切换成功
      * @param {*} expectScreenMode 期望的屏幕模式
      * - 未成功自动重试
-     * - 递归超过 10 次则返回失败
+     * - 定时器方式超过 10 次失败，1s 执行一次
+     * - 递归方式超过 10 次返回失败
      */
     async checkScreenModeSwitchSuccess(expectScreenMode) {
       const enterBtnMap = {
         wide: async () => { return await utils.getElementAndCheckExistence(selectors.screenModeWideEnterButton) },
         web: async () => { return await utils.getElementAndCheckExistence(selectors.screenModeWebEnterButton) },
       }
-      if (enterBtnMap[ expectScreenMode ]) {
-        const enterBtn = await enterBtnMap[ expectScreenMode ]()
-        enterBtn.click()
-        const currentScreenMode = await modules.getCurrentScreenMode()
-        const equal = expectScreenMode === currentScreenMode
-        const success = vals.player_type() === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selectors.danmukuBox))[ 'margin-top' ].slice(0, -2) > 0 : equal : equal
-        // utils.logger.debug(`${vals.player_type()} ${expectScreenMode} ${currentScreenMode} ${equal} ${success}`)
-        if (success) return success
-        else {
-          if (++vars.checkScreenModeSwitchSuccessDepths === 10) return false
-          // utils.logger.warn(`屏幕模式切换失败，继续尝试丨当前：${currentScreenMode}，期望：${expectScreenMode}`)
-          await utils.sleep(300)
-          return modules.checkScreenModeSwitchSuccess(expectScreenMode)
+      // 定时器方式检查
+      if (vals.dev_checkScreenModeSwitchSuccess_method() === 'interval') {
+        if (enterBtnMap[expectScreenMode]) {
+          return new Promise((resolve) => {
+            let attempts = 10
+            const timer = setInterval(async () => {
+              const enterBtn = await enterBtnMap[expectScreenMode]()
+              enterBtn.click()
+              const currentScreenMode = await modules.getCurrentScreenMode()
+              const equal = expectScreenMode === currentScreenMode
+              const success = vals.player_type() === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selectors.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
+              if (success) {
+                clearInterval(timer)
+                resolve(success)
+              } else if (attempts <= 0) {
+                clearInterval(timer)
+                resolve(false)
+                utils.logger.warn(`屏幕模式切换失败，继续尝试丨当前：${currentScreenMode}，期望：${expectScreenMode}`)
+              }
+              attempts--
+            }, 1000)
+            arrays.intervalIds.push(timer)
+          })
+        }
+      }
+      if (vals.dev_checkScreenModeSwitchSuccess_method() === 'recursive') {
+        // 递归方式检查
+        if (enterBtnMap[expectScreenMode]) {
+          const enterBtn = await enterBtnMap[expectScreenMode]()
+          enterBtn.click()
+          const currentScreenMode = await modules.getCurrentScreenMode()
+          const equal = expectScreenMode === currentScreenMode
+          const success = vals.player_type() === 'video' ? expectScreenMode === 'wide' ? equal && +getComputedStyle(document.querySelector(selectors.danmukuBox))['margin-top'].slice(0, -2) > 0 : equal : equal
+          // utils.logger.debug(`${vals.player_type()} ${expectScreenMode} ${currentScreenMode} ${equal} ${success}`)
+          if (success) return success
+          else {
+            if (++vars.checkScreenModeSwitchSuccessDepths === 10) return false
+            // utils.logger.warn(`屏幕模式切换失败，继续尝试丨当前：${currentScreenMode}，期望：${expectScreenMode}`)
+            await utils.sleep(300)
+            return modules.checkScreenModeSwitchSuccess(expectScreenMode)
+          }
         }
       }
     },
@@ -832,7 +880,7 @@
         const $placeholderElement = await utils.getElementAndCheckExistence(selectors.videoTitleArea) || await utils.getElementAndCheckExistence(selectors.bangumiMainContainer)
         const headerHeight = $header.getBoundingClientRect().height
         const placeholderElementHeight = $placeholderElement.getBoundingClientRect().height
-        playerOffsetTop = vals.player_type() === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle($placeholderElement)[ 'margin-top' ].slice(0, -2)
+        playerOffsetTop = vals.player_type() === 'video' ? headerHeight + placeholderElementHeight : headerHeight + +getComputedStyle($placeholderElement)['margin-top'].slice(0, -2)
       }
       if (getOffsetMethod === 'function') {
         const $player = await utils.getElementAndCheckExistence(selectors.player)
@@ -909,7 +957,7 @@
         const $video = await utils.getElementAndCheckExistence(selectors.video)
         $video.addEventListener('click', async () => {
           const currentScreenMode = await modules.getCurrentScreenMode()
-          if ([ 'full', 'mini' ].includes(currentScreenMode)) return
+          if (['full', 'mini'].includes(currentScreenMode)) return
           await modules.locationToPlayer()
         })
       }
@@ -919,7 +967,7 @@
      */
     async autoCancelMute() {
       if (++vars.autoCancelMuteRunningCount === 1) {
-        const [ $mutedButton, $volumeButton ] = await utils.getElementAndCheckExistence([ selectors.mutedButton, selectors.volumeButton ])
+        const [$mutedButton, $volumeButton] = await utils.getElementAndCheckExistence([selectors.mutedButton, selectors.volumeButton])
         // const mutedButtonDisplay = getComputedStyle(mutedButton)['display']
         // const volumeButtonDisplay = getComputedStyle(volumeButton)['display']
         const mutedButtonDisplay = $mutedButton.style.display
@@ -948,7 +996,7 @@
         await elmGetter.each(selectors.qualitySwitchButtons, document.body, button => {
           qualitySwitchButtonsMap.set(button.dataset.value, button)
         })
-        const qualitySwitchButtonsArray = [ ...qualitySwitchButtonsMap ]
+        const qualitySwitchButtonsArray = [...qualitySwitchButtonsMap]
         const select4K = () => {
           qualitySwitchButtonsMap.get('120').click()
           message = '最高画质｜VIP｜4K｜切换成功'
@@ -959,8 +1007,8 @@
         }
         const selectNo4K8K = () => {
           qualitySwitchButtonsArray.filter(quality => {
-            return +quality[ 0 ] < 120
-          })[ 0 ][ 1 ].click()
+            return +quality[0] < 120
+          })[0][1].click()
           message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
         }
         if (vals.is_vip()) {
@@ -992,8 +1040,8 @@
           }
         } else {
           qualitySwitchButtonsArray.filter(button => {
-            return button[ 1 ].children.length < 2
-          })[ 0 ][ 1 ].click()
+            return button[1].children.length < 2
+          })[0][1].click()
           message = '最高画质｜非VIP｜切换成功'
         }
         // utils.logger.info(message)
@@ -1006,7 +1054,7 @@
      */
     async insertFloatSideNavToolsButton() {
       const $floatNav = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.videoFloatNav) : await utils.getElementAndCheckExistence(selectors.bangumiFloatNav)
-      const dataV = $floatNav.lastChild.attributes[ 1 ].name
+      const dataV = $floatNav.lastChild.attributes[1].name
       let $locateButton
       if (vals.player_type() === 'video') {
         const locateButtonHtml = '<div class="fixed-sidenav-storage-item locate" title="定位至播放器"><svg t="1643419779790" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1775" width="200" height="200" style="width: 50%;height: 100%;fill: currentColor;"><path d="M512 352c-88.008 0-160.002 72-160.002 160 0 88.008 71.994 160 160.002 160 88.01 0 159.998-71.992 159.998-160 0-88-71.988-160-159.998-160z m381.876 117.334c-19.21-177.062-162.148-320-339.21-339.198V64h-85.332v66.134c-177.062 19.198-320 162.136-339.208 339.198H64v85.334h66.124c19.208 177.062 162.144 320 339.208 339.208V960h85.332v-66.124c177.062-19.208 320-162.146 339.21-339.208H960v-85.334h-66.124zM512 810.666c-164.274 0-298.668-134.396-298.668-298.666 0-164.272 134.394-298.666 298.668-298.666 164.27 0 298.664 134.396 298.664 298.666S676.27 810.666 512 810.666z" p-id="1776"></path></svg>定位</div>'.replace('title="定位至播放器"', `title="定位至播放器" ${dataV}`)
@@ -1046,7 +1094,7 @@
     async webfullScreenModeUnlock() {
       if (vals.webfull_unlock() && vals.selected_screen_mode() === 'web' && ++vars.webfullUnlockRunningCount === 1) {
         if (vals.player_type() === 'bangumi') return
-        const [ $app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton ] = await utils.getElementAndCheckExistence([ selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton ])
+        const [$app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton] = await utils.getElementAndCheckExistence([selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton])
         const resetPlayerLayout = async () => {
           if (document.getElementById('UnlockWebscreenStyle')) document.getElementById('UnlockWebscreenStyle').remove()
           if (!document.getElementById('ResetPlayerLayoutStyle')) utils.insertStyleToDocument('ResetPlayerLayoutStyle', styles.ResetPlayerLayout)
@@ -1090,7 +1138,7 @@
      */
     async insertGoToCommentButton() {
       if (vals.player_type() === 'video' && vals.webfull_unlock() && ++vars.insertGoToCommentButtonCount === 1) {
-        const [ $comment, $playerControllerBottomRight ] = await utils.getElementAndCheckExistence([ selectors.videoComment, selectors.playerControllerBottomRight ])
+        const [$comment, $playerControllerBottomRight] = await utils.getElementAndCheckExistence([selectors.videoComment, selectors.playerControllerBottomRight])
         const goToCommentBtnHtml = '<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>'
         const $goToCommentButton = utils.createElementAndInsert(goToCommentBtnHtml, $playerControllerBottomRight, 'append')
         $goToCommentButton.addEventListener('click', (event) => {
@@ -1111,10 +1159,10 @@
       if (!vals.insert_video_description_to_comment() || vals.player_type() === 'bangumi') return
       const $commentDescription = document.getElementById('comment-description')
       if ($commentDescription) $commentDescription.remove()
-      const [ $videoDescription, $videoDescriptionInfo, $videoCommentReplyList ] = await utils.getElementAndCheckExistence([ selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList ])
+      const [$videoDescription, $videoDescriptionInfo, $videoCommentReplyList] = await utils.getElementAndCheckExistence([selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList])
       const getTotalSecondsFromTimeString = (timeString) => {
         if (timeString.length === 5) timeString = '00:' + timeString
-        const [ hours, minutes, seconds ] = timeString.split(':').map(Number)
+        const [hours, minutes, seconds] = timeString.split(':').map(Number)
         const totalSeconds = hours * 3600 + minutes * 60 + seconds
         return totalSeconds
       }
@@ -1133,7 +1181,7 @@
           const $membersUpAvatarFace = await utils.getElementAndCheckExistence(selectors.membersUpAvatarFace)
           upAvatarFaceLink = $membersUpAvatarFace.getAttribute('src')
         } else {
-          [ $upAvatarFace, $upAvatarIcon ] = await utils.getElementAndCheckExistence([ selectors.upAvatarFace, selectors.upAvatarIcon ])
+          [$upAvatarFace, $upAvatarIcon] = await utils.getElementAndCheckExistence([selectors.upAvatarFace, selectors.upAvatarIcon])
           upAvatarFaceLink = $upAvatarFace.dataset.src.replace('@96w_96h_1c_1s_!web-avatar', '@160w_160h_1c_1s_!web-avatar-comment')
         }
         // 先将内容编码后替换特殊空白符(%09)为普通空格(%20)后再解码供后续使用
@@ -1327,9 +1375,9 @@
         }
       }
       const findTargetTimeNode = (num, arr) => {
-        for (let i = 0; i < arr[ 0 ].length; i++) {
-          if (arr[ 0 ][ i ] === num) {
-            return arr[ 1 ][ i ];
+        for (let i = 0; i < arr[0].length; i++) {
+          if (arr[0][i] === num) {
+            return arr[1][i];
           }
         }
         return null;
@@ -1363,7 +1411,7 @@
     async insertSetSkipTimeNodesButton() {
       const videoID = modules.getCurrentVideoID()
       if (++vars.insertSetSkipTimeNodesButtonCount === 1 && vals.auto_skip()) {
-        const [ $video, $playerContainer, $playerControllerBottomRight, $playerTooltipArea ] = await utils.getElementAndCheckExistence([ selectors.video, selectors.playerContainer, selectors.playerControllerBottomRight, selectors.playerTooltipArea ])
+        const [$video, $playerContainer, $playerControllerBottomRight, $playerTooltipArea] = await utils.getElementAndCheckExistence([selectors.video, selectors.playerContainer, selectors.playerControllerBottomRight, selectors.playerTooltipArea])
         const validateInputValue = (inputValue) => {
           const regex = /^\[\d+,\d+\](,\[\d+,\d+\])*?$/g;
           const numbers = inputValue.match(/\[(\d+),(\d+)\]/g)?.flatMap(match => match.slice(1, -1).split(',')).map(Number) || [];
@@ -1371,12 +1419,12 @@
           if (inputValue === '' || !regex.test(inputValue) || hasDuplicates) {
             return false
           }
-          const isAscending = numbers.every((num, i) => i === 0 || num >= numbers[ i - 1 ])
+          const isAscending = numbers.every((num, i) => i === 0 || num >= numbers[i - 1])
           return isAscending
         }
         // [[10,20],[30,40]] → [[10,30],[20,40]]
         const convertArrayReadableToSave = (arr) => {
-          return arr[ 0 ].map((col, i) => arr.map(row => row[ i ]))
+          return arr[0].map((col, i) => arr.map(row => row[i]))
         }
         // [10,20,30,40] → [[10,30],[20,40]]
         // const convertArrayRecordToSave = (arr) => {
@@ -1466,10 +1514,10 @@
           $setSkipTimeNodesButtonTip.style.opacity = 0
           $setSkipTimeNodesButtonTip.style.visibility = 'hidden'
         })
-        const [ $setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail, $setSkipTimeNodesPopoverRecords, $setSkipTimeNodesInput, $skipTimeNodesRecordsArray, $setSkipTimeNodesPopoverResult, $clearRecordsButton, $saveRecordsButton, $uploadSkipTimeNodesButton ] = await utils.getElementAndCheckExistence([ selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail, selectors.setSkipTimeNodesPopoverRecords, selectors.setSkipTimeNodesInput, selectors.skipTimeNodesRecordsArray, selectors.setSkipTimeNodesPopoverResult, selectors.clearRecordsButton, selectors.saveRecordsButton, selectors.uploadSkipTimeNodesButton ])
+        const [$setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail, $setSkipTimeNodesPopoverRecords, $setSkipTimeNodesInput, $skipTimeNodesRecordsArray, $setSkipTimeNodesPopoverResult, $clearRecordsButton, $saveRecordsButton, $uploadSkipTimeNodesButton] = await utils.getElementAndCheckExistence([selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail, selectors.setSkipTimeNodesPopoverRecords, selectors.setSkipTimeNodesInput, selectors.skipTimeNodesRecordsArray, selectors.setSkipTimeNodesPopoverResult, selectors.clearRecordsButton, selectors.saveRecordsButton, selectors.uploadSkipTimeNodesButton])
         $setSkipTimeNodesPopoverTipsDetail.addEventListener('click', function (event) {
           event.stopPropagation()
-          const detailClassList = [ ...this.classList ]
+          const detailClassList = [...this.classList]
           if (detailClassList.includes('open')) {
             this.classList.replace('open', 'close')
             $setSkipTimeNodesPopoverTips.classList.replace('close', 'open')
@@ -1569,7 +1617,7 @@
           <div id="autoSkipTips" class="bpx-player-tooltip-item" style="visibility: hidden; opacity: 0; transform: translate(0px, 0px);">
               <div class="bpx-player-tooltip-title">关闭自动跳过(j)</div>
           </div>`
-        const [ playerDanmuSetting, playerTooltipArea ] = await utils.getElementAndCheckExistence([ selectors.playerDanmuSetting, selectors.playerTooltipArea ])
+        const [playerDanmuSetting, playerTooltipArea] = await utils.getElementAndCheckExistence([selectors.playerDanmuSetting, selectors.playerTooltipArea])
         const $skipTimeNodesSwitchButton = utils.createElementAndInsert(skipTimeNodesSwitchButtonHtml, playerDanmuSetting, 'after')
         const $autoSkipTips = utils.createElementAndInsert(skipTimeNodesSwitchButtonTipHtml, playerTooltipArea, 'append')
         const $AutoSkipSwitchInput = await utils.getElementAndCheckExistence(selectors.AutoSkipSwitchInput)
@@ -1683,23 +1731,23 @@
           const title = video.querySelector('h3').title
           if (window.location.host.includes('bilibili.com') && !url.includes('cm.bilibili.com')) {
             const { data: { tid } } = await modules.getVideoInformation(modules.getCurrentVideoID(url))
-            indexRecommendVideoHistory.setItem(title, [ tid, url ])
+            indexRecommendVideoHistory.setItem(title, [tid, url])
           }
         })
       }
     },
     async getIndexRecordRecommendVideoHistoryArray() {
-      arrays.indexRecommendVideoHistoryArray = []
+      arrays.indexRecommendVideoHistory = []
       const indexRecommendVideoHistory = localforage.createInstance({
         name: 'indexRecommendVideoHistory',
       })
       await indexRecommendVideoHistory.iterate((value, key) => {
-        arrays.indexRecommendVideoHistoryArray.push({ key, value })
+        arrays.indexRecommendVideoHistory.push({ key, value })
       })
-      if (!arrays.indexRecommendVideoHistoryArray.length || arrays.indexRecommendVideoHistoryArray.length !== await indexRecommendVideoHistory.length()) {
+      if (!arrays.indexRecommendVideoHistory.length || arrays.indexRecommendVideoHistory.length !== await indexRecommendVideoHistory.length()) {
         return await modules.getIndexRecordRecommendVideoHistoryArray()
       }
-      else return arrays.indexRecommendVideoHistoryArray
+      else return arrays.indexRecommendVideoHistory
     },
     async insertIndexRecommendVideoHistoryOpenButton() {
       if (document.getElementById(selectors.indexRecommendVideoHistoryOpenButton)) document.getElementById(selectors.indexRecommendVideoHistoryOpenButton).remove()
@@ -1716,14 +1764,14 @@
                 <div id="${selectors.clearRecommendVideoHistoryButton.slice(1)}">清空记录</div>
             </div>
             <ul id="${selectors.indexRecommendVideoHistoryCategory.slice(1)}">
-              <li class='all'>全部</li>
+              <li class='all adjustment_button primary plain'>全部</li>
             </ul>
             <ul id="${selectors.indexRecommendVideoHistoryList.slice(1)}"></ul>
         </ul>`
       utils.createElementAndInsert(indexRecommendVideoHistoryOpenButtonHtml, $indexRecommendVideoRollButtonWrapper, 'append')
       const $indexRecommendVideoHistoryPopover = utils.createElementAndInsert(indexRecommendVideoHistoryPopoverHtml, document.body, 'append')
       $indexRecommendVideoHistoryPopover.addEventListener('toggle', async (event) => {
-        const [ $indexApp, $indexRecommendVideoHistoryPopoverTitle ] = await utils.getElementAndCheckExistence([ selectors.indexApp, selectors.indexRecommendVideoHistoryPopoverTitle ])
+        const [$indexApp, $indexRecommendVideoHistoryPopoverTitle] = await utils.getElementAndCheckExistence([selectors.indexApp, selectors.indexRecommendVideoHistoryPopoverTitle])
         if (event.newState === 'open') {
           $indexApp.style.pointerEvents = 'none'
           $indexRecommendVideoHistoryPopoverTitle.querySelector('span').append(`(${$indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).childElementCount})`)
@@ -1739,17 +1787,21 @@
       const $indexRecommendVideoHistoryPopover = await utils.getElementAndCheckExistence(selectors.indexRecommendVideoHistoryPopover)
       $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).innerHTML = ''
       for (const record of getIndexRecordRecommendVideoHistoryArray) {
-        utils.createElementAndInsert(`<li><a href="${record.value[ 1 ]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
+        utils.createElementAndInsert(`<li><a href="${record.value[1]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
       }
     },
     async generatorVideoCategories() {
+      const setCategoryButtonActiveClass = (element) => {
+        element.parentElement.querySelectorAll(selectors.indexRecommendVideoHistoryCategoryButtons).forEach(element => { element.classList.remove(...arrays.videoCategoriesActiveClass) })
+        element.classList.add(...arrays.videoCategoriesActiveClass)
+      }
       const getIndexRecordRecommendVideoHistoryArray = await modules.getIndexRecordRecommendVideoHistoryArray()
       const $indexRecommendVideoHistoryPopover = await utils.getElementAndCheckExistence(selectors.indexRecommendVideoHistoryPopover)
-      $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategory).innerHTML = "<li class='all'>全部</li>"
+      $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategory).innerHTML = "<li class='all adjustment_button primary plain'>全部</li>"
       let categoryHasVideoSet = new Set()
       arrays.videoCategories.filter(category => {
         getIndexRecordRecommendVideoHistoryArray.filter(record => {
-          if (category.tid.includes(record.value[ 0 ])) {
+          if (category.tid.includes(record.value[0])) {
             categoryHasVideoSet.add(category)
           }
         })
@@ -1757,21 +1809,23 @@
       for (const category of Array.from(categoryHasVideoSet)) {
         utils.createElementAndInsert(`<li data-tid="[${category.tid}]">${category.name}</li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategory), 'append')
       }
-      await elmGetter.each(selectors.indexRecommendVideoHistoryCategoryButton, $indexRecommendVideoHistoryPopover, category => {
+      await elmGetter.each(selectors.indexRecommendVideoHistoryCategoryButtonsExceptAll, $indexRecommendVideoHistoryPopover, category => {
         category.addEventListener('click', async function () {
+          setCategoryButtonActiveClass(this)
           $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).innerHTML = ''
           const categoryIds = this.dataset.tid
           for (const record of getIndexRecordRecommendVideoHistoryArray) {
-            if (categoryIds.includes(record.value[ 0 ])) {
-              utils.createElementAndInsert(`<li><a href="${record.value[ 1 ]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
+            if (categoryIds.includes(record.value[0])) {
+              utils.createElementAndInsert(`<li><a href="${record.value[1]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
             }
           }
         })
       })
-      $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategoryButtonAll).addEventListener('click', async () => {
+      $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategoryButtonAll).addEventListener('click', async function () {
+        setCategoryButtonActiveClass(this)
         $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).innerHTML = ''
         for (const record of getIndexRecordRecommendVideoHistoryArray) {
-          utils.createElementAndInsert(`<li><a href="${record.value[ 1 ]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
+          utils.createElementAndInsert(`<li><a href="${record.value[1]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
         }
       })
     },
@@ -1780,10 +1834,10 @@
         name: 'indexRecommendVideoHistory',
       })
       indexRecommendVideoHistory.clear()
-      arrays.indexRecommendVideoHistoryArray = []
+      arrays.indexRecommendVideoHistory = []
       const $indexRecommendVideoHistoryPopover = await utils.getElementAndCheckExistence(selectors.indexRecommendVideoHistoryPopover)
       $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).innerHTML = ''
-      $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategory).innerHTML = "<li class='all'>全部</li>"
+      $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategory).innerHTML = "<li class='all adjustment_button primary plain'>全部</li>"
       $indexRecommendVideoHistoryPopover.hidePopover()
     },
     //** ----------------------- 脚本最终执行函数 ----------------------- **//
@@ -1809,7 +1863,7 @@
         GM_registerMenuCommand('设置', () => {
           $dynamicSettingPopover.showPopover()
         })
-        const [ $app, $dynamicHeaderContainer, $WebVideoLinkInput, $dynamicSettingSaveButton ] = await utils.getElementAndCheckExistence([ selectors.app, selectors.dynamicHeaderContainer, selectors.WebVideoLinkInput, selectors.dynamicSettingSaveButton ])
+        const [$app, $dynamicHeaderContainer, $WebVideoLinkInput, $dynamicSettingSaveButton] = await utils.getElementAndCheckExistence([selectors.app, selectors.dynamicHeaderContainer, selectors.WebVideoLinkInput, selectors.dynamicSettingSaveButton])
         $WebVideoLinkInput.addEventListener('input', event => {
           utils.setValue('web_video_link', event.target.value.trim())
         })
@@ -1957,7 +2011,7 @@
           $videoSettingPopover.showPopover()
         })
         const $app = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.app) : await utils.getElementAndCheckExistence(selectors.bangumiApp)
-        const [ $IsVip, $AutoLocate, $AutoLocateVideo, $AutoLocateBangumi, $TopOffset, $ClickPlayerAutoLocation, $AutoQuality, $Quality4K, $Quality8K, $Checkbox4K, $Checkbox8K, $WebfullUnlock, $AutoReload, $videoSettingSaveButton, $AutoSkip, $InsertVideoDescriptionToComment ] = await utils.getElementAndCheckExistence([ selectors.IsVip, selectors.AutoLocate, selectors.AutoLocateVideo, selectors.AutoLocateBangumi, selectors.TopOffset, selectors.ClickPlayerAutoLocation, selectors.AutoQuality, selectors.Quality4K, selectors.Quality8K, selectors.Checkbox4K, selectors.Checkbox8K, selectors.WebfullUnlock, selectors.AutoReload, selectors.videoSettingSaveButton, selectors.AutoSkip, selectors.InsertVideoDescriptionToComment ])
+        const [$IsVip, $AutoLocate, $AutoLocateVideo, $AutoLocateBangumi, $TopOffset, $ClickPlayerAutoLocation, $AutoQuality, $Quality4K, $Quality8K, $Checkbox4K, $Checkbox8K, $WebfullUnlock, $AutoReload, $videoSettingSaveButton, $AutoSkip, $InsertVideoDescriptionToComment] = await utils.getElementAndCheckExistence([selectors.IsVip, selectors.AutoLocate, selectors.AutoLocateVideo, selectors.AutoLocateBangumi, selectors.TopOffset, selectors.ClickPlayerAutoLocation, selectors.AutoQuality, selectors.Quality4K, selectors.Quality8K, selectors.Checkbox4K, selectors.Checkbox8K, selectors.WebfullUnlock, selectors.AutoReload, selectors.videoSettingSaveButton, selectors.AutoSkip, selectors.InsertVideoDescriptionToComment])
         $videoSettingPopover.addEventListener('toggle', event => {
           if (event.newState === 'open') {
             // document.querySelector('*:not(#videoSettingPopover *)').style.pointerEvents = 'none'
@@ -2056,6 +2110,7 @@
         let functionsArray = []
         if (regexps.video.test(window.location.href)) {
           functionsArray = [
+            modules.setVideoCover,
             modules.getCurrentPlayerType,
             modules.checkVideoExistence,
             modules.checkVideoCanPlayThrough,
