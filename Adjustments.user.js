@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.24
+// @version           0.1.25
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -47,70 +47,31 @@
     skipNodesRecords: [],
     indexRecommendVideoHistory: [],
     videoCategoriesActiveClass: ['adjustment_button', 'primary', 'plain'],
-    videoCategories: [{
-      name: '动画',
-      tid: [1, 24, 25, 47, 210, 86, 253, 27]
-    }, {
-      name: '番剧',
-      tid: [13, 51, 152, 32, 33]
-    }, {
-      name: '国创',
-      tid: [167, 153, 168, 169, 170, 195]
-    }, {
-      name: '音乐',
-      tid: [3, 28, 31, 30, 59, 193, 29, 130, 243, 244]
-    }, {
-      name: '舞蹈',
-      tid: [129, 20, 154, 156, 198, 199, 200]
-    }, {
-      name: '游戏',
-      tid: [4, 17, 171, 172, 65, 173, 121, 136, 19]
-    }, {
-      name: '知识',
-      tid: [36, 201, 124, 228, 207, 208, 209, 229, 122]
-    }, {
-      name: '科技',
-      tid: [188, 95, 230, 231, 232, 233]
-    }, {
-      name: '运动',
-      tid: [234, 235, 249, 164, 236, 237, 238]
-    }, {
-      name: '汽车',
-      tid: [223, 245, 246, 247, 248, 240, 227, 176]
-    }, {
-      name: '生活',
-      tid: [160, 138, 250, 251, 239, 161, 162, 21, 254]
-    }, {
-      name: '美食',
-      tid: [211, 76, 212, 213, 214, 215]
-    }, {
-      name: '动物圈',
-      tid: [217, 218, 219, 220, 221, 222, 75]
-    }, {
-      name: '鬼畜',
-      tid: [119, 22, 26, 126, 216, 127]
-    }, {
-      name: '时尚',
-      tid: [155, 157, 252, 158, 159]
-    }, {
-      name: '资讯',
-      tid: [202, 203, 204, 205, 206]
-    }, {
-      name: '娱乐',
-      tid: [5, 71, 241, 242, 137]
-    }, {
-      name: '影视',
-      tid: [181, 182, 183, 85, 184]
-    }, {
-      name: '纪录片',
-      tid: [177, 37, 178, 179, 180]
-    }, {
-      name: '电影',
-      tid: [23, 147, 145, 146, 83]
-    }, {
-      name: '电视剧',
-      tid: [11, 185, 187]
-    }]
+  }
+  let objects = {
+    videoCategories: {
+      douga: { name: "动画", tids: [1, 24, 25, 47, 210, 86, 253, 27] },
+      anime: { name: "番剧", tids: [13, 51, 152, 32, 33] },
+      guochuang: { name: "国创", tids: [167, 153, 168, 169, 170, 195] },
+      music: { name: "音乐", tids: [3, 28, 31, 30, 59, 193, 29, 130, 243, 244] },
+      dance: { name: "舞蹈", tids: [129, 20, 154, 156, 198, 199, 200] },
+      game: { name: "游戏", tids: [4, 17, 171, 172, 65, 173, 121, 136, 19] },
+      knowledge: { name: "知识", tids: [36, 201, 124, 228, 207, 208, 209, 229, 122] },
+      tech: { name: "科技", tids: [188, 95, 230, 231, 232, 233] },
+      sports: { name: "运动", tids: [234, 235, 249, 164, 236, 237, 238] },
+      car: { name: "汽车", tids: [223, 245, 246, 247, 248, 240, 227, 176] },
+      life: { name: "生活", tids: [160, 138, 250, 251, 239, 161, 162, 21, 254] },
+      food: { name: "美食", tids: [211, 76, 212, 213, 214, 215] },
+      animal: { name: "动物圈", tids: [217, 218, 219, 220, 221, 222, 75] },
+      kichiku: { name: "鬼畜", tids: [119, 22, 26, 126, 216, 127] },
+      fashion: { name: "时尚", tids: [155, 157, 252, 158, 159] },
+      information: { name: "资讯", tids: [202, 203, 204, 205, 206] },
+      ent: { name: "娱乐", tids: [5, 71, 241, 242, 137] },
+      cinephile: { name: "影视", tids: [181, 182, 183, 85, 184] },
+      documentary: { name: "纪录片", tids: [177, 37, 178, 179, 180] },
+      movie: { name: "电影", tids: [23, 147, 145, 146, 83] },
+      tv: { name: "电视剧", tids: [11, 185, 187] }
+    }
   }
   const selectors = {
     app: '#app',
@@ -359,6 +320,12 @@
      */
     sleep(times) {
       return new Promise(resolve => setTimeout(resolve, times))
+    },
+    getCookieByName(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
     },
     /**
      * 判断数组长度是否为偶数
@@ -645,18 +612,6 @@
   const modules = {
     //** ----------------------- 通用功能 ----------------------- **//
     /**
-     * 判断用户是否登录
-     */
-    isLogin() {
-      return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || window.UserStatus.userInfo.isLogin || null)
-    },
-    /**
-     * 获取视频ID/video BVID/bangumi EPID
-     */
-    getCurrentVideoID(url = window.location.href) {
-      return url.startsWith('https://www.bilibili.com/video') ? url.split('/')[4] : url.startsWith('https://www.bilibili.com/bangumi') ? url.split('/')[5].split('?')[0] : 'error'
-    },
-    /**
      * 获取视频类型(video/bangumi)
      * 如果都没匹配上则弹窗报错
      * @returns 当前视频类型
@@ -672,9 +627,16 @@
       if (vals.player_type() === playerType) return { message: `视频类型丨${playerType}` }
       else modules.getCurrentPlayerType()
     },
+    // requestBilibiliApi(field) {
+    //   const fieldMap = {
+    //     singin: 'https://api.live.bilibili.com/sign/doSign',
+    //     video: `https://api.bilibili.com/x/web-interface/view?bvid=${videoId}`,
+    //     user: `https://api.bilibili.com/x/space/wbi/acc/info?mid=${userId}`
+    //   }
+    // },
     /**
      * 获取视频基本信息
-     * @param {String} videoId 视频id(video BVID)
+     * @param {String} videoId 视频ID(video BVID)
      * @returns videoInfo
      */
     async getVideoInformation(videoId) {
@@ -688,6 +650,43 @@
       else if (code === 62002) utils.logger.info("获取视频基本信息丨稿件不可见")
       else if (code === 62004) utils.logger.info("获取视频基本信息丨稿件审核中")
       else utils.logger.warn("获取视频基本信息丨请求失败")
+    },
+    /**
+     * 获取用户基本信息
+     * @param {String} userId 用户ID
+     * @returns userInfo
+     */
+    async getUserInformation(userId) {
+      const url = `https://api.bilibili.com/x/web-interface/card?mid=${userId}`
+      const { data } = await axios.get(url, { withCredentials: true })
+      const code = data.code
+      if (code === 0) return data
+      else if (code === -400) utils.logger.info("获取用户基本信息丨请求错误")
+      else if (code === -403) utils.logger.info("获取用户基本信息丨权限不足")
+      else if (code === -404) utils.logger.info("获取用户基本信息丨用户不存在")
+      else utils.logger.warn("获取用户基本信息丨请求失败")
+    },
+    /**
+     * 判断用户是否登录
+     */
+    isLogin() {
+      return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || window.UserStatus.userInfo.isLogin || null)
+    },
+    /**
+     * 获取视频ID/video BVID/bangumi EPID
+     */
+    getCurrentVideoID(url = window.location.href) {
+      return url.startsWith('https://www.bilibili.com/video') ? url.split('/')[4] : url.startsWith('https://www.bilibili.com/bangumi') ? url.split('/')[5].split('?')[0] : 'error'
+    },
+    /**
+     * 判断用户是否是大会员
+     * TODO:函数执行时机
+     */
+    async isVip() {
+      const userId = utils.getCookieByName('DedeUserID')
+      const { data: { card: { vip: { status } } } } = await modules.getUserInformation(userId)
+      if (status) utils.setValue('is_vip', true)
+      else utils.setValue('is_vip', false)
     },
     /**
      * 自动签到
@@ -784,17 +783,24 @@
         arrays.intervalIds.push(timer)
       })
     },
+    /**
+     * 视频未开始播放时显示视频封面
+     * - 应用于舞蹈类视频
+     * - 视频播放时移除封面
+     */
     async setVideoCover() {
-      const { data: { pic } } = await modules.getVideoInformation(modules.getCurrentVideoID(window.location.href))
-      const [$video, $videoWrap] = await utils.getElementAndCheckExistence([selectors.video, selectors.videoWrap])
-      if (pic) {
-        $videoWrap.style.setProperty('--video-cover', `url(${pic.replace(/^http:/i, 'https:')})`)
-        $video.addEventListener('play', function () {
-          $videoWrap.style.setProperty('--video-cover', '')
-        })
-        // $video.addEventListener('pause', function () {
-        //   $videoWrap.style.setProperty('--video-cover', `url(${pic})`)
-        // })
+      if (vals.player_type() === 'video') {
+        const { data: { pic, tid } } = await modules.getVideoInformation(modules.getCurrentVideoID(window.location.href))
+        const [$video, $videoWrap] = await utils.getElementAndCheckExistence([selectors.video, selectors.videoWrap])
+        if (objects.videoCategories.dance.tids.includes(tid) && pic) {
+          $videoWrap.style.setProperty('--video-cover', `url(${pic.replace(/^http:/i, 'https:')})`) // 设置视频封面的CSS变量
+          $video.addEventListener('play', () => {
+            $videoWrap.style.setProperty('--video-cover', '')
+          })
+          // $video.addEventListener('pause', function () {
+          //   $videoWrap.style.setProperty('--video-cover', `url(${pic})`)
+          // })
+        }
       }
     },
     /**
@@ -1799,21 +1805,28 @@
       const $indexRecommendVideoHistoryPopover = await utils.getElementAndCheckExistence(selectors.indexRecommendVideoHistoryPopover)
       $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategory).innerHTML = "<li class='all adjustment_button primary plain'>全部</li>"
       let categoryHasVideoSet = new Set()
-      arrays.videoCategories.filter(category => {
+      // arrays.videoCategories.filter(category => {
+      //   getIndexRecordRecommendVideoHistoryArray.filter(record => {
+      //     if (category.tids.includes(record.value[0])) {
+      //       categoryHasVideoSet.add(category)
+      //     }
+      //   })
+      // })
+      for (const [key, value] of Object.entries(objects.videoCategories)) {
         getIndexRecordRecommendVideoHistoryArray.filter(record => {
-          if (category.tid.includes(record.value[0])) {
-            categoryHasVideoSet.add(category)
+          if (value.tids.includes(record.value[0])) {
+            categoryHasVideoSet.add(objects.videoCategories[key])
           }
         })
-      })
+      }
       for (const category of Array.from(categoryHasVideoSet)) {
-        utils.createElementAndInsert(`<li data-tid="[${category.tid}]">${category.name}</li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategory), 'append')
+        utils.createElementAndInsert(`<li data-tids="[${category.tids}]">${category.name}</li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategory), 'append')
       }
       await elmGetter.each(selectors.indexRecommendVideoHistoryCategoryButtonsExceptAll, $indexRecommendVideoHistoryPopover, category => {
         category.addEventListener('click', async function () {
           setCategoryButtonActiveClass(this)
           $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList).innerHTML = ''
-          const categoryIds = this.dataset.tid
+          const categoryIds = this.dataset.tids
           for (const record of getIndexRecordRecommendVideoHistoryArray) {
             if (categoryIds.includes(record.value[0])) {
               utils.createElementAndInsert(`<li><a href="${record.value[1]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
@@ -1956,7 +1969,7 @@
                   <input type="checkbox" id="${selectors.WebfullUnlock.slice(1)}" ${vals.webfull_unlock() ? 'checked' : ''} class="adjustment_checkbox">
                 </div>
                 <span class="adjustment_tips info">
-                  ->*实验性功能(不稳，可能会有这样或那样的问题)：勾选后网页全屏模式下可以滑动滚动条查看下方评论等内容，2秒延迟后解锁（番剧播放页不支持）
+                  -> 勾选后网页全屏模式下可以滑动滚动条查看下方评论等内容（番剧播放页不支持）
                   <br>->新增迷你播放器显示，不过比较简陋，只支持暂停/播放操作，有条件的建议还是直接使用浏览器自带的小窗播放功能。</span>
               </div>
               <div class="adjustment_form_item">
@@ -2110,9 +2123,9 @@
         let functionsArray = []
         if (regexps.video.test(window.location.href)) {
           functionsArray = [
-            modules.setVideoCover,
             modules.getCurrentPlayerType,
             modules.checkVideoExistence,
+            modules.setVideoCover,
             modules.checkVideoCanPlayThrough,
             modules.autoSelectScreenMode,
             modules.webfullScreenModeUnlock,
