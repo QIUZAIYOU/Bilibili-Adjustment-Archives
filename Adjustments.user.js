@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.25
+// @version           0.1.26
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -54,12 +54,12 @@
       anime: { name: "番剧", tids: [13, 51, 152, 32, 33] },
       guochuang: { name: "国创", tids: [167, 153, 168, 169, 170, 195] },
       music: { name: "音乐", tids: [3, 28, 31, 30, 59, 193, 29, 130, 243, 244] },
-      dance: { name: "舞蹈", tids: [129, 20, 154, 156, 198, 199, 200] },
+      dance: { name: "舞蹈", tids: [129, 20, 154, 156, 198, 199, 200, 255] },
       game: { name: "游戏", tids: [4, 17, 171, 172, 65, 173, 121, 136, 19] },
       knowledge: { name: "知识", tids: [36, 201, 124, 228, 207, 208, 209, 229, 122] },
       tech: { name: "科技", tids: [188, 95, 230, 231, 232, 233] },
       sports: { name: "运动", tids: [234, 235, 249, 164, 236, 237, 238] },
-      car: { name: "汽车", tids: [223, 245, 246, 247, 248, 240, 227, 176] },
+      car: { name: "汽车", tids: [223, 245, 246, 247, 248, 240, 227, 176, 258] },
       life: { name: "生活", tids: [160, 138, 250, 251, 239, 161, 162, 21, 254] },
       food: { name: "美食", tids: [211, 76, 212, 213, 214, 215] },
       animal: { name: "动物圈", tids: [217, 218, 219, 220, 221, 222, 75] },
@@ -489,8 +489,7 @@
             if (result) {
               const { message, callback } = result
               if (message) utils.logger.info(message)
-              if (callback && typeof callback === 'function') callback()
-              if (callback && Array.isArray(callback)) modules.executeFunctionsSequentially(callback)
+              if (callback && Array.isArray(callback)) utils.executeFunctionsSequentially(callback)
             }
             // else utils.logger.debug(currentFunction.name)
             utils.executeFunctionsSequentially(functionsArray)
@@ -680,7 +679,7 @@
     },
     /**
      * 判断用户是否是大会员
-     * TODO:函数执行时机
+     * - 签到后执行，若已签到则不执行，避免触发多次请求
      */
     async isVip() {
       const userId = utils.getCookieByName('DedeUserID')
@@ -700,6 +699,7 @@
         if (code === 0) {
           utils.logger.info("自动签到丨签到成功")
           utils.setValue('signIn_date', signInDate)
+          await modules.isVip()
         } else if (code === 1011040) {
           utils.logger.info("自动签到丨今日已签")
           utils.setValue('signIn_date', signInDate)
@@ -718,8 +718,8 @@
      * - 若不存在则抛出异常
      */
     async checkVideoExistence() {
-      const $video = await utils.getElementAndCheckExistence(selectors.video)
-      if ($video) return { message: '播放器｜已找到' }
+      const [$videoWrap, $video] = await utils.getElementAndCheckExistence([selectors.videoWrap, selectors.video])
+      if ($video) return { message: '播放器｜已找到', callback: [modules.setVideoCover.bind(null, $videoWrap, $video)] }
       else throw new Error('播放器｜未找到')
     },
     /**
@@ -788,20 +788,20 @@
      * - 应用于舞蹈类视频
      * - 视频播放时移除封面
      */
-    async setVideoCover() {
-      if (vals.player_type() === 'video') {
-        const { data: { pic, tid } } = await modules.getVideoInformation(modules.getCurrentVideoID(window.location.href))
-        const [$video, $videoWrap] = await utils.getElementAndCheckExistence([selectors.video, selectors.videoWrap])
-        if (objects.videoCategories.dance.tids.includes(tid) && pic) {
-          $videoWrap.style.setProperty('--video-cover', `url(${pic.replace(/^http:/i, 'https:')})`) // 设置视频封面的CSS变量
-          $video.addEventListener('play', () => {
-            $videoWrap.style.setProperty('--video-cover', '')
-          })
-          // $video.addEventListener('pause', function () {
-          //   $videoWrap.style.setProperty('--video-cover', `url(${pic})`)
-          // })
-        }
+    async setVideoCover($videoWrap, $video) {
+      if (vals.player_type() === 'bangumi') return
+      const targetTids = Array.from(new Set().add([...objects.videoCategories.dance.tids, ...objects.videoCategories.fashion.tids])).flat()
+      const { data: { pic, tid } } = await modules.getVideoInformation(modules.getCurrentVideoID(window.location.href))
+      if (targetTids.includes(tid) && pic) {
+        $videoWrap.style.setProperty('--video-cover', `url(${pic.replace(/^http:/i, 'https:')})`) // 设置视频封面的CSS变量
+        $video.addEventListener('play', () => {
+          $videoWrap.style.setProperty('--video-cover', '')
+        })
+        // $video.addEventListener('pause', function () {
+        //   $videoWrap.style.setProperty('--video-cover', `url(${pic})`)
+        // })
       }
+
     },
     /**
      * 执行自动切换屏幕模式
@@ -906,11 +906,11 @@
         document.getElementById('BodyHiddenStyle')?.remove()
       }
       const onAutoLocate = vals.auto_locate() && ((!vals.auto_locate_video() && !vals.auto_locate_bangumi()) || (vals.auto_locate_video() && vals.player_type() === 'video') || (vals.auto_locate_bangumi() && vals.player_type() === 'bangumi'))
-      if (!onAutoLocate || vals.selected_screen_mode() === 'web') return { callback: unlockbody }
+      if (!onAutoLocate || vals.selected_screen_mode() === 'web') return { callback: [unlockbody] }
       await modules.setLocationDataAndScrollToPlayer()
       const playerOffsetTop = vals.player_type() === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
       const result = await modules.checkAutoLocationSuccess(playerOffsetTop - vals.offset_top())
-      if (result) return { message: '自动定位｜成功', callback: unlockbody }
+      if (result) return { message: '自动定位｜成功', callback: [unlockbody] }
       else throw new Error(`自动定位｜失败：已达到最大重试次数`)
     },
     /**
@@ -1135,7 +1135,7 @@
         })
         return {
           message: '网页全屏解锁｜成功',
-          callback: modules.insertGoToCommentButton
+          callback: [modules.insertGoToCommentButton]
         }
       }
     },
@@ -1175,7 +1175,7 @@
       const nbspToBlankRegexp = /&nbsp;/g
       const timeStringRegexp = /(\d\d:\d\d(:\d\d)*)/g
       const urlRegexp = /(?<!((href|url)="))(http|https|ftp):\/\/[\w-]+(\.[\w\-]+)*([\w\-\.\,\@\?\^\=\%\&\:\/\~\+\#;]*[\w\-\@?\^\=\%\&\/~\+#;])?/g
-      const plaintVideoIdRegexp = /(?<!(>|\/))(BV([A-Za-z0-9]){10})(?!(<\/))/g
+      const plaintVideoIdRegexp = /(?<!(>|\/))(BV1([a-km-zA-HJ-NP-Z1-9]){9})(?!(<\/))/g
       const plaintReadIdRegexp = /(?<!(>|\/))(cv([0-9]){7})(?!(<\/a))/g
       const blankRegexp = /^\s*[\r\n]/gm
       // 匹配一种特殊空白符(%09)
@@ -2125,7 +2125,6 @@
           functionsArray = [
             modules.getCurrentPlayerType,
             modules.checkVideoExistence,
-            modules.setVideoCover,
             modules.checkVideoCanPlayThrough,
             modules.autoSelectScreenMode,
             modules.webfullScreenModeUnlock,
