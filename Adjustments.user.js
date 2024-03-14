@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.26
+// @version           0.1.27
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -616,23 +616,23 @@
      * @returns 当前视频类型
      */
     async getCurrentPlayerType(url = window.location.href) {
-      const playerType = (url.startsWith('https://www.bilibili.com/video') || url.startsWith('https://www.bilibili.com/list/')) ? 'video' : url.startsWith('https://www.bilibili.com/bangumi') ? 'bangumi' : false
-      if (!playerType) {
-        utils.logger.debug('视频类型丨未匹配')
-        alert('未匹配到当前视频类型，请反馈当前地址栏链接。')
+      let playerType
+      const setCurrentPlayerType = () => {
+        playerType = (url.startsWith('https://www.bilibili.com/video') || url.startsWith('https://www.bilibili.com/list/')) ? 'video' : url.startsWith('https://www.bilibili.com/bangumi') ? 'bangumi' : false
+        if (!playerType) {
+          utils.logger.debug('视频类型丨未匹配')
+          alert('未匹配到当前视频类型，请反馈当前地址栏链接。')
+        }
+        utils.setValue('player_type', playerType)
       }
-      utils.setValue('player_type', playerType)
+      window.addEventListener('focus', () => {
+        setCurrentPlayerType()
+      })
       // utils.logger.debug(`${playerType} ${vals.player_type()}`)
+      setCurrentPlayerType()
       if (vals.player_type() === playerType) return { message: `视频类型丨${playerType}` }
       else modules.getCurrentPlayerType()
     },
-    // requestBilibiliApi(field) {
-    //   const fieldMap = {
-    //     singin: 'https://api.live.bilibili.com/sign/doSign',
-    //     video: `https://api.bilibili.com/x/web-interface/view?bvid=${videoId}`,
-    //     user: `https://api.bilibili.com/x/space/wbi/acc/info?mid=${userId}`
-    //   }
-    // },
     /**
      * 获取视频基本信息
      * @param {String} videoId 视频ID(video BVID)
