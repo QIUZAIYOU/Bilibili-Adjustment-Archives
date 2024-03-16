@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.27
+// @version           0.1.28
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -384,6 +384,7 @@
     // #endregion 自定义日志打印
     /**
      * 检查当前文档是否被激活
+     * - #region 检查当前文档是否被激活
      */
     checkDocumentIsHidden() {
       const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
@@ -403,8 +404,10 @@
       // 如果无法判断是否隐藏，则返回undefined
       return undefined
     },
+    // #endregion 检查当前文档是否被激活
     /**
      * 刷新当前页面
+     * - #region 刷新当前页面
      */
     reloadCurrentTab(...args) {
       if (args && args[0] === true) {
@@ -413,15 +416,19 @@
         if (vals.auto_reload()) location.reload()
       }
     },
+    // #endregion 刷新当前页面
     /**
      * 滚动文档至目标位置
+     * - #region 滚动文档至目标位置
      * @param {Number} 滚动距离
      */
     documentScrollTo(offset) {
       document.documentElement.scrollTop = offset
     },
+    // #endregion 滚动文档至目标位置
     /**
      * 获取指定 meta 标签的属性值
+     * - #region 获取指定meta标签的属性值
      * @param {*} attribute 属性名称
      * @returns 属性值
      */
@@ -433,8 +440,10 @@
         return null
       }
     },
+    // #endregion 获取指定meta标签的属性值
     /**
-     * 获取Body 元素高度
+     * 获取 Body 元素高度
+     * - #region 获取Body元素高度
      * @returns Body 元素高度
      */
     getBodyHeight() {
@@ -442,8 +451,10 @@
       const docHeight = document.documentElement.clientHeight || 0
       return bodyHeight < docHeight ? bodyHeight : docHeight
     },
+    // #endregion 获取Body元素高度
     /**
      * 确保页面销毁时清除所有定时器
+     * - #region 确保页面销毁时清除所有定时器
      */
     clearAllTimersWhenCloseTab() {
       window.addEventListener('beforeunload', () => {
@@ -453,8 +464,10 @@
         arrays.intervalIds = []
       })
     },
+    // #endregion 确保页面销毁时清除所有定时器
     /**
      * 获取目标元素至文档距离
+     * - #region 获取目标元素至文档距离
      * @param {String} 目标元素
      * @returns 顶部和左侧距离
      */
@@ -473,8 +486,10 @@
         left: rect.left + win.pageXOffset
       }
     },
+    // #endregion 获取目标元素至文档距离
     /**
      * 创建并插入元素至目标元素
+     * - #region 创建并插入元素至目标元素
      * @param {String} Html 字符串
      * @param {Element} 目标元素
      * @param {String} 插入方法（before/after/prepend/append）
@@ -485,8 +500,10 @@
       target[method](element)
       return element
     },
+    // #endregion 创建并插入元素至目标元素
     /**
      * 判断函数是否为异步函数
+     * - #region 判断函数是否为异步函数
      * - 不使用 targetFunction() instanceof Promise 方法
      * - 因为这会导致 targetFunction 函数在此处执行一遍，从而增加 vars 里相关的计数变量
      * - 当之后真正执行时会因为相关计数变量值不等于 1 导致在 executeFunctionsSequentially 函数里获取不到返回值
@@ -494,8 +511,10 @@
     isAsyncFunction(targetFunction) {
       return targetFunction.constructor.name === 'AsyncFunction'
     },
+    // #endregion 判断函数是否为异步函数
     /**
      * 按顺序依次执行函数数组中的函数
+     * - #region 按顺序依次执行函数数组中的函数
      * @param {Array} functionsArray 待执行的函数数组
      * - 当函数为异步函数时，只有当前一个函数执行完毕时才会继续执行下一个函数
      * - 当函数为同步函数时，则只会执行相应函数
@@ -528,16 +547,20 @@
         }
       }
     },
+    // #endregion 按顺序依次执行函数数组中的函数
     /**
      * 检查元素数组中元素是否存在
+     * - #region 检查元素数组中元素是否存在
      * @param {Array} elementsArray 元素数组
      */
     checkElementExistence(elementsArray) {
       if (Array.isArray(elementsArray)) return elementsArray.map(element => Boolean(element))
       else return Boolean(elementsArray)
     },
+    // #endregion 检查元素数组中元素是否存在
     /**
      * 获取元素并检查元素是否存在
+     * - #region 获取元素并检查元素是否存在
      * @param {String | String[]} selectors 元素选择器
      * @param {Number} delay 超时时间
      * @param {Boolean} debug debug 开关
@@ -558,8 +581,10 @@
       if (debug) utils.logger.debug(utils.checkElementExistence(result))
       return result
     },
+    // #endregion 获取元素并检查元素是否存在
     /**
      * 为元素添加监听器并执行相应函数
+     * - #region 为元素添加监听器并执行相应函数
      */
     async addEventListenerToElement() {
       if (window.location.href === 'https://www.bilibili.com/') {
@@ -628,6 +653,7 @@
         }
       }
     }
+    // #endregion 为元素添加监听器并执行相应函数
   }
   const modules = {
     //** ----------------------- 通用功能 ----------------------- **//
