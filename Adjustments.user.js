@@ -222,6 +222,7 @@
   const utils = {
     /**
      * 初始化所有数据
+     * - #region 初始化所有数据
      */
     initValue() {
       const value = [{
@@ -297,44 +298,61 @@
         }
       })
     },
+    //#endregion
     /**
      * 获取自定义数据
+     * - #region 获取自定义数据
      * @param {String} 数据名称
      * @returns 数据数值
      */
     getValue(name) {
       return GM_getValue(name)
     },
+    //#endregion
     /**
      * 写入自定义数据
+     * - #region 写入自定义数据
      * @param {String} 数据名称
      * @param {*} 数据数值
      */
     setValue(name, value) {
       GM_setValue(name, value)
     },
+    //#endregion
     /**
      * 休眠
+     * - #region 休眠
      * @param {Number} 时长
      * @returns
      */
     sleep(times) {
       return new Promise(resolve => setTimeout(resolve, times))
     },
+    //#endregion
+    /**
+     * 通过名称获取指定cookie的值
+     * - #region 通过名称获取指定cookie的值
+     * @param {String} name cookie中某一项的名称
+     * @returns 
+     */
     getCookieByName(name) {
       const value = `; ${document.cookie}`;
       const parts = value.split(`; ${name}=`);
       if (parts.length === 2) return parts.pop().split(';').shift();
       return null;
     },
+    //#endregion
     /**
      * 判断数组长度是否为偶数
+     * - #region 判断数组长度是否为偶数
      */
     isArrayLengthEven(arr) {
       return arr.length % 2 === 0
     },
+    //#endregion
     /**
      * 向文档插入自定义样式
+     * - #region 向文档插入自定义样式
      * @param {String} id 样式表id
      * @param {String} css 样式内容
      */
@@ -342,8 +360,10 @@
       const styleElement = GM_addStyle(css)
       styleElement.id = id
     },
+    //#endregion
     /**
      * 自定义日志打印
+     * - #region 自定义日志打印
      * - info->信息；warn->警告
      * - error->错误；debug->调试
      */
@@ -361,6 +381,7 @@
         console.info('%c播放页调整(调试)', 'color:white;background:#cc00ff;padding:2px;border-radius:2px', content);
       },
     },
+    //#endregion
     /**
      * 检查当前文档是否被激活
      */
@@ -1662,13 +1683,13 @@
      */
     async clickRelatedVideoAutoLocation() {
       if (vals.player_type() === 'video') {
-        // 合集
+        // 视频合集
         await elmGetter.each(selectors.videoSectionsEpisodeLink, (link) => {
           link.addEventListener('click', () => {
             modules.autoLocationAndInsertVideoDescriptionToComment()
           })
         })
-        // 选集
+        // 视频选集
         await elmGetter.each(selectors.videoMultiPageLink, (link) => {
           link.addEventListener('click', () => {
             modules.autoLocationAndInsertVideoDescriptionToComment()
@@ -1700,6 +1721,7 @@
     //** ----------------------- 动态页相关功能 ----------------------- **//
     /**
      * 默认显示投稿视频
+     * - #region 默认显示投稿视频
      */
     changeCurrentUrlToVideoSubmissions() {
       const web_video_link = vals.web_video_link()
@@ -1723,9 +1745,11 @@
         return { message: '动态页｜已切换至投稿视频' }
       }
     },
+    //#endregion 默认显示投稿视频
     //** ----------------------- 首页相关功能 ----------------------- **//
     /**
      * 记录首页推荐的前 6 个视频
+     * - #region 记录首页推荐的前6个视频
      */
     async setIndexRecordRecommendVideoHistory() {
       if (++vars.setIndexRecordRecommendVideoHistoryArrayCount === 1) {
@@ -1742,6 +1766,7 @@
         })
       }
     },
+    //#endregion 记录首页推荐的前6个视频
     async getIndexRecordRecommendVideoHistoryArray() {
       arrays.indexRecommendVideoHistory = []
       const indexRecommendVideoHistory = localforage.createInstance({
