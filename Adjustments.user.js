@@ -298,7 +298,7 @@
         }
       })
     },
-    //#endregion
+    // #endregion 初始化所有数据
     /**
      * 获取自定义数据
      * - #region 获取自定义数据
@@ -308,7 +308,7 @@
     getValue(name) {
       return GM_getValue(name)
     },
-    //#endregion
+    // #endregion 获取自定义数据
     /**
      * 写入自定义数据
      * - #region 写入自定义数据
@@ -318,7 +318,7 @@
     setValue(name, value) {
       GM_setValue(name, value)
     },
-    //#endregion
+    // #endregion 写入自定义数据
     /**
      * 休眠
      * - #region 休眠
@@ -328,7 +328,7 @@
     sleep(times) {
       return new Promise(resolve => setTimeout(resolve, times))
     },
-    //#endregion
+    // #endregion 休眠
     /**
      * 通过名称获取指定cookie的值
      * - #region 通过名称获取指定cookie的值
@@ -341,7 +341,7 @@
       if (parts.length === 2) return parts.pop().split(';').shift();
       return null;
     },
-    //#endregion
+    // #endregion 通过名称获取指定cookie的值
     /**
      * 判断数组长度是否为偶数
      * - #region 判断数组长度是否为偶数
@@ -349,7 +349,7 @@
     isArrayLengthEven(arr) {
       return arr.length % 2 === 0
     },
-    //#endregion
+    // #endregion 判断数组长度是否为偶数
     /**
      * 向文档插入自定义样式
      * - #region 向文档插入自定义样式
@@ -360,7 +360,7 @@
       const styleElement = GM_addStyle(css)
       styleElement.id = id
     },
-    //#endregion
+    // #endregion 向文档插入自定义样式
     /**
      * 自定义日志打印
      * - #region 自定义日志打印
@@ -381,7 +381,7 @@
         console.info('%c播放页调整(调试)', 'color:white;background:#cc00ff;padding:2px;border-radius:2px', content);
       },
     },
-    //#endregion
+    // #endregion 自定义日志打印
     /**
      * 检查当前文档是否被激活
      */
@@ -631,8 +631,10 @@
   }
   const modules = {
     //** ----------------------- 通用功能 ----------------------- **//
+    // #region 通用功能
     /**
      * 获取视频类型(video/bangumi)
+     * - #region 获取视频类型
      * 如果都没匹配上则弹窗报错
      * @returns 当前视频类型
      */
@@ -654,8 +656,10 @@
       if (vals.player_type() === playerType) return { message: `视频类型丨${playerType}` }
       else modules.getCurrentPlayerType()
     },
+    // #endregion 获取视频类型
     /**
      * 获取视频基本信息
+     * - #region 获取视频基本信息
      * @param {String} videoId 视频ID(video BVID)
      * @returns videoInfo
      */
@@ -671,8 +675,10 @@
       else if (code === 62004) utils.logger.info("获取视频基本信息丨稿件审核中")
       else utils.logger.warn("获取视频基本信息丨请求失败")
     },
+    // #endregion 获取视频基本信息
     /**
      * 获取用户基本信息
+     * - #region 获取用户基本信息
      * @param {String} userId 用户ID
      * @returns userInfo
      */
@@ -686,20 +692,26 @@
       else if (code === -404) utils.logger.info("获取用户基本信息丨用户不存在")
       else utils.logger.warn("获取用户基本信息丨请求失败")
     },
+    // #endregion 获取用户基本信息
     /**
      * 判断用户是否登录
+     * - #region 判断用户是否登录
      */
     isLogin() {
       return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || window.UserStatus.userInfo.isLogin || null)
     },
+    // #endregion 判断用户是否登录
     /**
      * 获取视频ID/video BVID/bangumi EPID
+     * - #region 获取视频ID
      */
     getCurrentVideoID(url = window.location.href) {
       return url.startsWith('https://www.bilibili.com/video') ? url.split('/')[4] : url.startsWith('https://www.bilibili.com/bangumi') ? url.split('/')[5].split('?')[0] : 'error'
     },
+    // #endregion 获取视频ID
     /**
      * 判断用户是否是大会员
+     * - #region 判断用户是否是大会员
      * - 签到后执行，若已签到则不执行，避免触发多次请求
      */
     async isVip() {
@@ -708,8 +720,10 @@
       if (status) utils.setValue('is_vip', true)
       else utils.setValue('is_vip', false)
     },
+    // #endregion 判断用户是否是大会员
     /**
      * 自动签到
+     * - #region 自动签到
      */
     async autoSignIn() {
       const now = new Date()
@@ -732,9 +746,13 @@
         utils.logger.info("自动签到丨今日已签")
       }
     },
+    // #endregion 自动签到
+    // #endregion 通用功能
     //** ----------------------- 视频播放页相关功能 ----------------------- **//
+    // #region 视频播放页相关功能
     /**
      * 检查视频元素是否存在
+     * - #region 检查视频元素是否存在
      * - 若存在返回成功消息
      * - 若不存在则抛出异常
      */
@@ -743,8 +761,10 @@
       if ($video) return { message: '播放器｜已找到', callback: [modules.setVideoCover.bind(null, $videoWrap, $video)] }
       else throw new Error('播放器｜未找到')
     },
+    // #endregion 检查视频元素是否存在
     /**
      * 检查视频是否可以播放
+     * - #region 检查视频是否可以播放
      */
     async checkVideoCanPlayThrough() {
       return new Promise((resolve, reject) => {
@@ -767,8 +787,10 @@
         arrays.intervalIds.push(timer)
       })
     },
+    // #endregion 检查视频是否可以播放
     /**
      * 监听屏幕模式变化(normal/wide/web/full)
+     * - #region 监听屏幕模式变化
      */
     async observerPlayerDataScreenChanges() {
       const $playerContainer = await utils.getElementAndCheckExistence(selectors.playerContainer)
@@ -781,8 +803,10 @@
         attributeFilter: ['data-screen'],
       })
     },
+    // #endregion 监听屏幕模式变化
     /**
      * 获取当前屏幕模式
+     * - #region 获取当前屏幕模式
      * @param {Number} 延时
      * @returns
      */
@@ -804,8 +828,10 @@
         arrays.intervalIds.push(timer)
       })
     },
+    // #endregion 获取当前屏幕模式
     /**
      * 视频未开始播放时显示视频封面
+     * - #region 视频未开始播放时显示视频封面
      * - 应用于舞蹈类视频
      * - 视频播放时移除封面
      */
@@ -822,10 +848,12 @@
         //   $videoWrap.style.setProperty('--video-cover', `url(${pic})`)
         // })
       }
-
     },
+    // #endregion 视频未开始播放时显示视频封面
+    // #region 自动选择播放器默认模式
     /**
      * 执行自动切换屏幕模式
+     * - #region 执行自动切换屏幕模式
      * - 功能未开启，不执行切换函数，直接返回成功
      * - 功能开启，但当前屏幕已为宽屏或网页全屏，则直接返回成功
      * - 功能开启，执行切换函数
@@ -842,8 +870,10 @@
         }
       }
     },
+    // #endregion 执行自动切换屏幕模式
     /**
      * 检查屏幕模式是否切换成功
+     * - #region 检查屏幕模式是否切换成功
      * @param {*} expectScreenMode 期望的屏幕模式
      * - 未成功自动重试
      * - 定时器方式超过 10 次失败，1s 执行一次
@@ -898,7 +928,14 @@
         }
       }
     },
-    // 设置位置数据并滚动至播放器
+    // #endregion 检查屏幕模式是否切换成功
+    // #endregion 自动选择播放器默认模式
+    // #region 自动定位至播放器
+    /**
+     * 设置位置数据并滚动至播放器
+     * - #region 设置位置数据并滚动至播放器
+     * @returns 
+     */
     async setLocationDataAndScrollToPlayer() {
       const getOffsetMethod = vals.get_offset_method()
       let playerOffsetTop
@@ -919,8 +956,10 @@
       return
       // utils.logger.debug('定位至播放器！')
     },
+    // #endregion 设置位置数据并滚动至播放器
     /**
      * 自动定位至播放器并检查是否成功
+     * - #region 自动定位至播放器并检查是否成功
      */
     async autoLocationToPlayer() {
       const unlockbody = () => {
@@ -934,8 +973,10 @@
       if (result) return { message: '自动定位｜成功', callback: [unlockbody] }
       else throw new Error(`自动定位｜失败：已达到最大重试次数`)
     },
+    // #endregion 自动定位至播放器并检查是否成功
     /**
      * 递归检查屏自动定位是否成功
+     * - #region 递归检查屏自动定位是否成功
      * @param {*} expectOffset 期望文档滚动偏移量
      * - 未定位成功自动重试，递归超过 10 次则返回失败
      * - 基础数据：
@@ -969,15 +1010,19 @@
         return modules.checkAutoLocationSuccess(expectOffset)
       }
     },
+    // #endregion 递归检查屏自动定位是否成功
     /**
      * 文档滚动至播放器(使用已有数据)
+     * - #region 文档滚动至播放器(使用已有数据)
      */
     async locationToPlayer() {
       const playerOffsetTop = vals.player_type() === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
       utils.documentScrollTo(await modules.getCurrentScreenMode() !== 'web' ? playerOffsetTop - vals.offset_top() : 0)
     },
+    // #endregion 文档滚动至播放器(使用已有数据)
     /**
      * 点击播放器自动定位
+     * - #region 点击播放器自动定位
      */
     async clickPlayerAutoLocation() {
       if (vals.click_player_auto_locate()) {
@@ -989,8 +1034,32 @@
         })
       }
     },
+    // #endregion 点击播放器自动定位
+    /**
+     * 点击时间锚点自动返回播放器
+     * - #region 点击时间锚点自动返回播放器
+     */
+    async clickVideoTimeAutoLocation() {
+      await utils.sleep(100)
+      const $video = await utils.getElementAndCheckExistence('video')
+      const $clickTarget = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.videoComment) : await utils.getElementAndCheckExistence(selectors.bangumiComment)
+      await elmGetter.each(selectors.videoTime, $clickTarget, async (target) => {
+        target.addEventListener('click', async (event) => {
+          event.stopPropagation()
+          await modules.locationToPlayer()
+          // const targetTime = vals.player_type() === 'video' ? target.dataset.videoTime : target.dataset.time
+          const targetTime = target.dataset.videoTime
+          if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
+          $video.currentTime = targetTime
+          $video.play()
+        })
+      })
+    },
+    // #endregion 点击时间锚点自动返回播放器
+    // #endregion 自动定位至播放器
     /**
      * 自动关闭静音
+     * - #region 自动关闭静音
      */
     async autoCancelMute() {
       if (++vars.autoCancelMuteRunningCount === 1) {
@@ -1008,8 +1077,10 @@
         }
       }
     },
+    // #endregion 自动关闭静音
     /**
      * 自动选择最高画质
+     * - #region 自动选择最高画质
      * - 质量代码：
      * - 127->8K 超高清;120->4K 超清;116->1080P 60帧;
      * - 80->1080P 高清；64->720P 高清；32->480P 清晰；
@@ -1075,8 +1146,10 @@
         return { message }
       }
     },
+    // #endregion 自动选择最高画质
     /**
      * 插入漂浮功能按钮
+     * - #region 插入漂浮功能按钮
      * - 快速返回至播放器
      */
     async insertFloatSideNavToolsButton() {
@@ -1096,27 +1169,11 @@
         await modules.locationToPlayer()
       })
     },
+    // #endregion 插入漂浮功能按钮
+    // #region 网页全屏模式解锁
     /**
-     * 点击时间锚点自动返回播放器
-     */
-    async clickVideoTimeAutoLocation() {
-      await utils.sleep(100)
-      const $video = await utils.getElementAndCheckExistence('video')
-      const $clickTarget = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.videoComment) : await utils.getElementAndCheckExistence(selectors.bangumiComment)
-      await elmGetter.each(selectors.videoTime, $clickTarget, async (target) => {
-        target.addEventListener('click', async (event) => {
-          event.stopPropagation()
-          await modules.locationToPlayer()
-          // const targetTime = vals.player_type() === 'video' ? target.dataset.videoTime : target.dataset.time
-          const targetTime = target.dataset.videoTime
-          if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
-          $video.currentTime = targetTime
-          $video.play()
-        })
-      })
-    },
-    /**
-     * 网页全屏模式解锁
+     * 执行网页全屏模式解锁
+     * - #region 执行网页全屏模式解锁
      */
     async webfullScreenModeUnlock() {
       if (vals.webfull_unlock() && vals.selected_screen_mode() === 'web' && ++vars.webfullUnlockRunningCount === 1) {
@@ -1160,8 +1217,10 @@
         }
       }
     },
+    // #endregion 执行网页全屏模式解锁
     /**
      * 网页全屏模式解锁后插入跳转评论按钮
+     * - #region 网页全屏模式解锁后插入跳转评论按钮
      */
     async insertGoToCommentButton() {
       if (vals.player_type() === 'video' && vals.webfull_unlock() && ++vars.insertGoToCommentButtonCount === 1) {
@@ -1175,8 +1234,11 @@
         })
       }
     },
+    // #endregion 网页全屏模式解锁后插入跳转评论按钮
+    // #endregion 网页全屏模式解锁
     /**
      * 将视频简介内容插入评论区或直接替换原简介区内容
+     * - #region 视频简介优化
      * - 视频简介存在且内容过长，则将视频简介内容插入评论区，否则直接替换原简介区内容
      * - 若视频简介中包含型如 "00:00:00" 的时间内容，则将其转换为可点击的时间锚点元素
      * - 若视频简介中包含 URL 链接，则将其转换为跳转链接
@@ -1265,8 +1327,11 @@
         }).replace(blankRegexp, '')
       }
     },
+    // #endregion 视频简介优化
+    // #region 自动跳过时间节点
     /**
      * 设置当前视频自动跳过信息
+     * - #region 设置当前视频自动跳过信息（本地）
      * - indexedDB
      * - 数据存在浏览器本地
      */
@@ -1294,8 +1359,10 @@
         utils.logger.error('videoID丨获取失败')
       }
     },
+    // #endregion 设置当前视频自动跳过信息（本地）
     /**
      * 获取当前视频自动跳过信息
+     * - #region 获取当前视频自动跳过信息（本地）
      * - indexedDB
      * - 数据存在浏览器本地
      */
@@ -1315,8 +1382,10 @@
         utils.logger.error('videoID丨获取失败')
       }
     },
+    // #endregion 获取当前视频自动跳过信息（本地）
     /**
      * 设置当前视频自动跳过信息
+     * - #region 设置当前视频自动跳过信息（云端）
      * - Axios
      * - 数据存在云数据库
      */
@@ -1361,8 +1430,10 @@
         utils.logger.error('videoID丨获取失败')
       }
     },
+    // #endregion 设置当前视频自动跳过信息（云端）
     /**
      * 获取当前视频自动跳过信息
+     * - #region 获取当前视频自动跳过信息（云端）
      * - Axios
      * - 数据存在云数据库
      */
@@ -1388,8 +1459,10 @@
         utils.logger.error('videoID丨获取失败')
       }
     },
+    // #endregion 获取当前视频自动跳过信息（云端）
     /**
      * 自动跳过视频已设置设置时间节点
+     * - #region 自动跳过视频已设置设置时间节点
      */
     async autoSkipTimeNodes() {
       if (!vals.auto_skip()) return
@@ -1432,8 +1505,10 @@
         })
       }
     },
+    // #endregion 自动跳过视频已设置设置时间节点
     /**
      * 插入设置跳过时间节点按钮
+     * - #region 插入设置跳过时间节点按钮
      */
     async insertSetSkipTimeNodesButton() {
       const videoID = modules.getCurrentVideoID()
@@ -1611,8 +1686,10 @@
         })
       }
     },
+    // #endregion 插入设置跳过时间节点按钮
     /**
      * 插入跳过时间节点功能开关
+     * - #region 插入跳过时间节点功能开关
      */
     async insertSkipTimeNodesSwitchButton() {
       if (++vars.insertSetSkipTimeNodesSwitchButtonCount === 1) {
@@ -1668,16 +1745,21 @@
         })
       }
     },
+    // #endregion 插入跳过时间节点功能开关
+    // #endregion 自动跳过时间节点
     /**
      * 自动返回播放器并更新评论区简介
+     * - #region 自动返回播放器并更新评论区简介
      */
     async autoLocationAndInsertVideoDescriptionToComment() {
       modules.locationToPlayer()
       await utils.sleep(1500)
       modules.insertVideoDescriptionToComment()
     },
+    // #endregion 自动返回播放器并更新评论区简介
     /**
      * 点击相关视频自动返回播放器并更新评论区简介
+     * - #region 点击相关视频自动返回播放器并更新评论区简介
      * - 合集中的其他视频
      * - 推荐列表中的视频
      */
@@ -1718,7 +1800,10 @@
         })
       }
     },
+    // #endregion 点击相关视频自动返回播放器并更新评论区简介
+    // #endregion 视频播放页相关功能
     //** ----------------------- 动态页相关功能 ----------------------- **//
+    // #region 动态页相关功能
     /**
      * 默认显示投稿视频
      * - #region 默认显示投稿视频
@@ -1745,11 +1830,14 @@
         return { message: '动态页｜已切换至投稿视频' }
       }
     },
-    //#endregion 默认显示投稿视频
+    // #endregion 默认显示投稿视频
+    // #endregion 动态页相关功能
     //** ----------------------- 首页相关功能 ----------------------- **//
+    // #region 首页相关功能
+    // #region 记录首页推荐视频历史
     /**
-     * 记录首页推荐的前 6 个视频
-     * - #region 记录首页推荐的前6个视频
+     * 将推荐视频写入本地
+     * - #region 将推荐视频写入本地
      */
     async setIndexRecordRecommendVideoHistory() {
       if (++vars.setIndexRecordRecommendVideoHistoryArrayCount === 1) {
@@ -1766,7 +1854,12 @@
         })
       }
     },
-    //#endregion 记录首页推荐的前6个视频
+    // #endregion 将推荐视频写入本地
+    /**
+     * 将本地推荐数据转为数组
+     * - #region 将本地推荐数据转为数组
+     * @returns 推荐记录数组
+     */
     async getIndexRecordRecommendVideoHistoryArray() {
       arrays.indexRecommendVideoHistory = []
       const indexRecommendVideoHistory = localforage.createInstance({
@@ -1780,6 +1873,11 @@
       }
       else return arrays.indexRecommendVideoHistory
     },
+    // #endregion 将本地推荐数据转为数组
+    /**
+     * 插入推荐历史记录按钮
+     * - #region 插入推荐历史记录按钮
+     */
     async insertIndexRecommendVideoHistoryOpenButton() {
       if (document.getElementById(selectors.indexRecommendVideoHistoryOpenButton)) document.getElementById(selectors.indexRecommendVideoHistoryOpenButton).remove()
       if (document.getElementById(selectors.indexRecommendVideoHistoryPopover)) document.getElementById(selectors.indexRecommendVideoHistoryPopover).remove()
@@ -1813,6 +1911,11 @@
         }
       })
     },
+    // #endregion 插入推荐历史记录按钮
+    /**
+     * 获取推荐历史记录
+     * - #region 获取推荐历史记录
+     */
     async getIndexRecordRecommendVideoHistory() {
       const getIndexRecordRecommendVideoHistoryArray = await modules.getIndexRecordRecommendVideoHistoryArray()
       const $indexRecommendVideoHistoryPopover = await utils.getElementAndCheckExistence(selectors.indexRecommendVideoHistoryPopover)
@@ -1821,6 +1924,11 @@
         utils.createElementAndInsert(`<li><a href="${record.value[1]}" target="_blank">${record.key}</a></li>`, $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryList), 'append')
       }
     },
+    // #endregion 获取推荐历史记录
+    /**
+     * 生成推荐视频分区信息
+     * - #region 生成推荐视频分区信息
+     */
     async generatorVideoCategories() {
       const setCategoryButtonActiveClass = (element) => {
         element.parentElement.querySelectorAll(selectors.indexRecommendVideoHistoryCategoryButtons).forEach(element => { element.classList.remove(...arrays.videoCategoriesActiveClass) })
@@ -1867,6 +1975,11 @@
         }
       })
     },
+    // #endregion 生成推荐视频分区信息
+    /**
+     * 清除推荐历史记录
+     * - #region 清除推荐历史记录
+     */
     async clearRecommendVideoHistory() {
       const indexRecommendVideoHistory = localforage.createInstance({
         name: 'indexRecommendVideoHistory',
@@ -1878,9 +1991,15 @@
       $indexRecommendVideoHistoryPopover.querySelector(selectors.indexRecommendVideoHistoryCategory).innerHTML = "<li class='all adjustment_button primary plain'>全部</li>"
       $indexRecommendVideoHistoryPopover.hidePopover()
     },
+    // #endregion 清除推荐历史记录
+    // #endregion 记录首页推荐视频历史
+    // #endregion 首页相关功能
     //** ----------------------- 脚本最终执行函数 ----------------------- **//
+    // #region 脚本最终执行函数
     /**
-     * 添加脚本设置选项
+     *
+     * 注册脚本设置选项
+     * - #region 注册脚本设置选项
      */
     async registerMenuCommand() {
       if (regexps.dynamic.test(window.location.href)) {
@@ -2111,8 +2230,10 @@
         })
       }
     },
+    // #endregion 注册脚本设置选项
     /**
      * 前期准备函数
+     * - #region 前期准备函数
      * 提前执行其他脚本功能所依赖的其他函数
      */
     thePrepFunction() {
@@ -2137,55 +2258,66 @@
         }
       }
     },
-  }
-  if (modules.isLogin()) {
-    modules.thePrepFunction()
-    const timer = setInterval(async () => {
-      const documentHidden = utils.checkDocumentIsHidden()
-      if (!documentHidden) {
-        clearInterval(timer)
-        utils.logger.info('当前标签｜已激活｜开始应用配置')
-        let functionsArray = []
-        if (regexps.video.test(window.location.href)) {
-          functionsArray = [
-            modules.getCurrentPlayerType,
-            modules.checkVideoExistence,
-            modules.checkVideoCanPlayThrough,
-            modules.autoSelectScreenMode,
-            modules.webfullScreenModeUnlock,
-            modules.autoLocationToPlayer,
-            modules.autoCancelMute,
-            modules.autoSelectVideoHighestQuality,
-            modules.clickPlayerAutoLocation,
-            modules.insertFloatSideNavToolsButton,
-            modules.clickVideoTimeAutoLocation,
-            modules.insertVideoDescriptionToComment,
-            modules.autoSkipTimeNodes,
-            modules.insertSetSkipTimeNodesButton,
-            modules.insertSkipTimeNodesSwitchButton,
-          ]
-          // await utils.sleep(2000)
+    // #endregion 前期准备函数
+    /**
+     * 执行主函数
+     * - #region 执行主函数
+     */
+    theMainFunction() {
+      if (++vars.theMainFunctionRunningCount === 1) {
+        if (modules.isLogin()) {
+          modules.thePrepFunction()
+          const timer = setInterval(async () => {
+            const documentHidden = utils.checkDocumentIsHidden()
+            if (!documentHidden) {
+              clearInterval(timer)
+              utils.logger.info('当前标签｜已激活｜开始应用配置')
+              let functionsArray = []
+              if (regexps.video.test(window.location.href)) {
+                functionsArray = [
+                  modules.getCurrentPlayerType,
+                  modules.checkVideoExistence,
+                  modules.checkVideoCanPlayThrough,
+                  modules.autoSelectScreenMode,
+                  modules.webfullScreenModeUnlock,
+                  modules.autoLocationToPlayer,
+                  modules.autoCancelMute,
+                  modules.autoSelectVideoHighestQuality,
+                  modules.clickPlayerAutoLocation,
+                  modules.insertFloatSideNavToolsButton,
+                  modules.clickVideoTimeAutoLocation,
+                  modules.insertVideoDescriptionToComment,
+                  modules.autoSkipTimeNodes,
+                  modules.insertSetSkipTimeNodesButton,
+                  modules.insertSkipTimeNodesSwitchButton,
+                ]
+              }
+              if (regexps.dynamic.test(window.location.href)) {
+                functionsArray = [
+                  modules.changeCurrentUrlToVideoSubmissions
+                ]
+              }
+              if (window.location.href === 'https://www.bilibili.com/') {
+                functionsArray = [
+                  modules.insertIndexRecommendVideoHistoryOpenButton,
+                  modules.setIndexRecordRecommendVideoHistory,
+                  modules.getIndexRecordRecommendVideoHistory,
+                  modules.generatorVideoCategories
+                ]
+              }
+              utils.addEventListenerToElement()
+              utils.executeFunctionsSequentially(functionsArray)
+            } else {
+              utils.logger.info('当前标签｜未激活｜等待激活')
+            }
+          }, 100)
+          arrays.intervalIds.push(timer)
         }
-        if (regexps.dynamic.test(window.location.href)) {
-          functionsArray = [
-            modules.changeCurrentUrlToVideoSubmissions
-          ]
-        }
-        if (window.location.href === 'https://www.bilibili.com/') {
-          functionsArray = [
-            modules.insertIndexRecommendVideoHistoryOpenButton,
-            modules.setIndexRecordRecommendVideoHistory,
-            modules.getIndexRecordRecommendVideoHistory,
-            modules.generatorVideoCategories
-          ]
-        }
-        utils.addEventListenerToElement()
-        utils.executeFunctionsSequentially(functionsArray)
-      } else {
-        utils.logger.info('当前标签｜未激活｜等待激活')
+        else utils.logger.warn('请登录｜本脚本只能在登录状态下使用')
       }
-    }, 100)
-    arrays.intervalIds.push(timer)
+    }
+    // #endregion 执行主函数
+    // #endregion 脚本最终执行函数
   }
-  else utils.logger.warn('请登录｜本脚本只能在登录状态下使用')
+  modules.theMainFunction()
 })();
