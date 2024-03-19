@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.29
+// @version           0.1.30
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -154,6 +154,7 @@
     dynamicSettingSaveButton: '#dynamicSettingSaveButton',
     dynamicSettingPopoverTips: '#dynamicSettingPopoverTips',
     dynamicHeaderContainer: '#bili-header-container',
+    videoUpdateDifferenceTips: '#videoUpdateDifferenceTips',
     videoSettingPopover: '#videoSettingPopover',
     videoSettingSaveButton: '#videoSettingSaveButton',
     AutoSkipSwitchInput: '#Auto-Skip-Switch',
@@ -659,7 +660,7 @@
     }
     // #endregion 为元素添加监听器并执行相应函数
   }
-  const bilibili = {
+  const biliApis = {
     /**
      * 获取解密WBI鉴权后的参数
      * - #region 获取解密WBI鉴权后的参数
@@ -752,7 +753,6 @@
     async getUserInformation(userId) {
       const url = `https://api.bilibili.com/x/web-interface/card?mid=${userId}`
       const { data } = await axios.get(url, { withCredentials: true })
-      console.log(data);
       const code = data.code
       if (code === 0) return data
       else if (code === -400) utils.logger.info("获取用户基本信息丨请求错误")
@@ -768,7 +768,7 @@
      */
     async isVip() {
       const userId = utils.getCookieByName('DedeUserID')
-      const { data: { card: { vip: { status } } } } = await bilibili.getUserInformation(userId)
+      const { data: { card: { vip: { status } } } } = await biliApis.getUserInformation(userId)
       if (status) utils.setValue('is_vip', true)
       else utils.setValue('is_vip', false)
     },
@@ -786,7 +786,7 @@
         if (code === 0) {
           utils.logger.info("自动签到丨签到成功")
           utils.setValue('signIn_date', signInDate)
-          await bilibili.isVip()
+          await biliApis.isVip()
         } else if (code === 1011040) {
           utils.logger.info("自动签到丨今日已签")
           utils.setValue('signIn_date', signInDate)
@@ -799,6 +799,25 @@
       }
     },
     // #endregion 自动签到
+    /**
+     * 获取用户投稿视频列表
+     * - #region 获取用户投稿视频列表
+     */
+    async getUserVideoList(userId) {
+      const wib = await biliApis.getQueryWithWbi({ mid: userId })
+      const url = `https://api.bilibili.com/x/space/wbi/arc/search?${wib}`
+      const { data } = await axios.get(url, { withCredentials: true })
+      const code = data.code
+      if (code === 0) return data
+      else if (code === -400) {
+        utils.logger.info("获取用户投稿视频列表丨权限不足")
+      } else if (code === -412) {
+        utils.logger.info("获取用户投稿视频列表丨请求被拦截")
+      } else {
+        utils.logger.warn("获取用户投稿视频列表丨请求失败")
+      }
+    },
+    // #endregion 获取用户投稿视频列表
   }
   const modules = {
     //** ----------------------- 通用功能 ----------------------- **//
@@ -935,7 +954,7 @@
     async setVideoCover($videoWrap, $video) {
       if (vals.player_type() === 'bangumi') return
       const targetTids = Array.from(new Set().add([...objects.videoCategories.dance.tids, ...objects.videoCategories.fashion.tids])).flat()
-      const { data: { pic, tid } } = await bilibili.getVideoInformation(modules.getCurrentVideoID(window.location.href))
+      const { data: { pic, tid } } = await biliApis.getVideoInformation(modules.getCurrentVideoID(window.location.href))
       if (targetTids.includes(tid) && pic) {
         $videoWrap.style.setProperty('--video-cover', `url(${pic.replace(/^http:/i, 'https:')})`) // 设置视频封面的CSS变量
         $video.addEventListener('play', () => {
@@ -1953,6 +1972,14 @@
       }
     },
     // #endregion 默认显示投稿视频
+    /**
+     * 插入距离上次更新时间提示
+     * - #region 插入距离上次更新时间提示
+     */
+    insertVideoUpdateDifferenceTips() {
+      const videoUpdateDifferenceTips = `<span id="${selectors.videoUpdateDifferenceTips.slice(1)}" class="bili-dyn-time fs-small">距离上次更新已过:${days}天</span>`
+    },
+    // #endregion 插入距离上次更新时间提示
     // #endregion 动态页相关功能
     //** ----------------------- 首页相关功能 ----------------------- **//
     // #region 首页相关功能
@@ -1970,7 +1997,7 @@
           const url = video.querySelector('a').href
           const title = video.querySelector('h3').title
           if (window.location.host.includes('bilibili.com') && !url.includes('cm.bilibili.com')) {
-            const { data: { tid } } = await bilibili.getVideoInformation(modules.getCurrentVideoID(url))
+            const { data: { tid } } = await biliApis.getVideoInformation(modules.getCurrentVideoID(url))
             indexRecommendVideoHistory.setItem(title, [tid, url])
           }
         })
@@ -2364,7 +2391,7 @@
         utils.clearAllTimersWhenCloseTab()
         modules.registerMenuCommand()
         utils.insertStyleToDocument('BilibiliAdjustmentStyle', styles.BilibiliAdjustment)
-        bilibili.autoSignIn()
+        biliApis.autoSignIn()
         if (window.location.href === 'https://www.bilibili.com/') {
           utils.insertStyleToDocument('IndexAdjustmentStyle', styles.IndexAdjustment)
         }
@@ -2389,6 +2416,7 @@
       if (++vars.theMainFunctionRunningCount === 1) {
         if (modules.isLogin()) {
           modules.thePrepFunction()
+          console.log(await biliApis.getUserVideoList(8730238));
           const timer = setInterval(async () => {
             const documentHidden = utils.checkDocumentIsHidden()
             if (!documentHidden) {
