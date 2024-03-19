@@ -2388,7 +2388,7 @@
     async theMainFunction() {
       if (++vars.theMainFunctionRunningCount === 1) {
         if (modules.isLogin()) {
-          bilibili.getUserInformation()
+          modules.thePrepFunction()
           const timer = setInterval(async () => {
             const documentHidden = utils.checkDocumentIsHidden()
             if (!documentHidden) {
