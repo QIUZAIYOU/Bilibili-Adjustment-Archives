@@ -11,6 +11,7 @@
 // @match             *://www.bilibili.com/bangumi/play/*
 // @match             *://www.bilibili.com/list/*
 // @match             *://t.bilibili.com/*
+// @require           https://cdn.jsdelivr.net/npm/md5@2.3.0/dist/md5.min.js
 // @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
 // @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
 // @require           https://scriptcat.org/lib/513/2.0.0/ElementGetter.js
@@ -658,6 +659,147 @@
     }
     // #endregion 为元素添加监听器并执行相应函数
   }
+  const bilibili = {
+    /**
+     * 获取解密WBI鉴权后的参数
+     * - #region 获取解密WBI鉴权后的参数
+     * @param {Object} originalParams 
+     * @returns 
+     */
+    async getQueryWithWbi(originalParams) {
+      const mixinKeyEncTab = [
+        46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35, 27, 43, 5, 49,
+        33, 9, 42, 19, 29, 28, 14, 39, 12, 38, 41, 13, 37, 48, 7, 16, 24, 55, 40,
+        61, 26, 17, 0, 1, 60, 51, 30, 4, 22, 25, 54, 21, 56, 59, 6, 63, 57, 62, 11,
+        36, 20, 34, 44, 52
+      ]
+
+      // 对 imgKey 和 subKey 进行字符顺序打乱编码
+      const getMixinKey = (orig) => mixinKeyEncTab.map(n => orig[n]).join('').slice(0, 32)
+
+      // 为请求参数进行 wbi 签名
+      const encWbi = (params, img_key, sub_key) => {
+        const mixin_key = getMixinKey(img_key + sub_key),
+          curr_time = Math.round(Date.now() / 1000),
+          chr_filter = /[!'()*]/g
+
+        Object.assign(params, { wts: curr_time }) // 添加 wts 字段
+        // 按照 key 重排参数
+        const query = Object.keys(params).sort().map(key => {
+          // 过滤 value 中的 "!'()*" 字符
+          const value = params[key].toString().replace(chr_filter, '')
+          return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+        }).join('&')
+
+        const wbi_sign = MD5(query + mixin_key) // 计算 w_rid
+
+        return query + '&w_rid=' + wbi_sign
+      }
+
+      // 获取最新的 img_key 和 sub_key
+      const getWbiKeys = async () => {
+        const url = 'https://api.bilibili.com/x/web-interface/nav'
+        const res = await axios.get(url, { withCredentials: true })
+        const { data: { wbi_img: { img_url, sub_url } } } = res.data
+
+        return {
+          img_key: img_url.slice(
+            img_url.lastIndexOf('/') + 1,
+            img_url.lastIndexOf('.')
+          ),
+          sub_key: sub_url.slice(
+            sub_url.lastIndexOf('/') + 1,
+            sub_url.lastIndexOf('.')
+          )
+        }
+      }
+      const main = async () => {
+        const web_keys = await getWbiKeys()
+        const params = originalParams,
+          img_key = web_keys.img_key,
+          sub_key = web_keys.sub_key
+        const query = encWbi(params, img_key, sub_key)
+        return query
+      }
+      return main()
+    },
+    // #endregion 获取解密WBI鉴权后的参数
+    /**
+     * 获取视频基本信息
+     * - #region 获取视频基本信息
+     * @param {String} videoId 视频ID(video BVID)
+     * @returns videoInfo
+     */
+    async getVideoInformation(videoId) {
+      const url = `https://api.bilibili.com/x/web-interface/view?bvid=${videoId}`
+      const { data } = await axios.get(url, { withCredentials: true })
+      const code = data.code
+      if (code === 0) return data
+      else if (code === -400) utils.logger.info("获取视频基本信息丨请求错误")
+      else if (code === -403) utils.logger.info("获取视频基本信息丨权限不足")
+      else if (code === -404) utils.logger.info("获取视频基本信息丨无视频")
+      else if (code === 62002) utils.logger.info("获取视频基本信息丨稿件不可见")
+      else if (code === 62004) utils.logger.info("获取视频基本信息丨稿件审核中")
+      else utils.logger.warn("获取视频基本信息丨请求失败")
+    },
+    // #endregion 获取视频基本信息
+    /**
+     * 获取用户基本信息
+     * - #region 获取用户基本信息
+     * @param {String} userId 用户ID
+     * @returns userInfo
+     */
+    async getUserInformation(userId) {
+      const url = `https://api.bilibili.com/x/web-interface/card?mid=${userId}`
+      const { data } = await axios.get(url, { withCredentials: true })
+      console.log(data);
+      const code = data.code
+      if (code === 0) return data
+      else if (code === -400) utils.logger.info("获取用户基本信息丨请求错误")
+      else if (code === -403) utils.logger.info("获取用户基本信息丨权限不足")
+      else if (code === -404) utils.logger.info("获取用户基本信息丨用户不存在")
+      else utils.logger.warn("获取用户基本信息丨请求失败")
+    },
+    // #endregion 获取用户基本信息
+    /**
+     * 判断用户是否是大会员
+     * - #region 判断用户是否是大会员
+     * - 签到后执行，若已签到则不执行，避免触发多次请求
+     */
+    async isVip() {
+      const userId = utils.getCookieByName('DedeUserID')
+      const { data: { card: { vip: { status } } } } = await bilibili.getUserInformation(userId)
+      if (status) utils.setValue('is_vip', true)
+      else utils.setValue('is_vip', false)
+    },
+    // #endregion 判断用户是否是大会员
+    /**
+     * 自动签到
+     * - #region 自动签到
+     */
+    async autoSignIn() {
+      const now = new Date()
+      const signInDate = `${now.getFullYear()}-${(now.getMonth() + 1)}-${now.getDate()}`
+      if (!vals.signIn_date() || vals.signIn_date() !== signInDate) {
+        const url = `https://api.live.bilibili.com/sign/doSign`
+        const { data: { code } } = await axios.get(url, { withCredentials: true })
+        if (code === 0) {
+          utils.logger.info("自动签到丨签到成功")
+          utils.setValue('signIn_date', signInDate)
+          await bilibili.isVip()
+        } else if (code === 1011040) {
+          utils.logger.info("自动签到丨今日已签")
+          utils.setValue('signIn_date', signInDate)
+        } else {
+          utils.logger.warn("自动签到丨签到异常")
+          utils.setValue('signIn_date', '')
+        }
+      } else {
+        utils.logger.info("自动签到丨今日已签")
+      }
+    },
+    // #endregion 自动签到
+  }
   const modules = {
     //** ----------------------- 通用功能 ----------------------- **//
     // #region 通用功能
@@ -687,42 +829,6 @@
     },
     // #endregion 获取视频类型
     /**
-     * 获取视频基本信息
-     * - #region 获取视频基本信息
-     * @param {String} videoId 视频ID(video BVID)
-     * @returns videoInfo
-     */
-    async getVideoInformation(videoId) {
-      const url = `https://api.bilibili.com/x/web-interface/view?bvid=${videoId}`
-      const { data } = await axios.get(url, { withCredentials: true })
-      const code = data.code
-      if (code === 0) return data
-      else if (code === -400) utils.logger.info("获取视频基本信息丨请求错误")
-      else if (code === -403) utils.logger.info("获取视频基本信息丨权限不足")
-      else if (code === -404) utils.logger.info("获取视频基本信息丨无视频")
-      else if (code === 62002) utils.logger.info("获取视频基本信息丨稿件不可见")
-      else if (code === 62004) utils.logger.info("获取视频基本信息丨稿件审核中")
-      else utils.logger.warn("获取视频基本信息丨请求失败")
-    },
-    // #endregion 获取视频基本信息
-    /**
-     * 获取用户基本信息
-     * - #region 获取用户基本信息
-     * @param {String} userId 用户ID
-     * @returns userInfo
-     */
-    async getUserInformation(userId) {
-      const url = `https://api.bilibili.com/x/web-interface/card?mid=${userId}`
-      const { data } = await axios.get(url, { withCredentials: true })
-      const code = data.code
-      if (code === 0) return data
-      else if (code === -400) utils.logger.info("获取用户基本信息丨请求错误")
-      else if (code === -403) utils.logger.info("获取用户基本信息丨权限不足")
-      else if (code === -404) utils.logger.info("获取用户基本信息丨用户不存在")
-      else utils.logger.warn("获取用户基本信息丨请求失败")
-    },
-    // #endregion 获取用户基本信息
-    /**
      * 判断用户是否登录
      * - #region 判断用户是否登录
      */
@@ -738,44 +844,6 @@
       return url.startsWith('https://www.bilibili.com/video') ? url.split('/')[4] : url.startsWith('https://www.bilibili.com/bangumi') ? url.split('/')[5].split('?')[0] : 'error'
     },
     // #endregion 获取视频ID
-    /**
-     * 判断用户是否是大会员
-     * - #region 判断用户是否是大会员
-     * - 签到后执行，若已签到则不执行，避免触发多次请求
-     */
-    async isVip() {
-      const userId = utils.getCookieByName('DedeUserID')
-      const { data: { card: { vip: { status } } } } = await modules.getUserInformation(userId)
-      if (status) utils.setValue('is_vip', true)
-      else utils.setValue('is_vip', false)
-    },
-    // #endregion 判断用户是否是大会员
-    /**
-     * 自动签到
-     * - #region 自动签到
-     */
-    async autoSignIn() {
-      const now = new Date()
-      const signInDate = `${now.getFullYear()}-${(now.getMonth() + 1)}-${now.getDate()}`
-      if (!vals.signIn_date() || vals.signIn_date() !== signInDate) {
-        const url = `https://api.live.bilibili.com/sign/doSign`
-        const { data: { code } } = await axios.get(url, { withCredentials: true })
-        if (code === 0) {
-          utils.logger.info("自动签到丨签到成功")
-          utils.setValue('signIn_date', signInDate)
-          await modules.isVip()
-        } else if (code === 1011040) {
-          utils.logger.info("自动签到丨今日已签")
-          utils.setValue('signIn_date', signInDate)
-        } else {
-          utils.logger.warn("自动签到丨签到异常")
-          utils.setValue('signIn_date', '')
-        }
-      } else {
-        utils.logger.info("自动签到丨今日已签")
-      }
-    },
-    // #endregion 自动签到
     // #endregion 通用功能
     //** ----------------------- 视频播放页相关功能 ----------------------- **//
     // #region 视频播放页相关功能
@@ -867,7 +935,7 @@
     async setVideoCover($videoWrap, $video) {
       if (vals.player_type() === 'bangumi') return
       const targetTids = Array.from(new Set().add([...objects.videoCategories.dance.tids, ...objects.videoCategories.fashion.tids])).flat()
-      const { data: { pic, tid } } = await modules.getVideoInformation(modules.getCurrentVideoID(window.location.href))
+      const { data: { pic, tid } } = await bilibili.getVideoInformation(modules.getCurrentVideoID(window.location.href))
       if (targetTids.includes(tid) && pic) {
         $videoWrap.style.setProperty('--video-cover', `url(${pic.replace(/^http:/i, 'https:')})`) // 设置视频封面的CSS变量
         $video.addEventListener('play', () => {
@@ -1902,7 +1970,7 @@
           const url = video.querySelector('a').href
           const title = video.querySelector('h3').title
           if (window.location.host.includes('bilibili.com') && !url.includes('cm.bilibili.com')) {
-            const { data: { tid } } = await modules.getVideoInformation(modules.getCurrentVideoID(url))
+            const { data: { tid } } = await bilibili.getVideoInformation(modules.getCurrentVideoID(url))
             indexRecommendVideoHistory.setItem(title, [tid, url])
           }
         })
@@ -2296,7 +2364,7 @@
         utils.clearAllTimersWhenCloseTab()
         modules.registerMenuCommand()
         utils.insertStyleToDocument('BilibiliAdjustmentStyle', styles.BilibiliAdjustment)
-        modules.autoSignIn()
+        bilibili.autoSignIn()
         if (window.location.href === 'https://www.bilibili.com/') {
           utils.insertStyleToDocument('IndexAdjustmentStyle', styles.IndexAdjustment)
         }
@@ -2317,10 +2385,10 @@
      * 执行主函数
      * - #region 执行主函数
      */
-    theMainFunction() {
+    async theMainFunction() {
       if (++vars.theMainFunctionRunningCount === 1) {
         if (modules.isLogin()) {
-          modules.thePrepFunction()
+          bilibili.getUserInformation()
           const timer = setInterval(async () => {
             const documentHidden = utils.checkDocumentIsHidden()
             if (!documentHidden) {
