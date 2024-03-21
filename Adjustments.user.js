@@ -997,8 +997,8 @@
      */
     async checkScreenModeSwitchSuccess(expectScreenMode) {
       const enterBtnMap = {
-        wide: async () => { return await utils.getElementAndCheckExistence(selectors.screenModeWideEnterButton) },
-        web: async () => { return await utils.getElementAndCheckExistence(selectors.screenModeWebEnterButton) },
+        wide: async () => await utils.getElementAndCheckExistence(selectors.screenModeWideEnterButton),
+        web: async () => await utils.getElementAndCheckExistence(selectors.screenModeWebEnterButton),
       }
       // 定时器方式检查
       if (vals.dev_checkScreenModeSwitchSuccess_method() === 'interval') {
@@ -1133,7 +1133,8 @@
      */
     async locationToPlayer() {
       const playerOffsetTop = vals.player_type() === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
-      utils.documentScrollTo(await modules.getCurrentScreenMode() !== 'web' ? playerOffsetTop - vals.offset_top() : 0)
+      const scrollOffset = await modules.getCurrentScreenMode() !== 'web' ? playerOffsetTop - vals.offset_top() : 0
+      utils.documentScrollTo(scrollOffset)
     },
     // #endregion 文档滚动至播放器(使用已有数据)
     /**
