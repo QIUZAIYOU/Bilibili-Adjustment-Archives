@@ -975,15 +975,14 @@
      * - 功能开启，执行切换函数
      */
     async autoSelectScreenMode() {
-      if (++vars.autoSelectScreenModeRunningCount === 1) {
-        if (vals.selected_screen_mode() === 'close') return { message: '屏幕模式｜功能已关闭' }
-        const currentScreenMode = await modules.getCurrentScreenMode()
-        if (arrays.screenModes.includes(currentScreenMode)) return { message: `屏幕模式｜当前已是 ${currentScreenMode.toUpperCase()} 模式` }
-        if (arrays.screenModes.includes(vals.selected_screen_mode())) {
-          const result = await modules.checkScreenModeSwitchSuccess(vals.selected_screen_mode())
-          if (result) return { message: `屏幕模式｜${vals.selected_screen_mode().toUpperCase()}｜切换成功` }
-          else throw new Error(`屏幕模式｜${vals.selected_screen_mode().toUpperCase()}｜切换失败：已达到最大重试次数`)
-        }
+      if (++vars.autoSelectScreenModeRunningCount !== 1) return
+      if (vals.selected_screen_mode() === 'close') return { message: '屏幕模式｜功能已关闭' }
+      const currentScreenMode = await modules.getCurrentScreenMode()
+      if (arrays.screenModes.includes(currentScreenMode)) return { message: `屏幕模式｜当前已是 ${currentScreenMode.toUpperCase()} 模式` }
+      if (arrays.screenModes.includes(vals.selected_screen_mode())) {
+        const result = await modules.checkScreenModeSwitchSuccess(vals.selected_screen_mode())
+        if (result) return { message: `屏幕模式｜${vals.selected_screen_mode().toUpperCase()}｜切换成功` }
+        else throw new Error(`屏幕模式｜${vals.selected_screen_mode().toUpperCase()}｜切换失败：已达到最大重试次数`)
       }
     },
     // #endregion 执行自动切换屏幕模式
@@ -1179,20 +1178,20 @@
      * - #region 自动关闭静音
      */
     async autoCancelMute() {
-      if (++vars.autoCancelMuteRunningCount === 1) {
-        const [$mutedButton, $volumeButton] = await utils.getElementAndCheckExistence([selectors.mutedButton, selectors.volumeButton])
-        // const mutedButtonDisplay = getComputedStyle(mutedButton)['display']
-        // const volumeButtonDisplay = getComputedStyle(volumeButton)['display']
-        const mutedButtonDisplay = $mutedButton.style.display
-        const volumeButtonDisplay = $volumeButton.style.display
-        if (mutedButtonDisplay === 'block' || volumeButtonDisplay === 'none') {
-          $mutedButton.click()
-          // utils.logger.info('静音丨已关闭')
-          return {
-            message: '静音丨已关闭'
-          }
+      if (++vars.autoCancelMuteRunningCount !== 1) return
+      const [$mutedButton, $volumeButton] = await utils.getElementAndCheckExistence([selectors.mutedButton, selectors.volumeButton])
+      // const mutedButtonDisplay = getComputedStyle(mutedButton)['display']
+      // const volumeButtonDisplay = getComputedStyle(volumeButton)['display']
+      const mutedButtonDisplay = $mutedButton.style.display
+      const volumeButtonDisplay = $volumeButton.style.display
+      if (mutedButtonDisplay === 'block' || volumeButtonDisplay === 'none') {
+        $mutedButton.click()
+        // utils.logger.info('静音丨已关闭')
+        return {
+          message: '静音丨已关闭'
         }
       }
+
     },
     // #endregion 自动关闭静音
     /**
@@ -1204,64 +1203,64 @@
      * - 16->360P 流畅；0->自动
      */
     async autoSelectVideoHighestQuality() {
-      if (++vars.autoSelectVideoHighestQualityRunningCount === 1) {
-        let message
-        const qualitySwitchButtonsMap = new Map()
-        if (!vals.auto_select_video_highest_quality()) return
-        await elmGetter.each(selectors.qualitySwitchButtons, document.body, button => {
-          qualitySwitchButtonsMap.set(button.dataset.value, button)
-        })
-        const qualitySwitchButtonsArray = [...qualitySwitchButtonsMap]
-        const select4K = () => {
-          qualitySwitchButtonsMap.get('120').click()
-          message = '最高画质｜VIP｜4K｜切换成功'
+      if (++vars.autoSelectVideoHighestQualityRunningCount !== 1) return
+      let message
+      const qualitySwitchButtonsMap = new Map()
+      if (!vals.auto_select_video_highest_quality()) return
+      await elmGetter.each(selectors.qualitySwitchButtons, document.body, button => {
+        qualitySwitchButtonsMap.set(button.dataset.value, button)
+      })
+      const qualitySwitchButtonsArray = [...qualitySwitchButtonsMap]
+      const select4K = () => {
+        qualitySwitchButtonsMap.get('120').click()
+        message = '最高画质｜VIP｜4K｜切换成功'
+      }
+      const select8K = () => {
+        qualitySwitchButtonsMap.get('127').click()
+        message = '最高画质｜VIP｜4K｜切换成功'
+      }
+      const selectNo4K8K = () => {
+        qualitySwitchButtonsArray.filter(quality => {
+          return +quality[0] < 120
+        })[0][1].click()
+        message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
+      }
+      if (vals.is_vip()) {
+        if (!vals.contain_quality_4k() && !vals.contain_quality_8k()) {
+          selectNo4K8K()
         }
-        const select8K = () => {
-          qualitySwitchButtonsMap.get('127').click()
-          message = '最高画质｜VIP｜4K｜切换成功'
-        }
-        const selectNo4K8K = () => {
-          qualitySwitchButtonsArray.filter(quality => {
-            return +quality[0] < 120
-          })[0][1].click()
-          message = '最高画质｜VIP｜不包含4K及8K｜切换成功'
-        }
-        if (vals.is_vip()) {
-          if (!vals.contain_quality_4k() && !vals.contain_quality_8k()) {
+        if (vals.contain_quality_4k() && !vals.contain_quality_8k()) {
+          if (qualitySwitchButtonsMap.get('120')) {
+            select4K()
+          } else {
             selectNo4K8K()
           }
-          if (vals.contain_quality_4k() && !vals.contain_quality_8k()) {
-            if (qualitySwitchButtonsMap.get('120')) {
-              select4K()
-            } else {
-              selectNo4K8K()
-            }
-          }
-          if (!vals.contain_quality_4k() && vals.contain_quality_8k()) {
-            if (qualitySwitchButtonsMap.get('127')) {
-              select8K()
-            } else {
-              selectNo4K8K()
-            }
-          }
-          if ((vals.contain_quality_4k() && vals.contain_quality_8k())) {
-            if (qualitySwitchButtonsMap.get('127')) {
-              select8K()
-            } else if (qualitySwitchButtonsMap.get('120')) {
-              select4K()
-            } else {
-              selectNo4K8K()
-            }
-          }
-        } else {
-          qualitySwitchButtonsArray.filter(button => {
-            return button[1].children.length < 2
-          })[0][1].click()
-          message = '最高画质｜非VIP｜切换成功'
         }
-        // utils.logger.info(message)
-        return { message }
+        if (!vals.contain_quality_4k() && vals.contain_quality_8k()) {
+          if (qualitySwitchButtonsMap.get('127')) {
+            select8K()
+          } else {
+            selectNo4K8K()
+          }
+        }
+        if ((vals.contain_quality_4k() && vals.contain_quality_8k())) {
+          if (qualitySwitchButtonsMap.get('127')) {
+            select8K()
+          } else if (qualitySwitchButtonsMap.get('120')) {
+            select4K()
+          } else {
+            selectNo4K8K()
+          }
+        }
+      } else {
+        qualitySwitchButtonsArray.filter(button => {
+          return button[1].children.length < 2
+        })[0][1].click()
+        message = '最高画质｜非VIP｜切换成功'
       }
+      // utils.logger.info(message)
+      return { message }
+
     },
     // #endregion 自动选择最高画质
     /**
@@ -1293,46 +1292,46 @@
      * - #region 执行网页全屏模式解锁
      */
     async webfullScreenModeUnlock() {
-      if (vals.webfull_unlock() && vals.selected_screen_mode() === 'web' && ++vars.webfullUnlockRunningCount === 1) {
-        if (vals.player_type() === 'bangumi') return
-        const [$app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton] = await utils.getElementAndCheckExistence([selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton])
-        const resetPlayerLayout = async () => {
-          if (document.getElementById('UnlockWebscreenStyle')) document.getElementById('UnlockWebscreenStyle').remove()
-          if (!document.getElementById('ResetPlayerLayoutStyle')) utils.insertStyleToDocument('ResetPlayerLayoutStyle', styles.ResetPlayerLayout)
-          $playerWrap.append($player)
-          utils.setValue('current_screen_mode', 'wide')
-          await utils.sleep(300)
-          await modules.locationToPlayer()
-        }
-        const bodyHeight = utils.getBodyHeight()
-        utils.insertStyleToDocument('UnlockWebscreenStyle', styles.UnlockWebscreen.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
-        $app.prepend($playerWebscreen)
-        $webLeaveButton.addEventListener('click', async () => {
-          await utils.sleep(100)
-          await resetPlayerLayout()
-        })
-        $webEnterButton.addEventListener('click', async () => {
-          if (!document.getElementById('UnlockWebscreenStyle')) utils.insertStyleToDocument('UnlockWebscreenStyle', styles.UnlockWebscreen.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
-          $app.prepend($playerWebscreen)
-          await modules.locationToPlayer()
-        })
-        $wideEnterButton.addEventListener('click', async () => {
-          await utils.sleep(100)
-          await resetPlayerLayout()
-        })
-        $wideLeaveButton.addEventListener('click', async () => {
-          await utils.sleep(100)
-          await resetPlayerLayout()
-        })
-        $fullControlButton.addEventListener('click', async () => {
-          await utils.sleep(100)
-          await resetPlayerLayout()
-        })
-        return {
-          message: '网页全屏解锁｜成功',
-          callback: [modules.insertGoToCommentButton]
-        }
+      if (!vals.webfull_unlock() || !vals.selected_screen_mode() === 'web' || ++vars.webfullUnlockRunningCount !== 1) return
+      if (vals.player_type() === 'bangumi') return
+      const [$app, $playerWrap, $player, $playerWebscreen, $wideEnterButton, $wideLeaveButton, $webEnterButton, $webLeaveButton, $fullControlButton] = await utils.getElementAndCheckExistence([selectors.app, selectors.playerWrap, selectors.player, selectors.playerWebscreen, selectors.screenModeWideEnterButton, selectors.screenModeWideLeaveButton, selectors.screenModeWebEnterButton, selectors.screenModeWebLeaveButton, selectors.screenModeFullControlButton])
+      const resetPlayerLayout = async () => {
+        if (document.getElementById('UnlockWebscreenStyle')) document.getElementById('UnlockWebscreenStyle').remove()
+        if (!document.getElementById('ResetPlayerLayoutStyle')) utils.insertStyleToDocument('ResetPlayerLayoutStyle', styles.ResetPlayerLayout)
+        $playerWrap.append($player)
+        utils.setValue('current_screen_mode', 'wide')
+        await utils.sleep(300)
+        await modules.locationToPlayer()
       }
+      const bodyHeight = utils.getBodyHeight()
+      utils.insertStyleToDocument('UnlockWebscreenStyle', styles.UnlockWebscreen.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
+      $app.prepend($playerWebscreen)
+      $webLeaveButton.addEventListener('click', async () => {
+        await utils.sleep(100)
+        await resetPlayerLayout()
+      })
+      $webEnterButton.addEventListener('click', async () => {
+        if (!document.getElementById('UnlockWebscreenStyle')) utils.insertStyleToDocument('UnlockWebscreenStyle', styles.UnlockWebscreen.replace(/BODYHEIGHT/gi, `${bodyHeight}px`))
+        $app.prepend($playerWebscreen)
+        await modules.locationToPlayer()
+      })
+      $wideEnterButton.addEventListener('click', async () => {
+        await utils.sleep(100)
+        await resetPlayerLayout()
+      })
+      $wideLeaveButton.addEventListener('click', async () => {
+        await utils.sleep(100)
+        await resetPlayerLayout()
+      })
+      $fullControlButton.addEventListener('click', async () => {
+        await utils.sleep(100)
+        await resetPlayerLayout()
+      })
+      return {
+        message: '网页全屏解锁｜成功',
+        callback: [modules.insertGoToCommentButton]
+      }
+
     },
     // #endregion 执行网页全屏模式解锁
     /**
@@ -1340,16 +1339,16 @@
      * - #region 网页全屏模式解锁后插入跳转评论按钮
      */
     async insertGoToCommentButton() {
-      if (vals.player_type() === 'video' && vals.webfull_unlock() && ++vars.insertGoToCommentButtonCount === 1) {
-        const [$comment, $playerControllerBottomRight] = await utils.getElementAndCheckExistence([selectors.videoComment, selectors.playerControllerBottomRight])
-        const goToCommentBtnHtml = '<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>'
-        const $goToCommentButton = utils.createElementAndInsert(goToCommentBtnHtml, $playerControllerBottomRight, 'append')
-        $goToCommentButton.addEventListener('click', (event) => {
-          event.stopPropagation()
-          utils.documentScrollTo(utils.getElementOffsetToDocument($comment).top - 10)
-          // utils.logger.info('到达评论区')
-        })
-      }
+      if (vals.player_type() !== 'video' || !vals.webfull_unlock() || ++vars.insertGoToCommentButtonCount !== 1) return
+      const [$comment, $playerControllerBottomRight] = await utils.getElementAndCheckExistence([selectors.videoComment, selectors.playerControllerBottomRight])
+      const goToCommentBtnHtml = '<div class="bpx-player-ctrl-btn bpx-player-ctrl-comment" role="button" aria-label="前往评论" tabindex="0"><div id="goToComments" class="bpx-player-ctrl-btn-icon"><span class="bpx-common-svg-icon"><svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="88" height="88" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px);"><path d="M512 85.333c235.637 0 426.667 191.03 426.667 426.667S747.637 938.667 512 938.667a424.779 424.779 0 0 1-219.125-60.502A2786.56 2786.56 0 0 0 272.82 866.4l-104.405 28.48c-23.893 6.507-45.803-15.413-39.285-39.296l28.437-104.288c-11.008-18.688-18.219-31.221-21.803-37.91A424.885 424.885 0 0 1 85.333 512c0-235.637 191.03-426.667 426.667-426.667zm-102.219 549.76a32 32 0 1 0-40.917 49.216A223.179 223.179 0 0 0 512 736c52.97 0 103.19-18.485 143.104-51.67a32 32 0 1 0-40.907-49.215A159.19 159.19 0 0 1 512 672a159.19 159.19 0 0 1-102.219-36.907z" fill="#currentColor"/></svg></span></div></div>'
+      const $goToCommentButton = utils.createElementAndInsert(goToCommentBtnHtml, $playerControllerBottomRight, 'append')
+      $goToCommentButton.addEventListener('click', (event) => {
+        event.stopPropagation()
+        utils.documentScrollTo(utils.getElementOffsetToDocument($comment).top - 10)
+        // utils.logger.info('到达评论区')
+      })
+
     },
     // #endregion 网页全屏模式解锁后插入跳转评论按钮
     // #endregion 网页全屏模式解锁
@@ -1632,39 +1631,39 @@
      */
     async insertSetSkipTimeNodesButton() {
       const videoID = modules.getCurrentVideoID()
-      if (++vars.insertSetSkipTimeNodesButtonCount === 1 && vals.auto_skip()) {
-        const [$video, $playerContainer, $playerControllerBottomRight, $playerTooltipArea] = await utils.getElementAndCheckExistence([selectors.video, selectors.playerContainer, selectors.playerControllerBottomRight, selectors.playerTooltipArea])
-        const validateInputValue = (inputValue) => {
-          const regex = /^\[\d+,\d+\](,\[\d+,\d+\])*?$/g;
-          const numbers = inputValue.match(/\[(\d+),(\d+)\]/g)?.flatMap(match => match.slice(1, -1).split(',')).map(Number) || [];
-          const hasDuplicates = new Set(numbers).size !== numbers.length
-          if (inputValue === '' || !regex.test(inputValue) || hasDuplicates) {
-            return false
+      if (++vars.insertSetSkipTimeNodesButtonCount !== 1 || !vals.auto_skip()) return
+      const [$video, $playerContainer, $playerControllerBottomRight, $playerTooltipArea] = await utils.getElementAndCheckExistence([selectors.video, selectors.playerContainer, selectors.playerControllerBottomRight, selectors.playerTooltipArea])
+      const validateInputValue = (inputValue) => {
+        const regex = /^\[\d+,\d+\](,\[\d+,\d+\])*?$/g;
+        const numbers = inputValue.match(/\[(\d+),(\d+)\]/g)?.flatMap(match => match.slice(1, -1).split(',')).map(Number) || [];
+        const hasDuplicates = new Set(numbers).size !== numbers.length
+        if (inputValue === '' || !regex.test(inputValue) || hasDuplicates) {
+          return false
+        }
+        const isAscending = numbers.every((num, i) => i === 0 || num >= numbers[i - 1])
+        return isAscending
+      }
+      // [[10,20],[30,40]] → [[10,30],[20,40]]
+      const convertArrayReadableToSave = (arr) => {
+        return arr[0].map((col, i) => arr.map(row => row[i]))
+      }
+      // [10,20,30,40] → [[10,30],[20,40]]
+      // const convertArrayRecordToSave = (arr) => {
+      //     return arr.reduce((acc, num, i) => {
+      //         i % 2 === 0 ? acc[0].push(num) : acc[1].push(num);
+      //         return acc;
+      //     }, [[], []]);
+      // }
+      // [10,20,30,40] → [[10,20],[30,40]]
+      const convertArrayRecordToReadable = (arr) => {
+        return arr.reduce((acc, _, i) => {
+          if (i % 2 === 0) {
+            acc.push(arr.slice(i, i + 2));
           }
-          const isAscending = numbers.every((num, i) => i === 0 || num >= numbers[i - 1])
-          return isAscending
-        }
-        // [[10,20],[30,40]] → [[10,30],[20,40]]
-        const convertArrayReadableToSave = (arr) => {
-          return arr[0].map((col, i) => arr.map(row => row[i]))
-        }
-        // [10,20,30,40] → [[10,30],[20,40]]
-        // const convertArrayRecordToSave = (arr) => {
-        //     return arr.reduce((acc, num, i) => {
-        //         i % 2 === 0 ? acc[0].push(num) : acc[1].push(num);
-        //         return acc;
-        //     }, [[], []]);
-        // }
-        // [10,20,30,40] → [[10,20],[30,40]]
-        const convertArrayRecordToReadable = (arr) => {
-          return arr.reduce((acc, _, i) => {
-            if (i % 2 === 0) {
-              acc.push(arr.slice(i, i + 2));
-            }
-            return acc;
-          }, []);
-        }
-        const setSkipTimeNodesPopoverToggleButtonHtml = `
+          return acc;
+        }, []);
+      }
+      const setSkipTimeNodesPopoverToggleButtonHtml = `
           <button id="${selectors.setSkipTimeNodesPopoverToggleButton.slice(1)}" popovertarget="${selectors.setSkipTimeNodesPopover.slice(1)}" class="bpx-player-ctrl-btn bpx-player-ctrl-skip" role="button" aria-label="插入时间节点" tabindex="0">
               <div class="bpx-player-ctrl-btn-icon">
                   <span class="bpx-common-svg-icon">
@@ -1674,7 +1673,7 @@
                   </span>
               </div>
           </button>`
-        const setSkipTimeNodesPopoverHtml = `
+      const setSkipTimeNodesPopoverHtml = `
           <div id="${selectors.setSkipTimeNodesPopover.slice(1)}" popover>
               <div class="setSkipTimeNodesWrapper">
                   <div class="header">
@@ -1720,113 +1719,113 @@
                   <div class="result" style="display:none"></div>
               </div>
           </div>`
-        const setSkipTimeNodesButtonTipHtml = `
+      const setSkipTimeNodesButtonTipHtml = `
           <div id="setSkipTimeNodesButtonTip" class="bpx-player-tooltip-item" style="visibility: hidden; opacity: 0; transform: translate(0px, 0px);">
               <div class="bpx-player-tooltip-title">上传节点</div>
           </div>`
-        const $setSkipTimeNodesPopoverToggleButton = utils.createElementAndInsert(setSkipTimeNodesPopoverToggleButtonHtml, $playerControllerBottomRight, 'append')
-        const $setSkipTimeNodesPopover = utils.createElementAndInsert(setSkipTimeNodesPopoverHtml, $playerContainer, 'append')
-        const $setSkipTimeNodesButtonTip = utils.createElementAndInsert(setSkipTimeNodesButtonTipHtml, $playerTooltipArea, 'append')
-        $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseover', function () {
-          const { top, left } = utils.getElementOffsetToDocument(this)
-          // utils.logger.debug(`${top} ${left} ${window.pageYOffset} ${top - window.pageYOffset}`)
-          $setSkipTimeNodesButtonTip.style.top = `${top - window.pageYOffset - (this.clientHeight * 2) - 5}px`
-          $setSkipTimeNodesButtonTip.style.left = `${left - ($setSkipTimeNodesButtonTip.clientWidth / 2) + (this.clientWidth / 2)}px`
-          $setSkipTimeNodesButtonTip.style.opacity = 1
-          $setSkipTimeNodesButtonTip.style.visibility = 'visible'
-          $setSkipTimeNodesButtonTip.style.transition = 'opacity .3s'
-        })
-        $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseout', () => {
-          $setSkipTimeNodesButtonTip.style.opacity = 0
-          $setSkipTimeNodesButtonTip.style.visibility = 'hidden'
-        })
-        const [$setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail, $setSkipTimeNodesPopoverRecords, $setSkipTimeNodesInput, $skipTimeNodesRecordsArray, $setSkipTimeNodesPopoverResult, $clearRecordsButton, $saveRecordsButton, $uploadSkipTimeNodesButton, $syncSkipTimeNodesButton, $setSkipTimeNodesPopoverClouds, $skipTimeNodesCloudsArray] = await utils.getElementAndCheckExistence([selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail, selectors.setSkipTimeNodesPopoverRecords, selectors.setSkipTimeNodesInput, selectors.skipTimeNodesRecordsArray, selectors.setSkipTimeNodesPopoverResult, selectors.clearRecordsButton, selectors.saveRecordsButton, selectors.uploadSkipTimeNodesButton, selectors.syncSkipTimeNodesButton, selectors.setSkipTimeNodesPopoverClouds, selectors.skipTimeNodesCloudsArray])
+      const $setSkipTimeNodesPopoverToggleButton = utils.createElementAndInsert(setSkipTimeNodesPopoverToggleButtonHtml, $playerControllerBottomRight, 'append')
+      const $setSkipTimeNodesPopover = utils.createElementAndInsert(setSkipTimeNodesPopoverHtml, $playerContainer, 'append')
+      const $setSkipTimeNodesButtonTip = utils.createElementAndInsert(setSkipTimeNodesButtonTipHtml, $playerTooltipArea, 'append')
+      $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseover', function () {
+        const { top, left } = utils.getElementOffsetToDocument(this)
+        // utils.logger.debug(`${top} ${left} ${window.pageYOffset} ${top - window.pageYOffset}`)
+        $setSkipTimeNodesButtonTip.style.top = `${top - window.pageYOffset - (this.clientHeight * 2) - 5}px`
+        $setSkipTimeNodesButtonTip.style.left = `${left - ($setSkipTimeNodesButtonTip.clientWidth / 2) + (this.clientWidth / 2)}px`
+        $setSkipTimeNodesButtonTip.style.opacity = 1
+        $setSkipTimeNodesButtonTip.style.visibility = 'visible'
+        $setSkipTimeNodesButtonTip.style.transition = 'opacity .3s'
+      })
+      $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseout', () => {
+        $setSkipTimeNodesButtonTip.style.opacity = 0
+        $setSkipTimeNodesButtonTip.style.visibility = 'hidden'
+      })
+      const [$setSkipTimeNodesPopoverHeaderExtra, $setSkipTimeNodesPopoverTips, $setSkipTimeNodesPopoverTipsDetail, $setSkipTimeNodesPopoverRecords, $setSkipTimeNodesInput, $skipTimeNodesRecordsArray, $setSkipTimeNodesPopoverResult, $clearRecordsButton, $saveRecordsButton, $uploadSkipTimeNodesButton, $syncSkipTimeNodesButton, $setSkipTimeNodesPopoverClouds, $skipTimeNodesCloudsArray] = await utils.getElementAndCheckExistence([selectors.setSkipTimeNodesPopoverHeaderExtra, selectors.setSkipTimeNodesPopoverTips, selectors.setSkipTimeNodesPopoverTipsDetail, selectors.setSkipTimeNodesPopoverRecords, selectors.setSkipTimeNodesInput, selectors.skipTimeNodesRecordsArray, selectors.setSkipTimeNodesPopoverResult, selectors.clearRecordsButton, selectors.saveRecordsButton, selectors.uploadSkipTimeNodesButton, selectors.syncSkipTimeNodesButton, selectors.setSkipTimeNodesPopoverClouds, selectors.skipTimeNodesCloudsArray])
+      const cloudsArray = await modules.getVideoSkipTimeNodesByAxios(videoID)
+      if (cloudsArray) {
+        if (typeof cloudsArray === 'string') cloudsArray = JSON.parse(cloudsArray)
+        $setSkipTimeNodesPopoverClouds.style.display = 'block'
+        $skipTimeNodesCloudsArray.innerText = JSON.stringify(convertArrayReadableToSave(cloudsArray)).slice(1, -1)
+      } else {
+        $setSkipTimeNodesPopoverClouds.style.display = 'none'
+      }
+      $setSkipTimeNodesPopoverTipsDetail.addEventListener('click', function (event) {
+        event.stopPropagation()
+        const detailClassList = [...this.classList]
+        if (detailClassList.includes('open')) {
+          this.classList.replace('open', 'close')
+          $setSkipTimeNodesPopoverTips.classList.replace('close', 'open')
+        }
+        if (detailClassList.includes('close')) {
+          this.classList.replace('close', 'open')
+          $setSkipTimeNodesPopoverTips.classList.replace('open', 'close')
+        }
+      })
+      $setSkipTimeNodesPopoverToggleButton.addEventListener('click', () => {
+        const currentTime = Math.ceil($video.currentTime)
+        $setSkipTimeNodesPopoverHeaderExtra.innerText = `${currentTime} / ${$video.duration}`
+      })
+      $setSkipTimeNodesPopover.addEventListener('toggle', (event) => {
+        if (event.newState === 'open') {
+          $video.pause()
+        }
+        if (event.newState === 'closed') {
+          $video.play()
+        }
+      })
+      $clearRecordsButton.addEventListener('click', () => {
+        arrays.skipNodesRecords = []
+        $skipTimeNodesRecordsArray.className = ''
+        $skipTimeNodesRecordsArray.innerText = ''
+        $setSkipTimeNodesPopoverRecords.style.display = 'none'
+        $setSkipTimeNodesInput.value = ''
+      })
+      $saveRecordsButton.addEventListener('click', () => {
+        $setSkipTimeNodesInput.value = JSON.stringify(convertArrayRecordToReadable(JSON.parse($skipTimeNodesRecordsArray.innerText.replace('打点数据：', '')))).slice(1, -1)
+      })
+      const resetResultContent = (delay = 3000) => {
+        const resetResultContentTimeout = setTimeout(() => {
+          $setSkipTimeNodesPopoverResult.innerText = ''
+          $setSkipTimeNodesPopoverResult.className = 'result'
+          clearTimeout(resetResultContentTimeout)
+        }, delay)
+        arrays.intervalIds.push(resetResultContentTimeout)
+      }
+      $uploadSkipTimeNodesButton.addEventListener('click', async () => {
+        const inputValue = $setSkipTimeNodesInput.value
+        if (!validateInputValue(inputValue)) {
+          $setSkipTimeNodesPopoverResult.classList.remove('success')
+          $setSkipTimeNodesPopoverResult.classList.add('danger')
+          $setSkipTimeNodesPopoverResult.innerText = '请按格式条件输入正确内容！'
+          resetResultContent()
+        } else {
+          const timeNodesArray = convertArrayReadableToSave(JSON.parse(`[${inputValue}]`))
+          const result_indexedDB = await modules.setVideoSkipTimeNodesByIndexedDB(timeNodesArray, videoID)
+          const result_axios = await modules.setVideoSkipTimeNodesByAxios(JSON.stringify(timeNodesArray), videoID)
+          // logger.debug(`${JSON.stringify(result_indexedDB)}丨${JSON.stringify(result_axios)}`)
+          if ((result_indexedDB.code && result_axios.code) === 200) {
+            $setSkipTimeNodesInput.value = ''
+            $setSkipTimeNodesPopoverResult.classList.remove('danger')
+            $setSkipTimeNodesPopoverResult.classList.add('success')
+            $setSkipTimeNodesPopoverResult.innerText = `${result_indexedDB.message}丨${result_axios.message}`
+          } else {
+            $setSkipTimeNodesPopoverResult.classList.remove('success')
+            $setSkipTimeNodesPopoverResult.classList.add('danger')
+            $setSkipTimeNodesPopoverResult.innerText = `${result_indexedDB.message}丨${result_axios.message}`
+          }
+          resetResultContent()
+        }
+      })
+      $syncSkipTimeNodesButton.addEventListener('click', async () => {
         const cloudsArray = await modules.getVideoSkipTimeNodesByAxios(videoID)
         if (cloudsArray) {
           if (typeof cloudsArray === 'string') cloudsArray = JSON.parse(cloudsArray)
-          $setSkipTimeNodesPopoverClouds.style.display = 'block'
-          $skipTimeNodesCloudsArray.innerText = JSON.stringify(convertArrayReadableToSave(cloudsArray)).slice(1, -1)
-        } else {
-          $setSkipTimeNodesPopoverClouds.style.display = 'none'
+          modules.setVideoSkipTimeNodesByIndexedDB(cloudsArray, videoID)
+          const readableArr = JSON.stringify(convertArrayReadableToSave(cloudsArray)).slice(1, -1)
+          $skipTimeNodesCloudsArray.innerText = readableArr
+          $setSkipTimeNodesInput.value = readableArr
         }
-        $setSkipTimeNodesPopoverTipsDetail.addEventListener('click', function (event) {
-          event.stopPropagation()
-          const detailClassList = [...this.classList]
-          if (detailClassList.includes('open')) {
-            this.classList.replace('open', 'close')
-            $setSkipTimeNodesPopoverTips.classList.replace('close', 'open')
-          }
-          if (detailClassList.includes('close')) {
-            this.classList.replace('close', 'open')
-            $setSkipTimeNodesPopoverTips.classList.replace('open', 'close')
-          }
-        })
-        $setSkipTimeNodesPopoverToggleButton.addEventListener('click', () => {
-          const currentTime = Math.ceil($video.currentTime)
-          $setSkipTimeNodesPopoverHeaderExtra.innerText = `${currentTime} / ${$video.duration}`
-        })
-        $setSkipTimeNodesPopover.addEventListener('toggle', (event) => {
-          if (event.newState === 'open') {
-            $video.pause()
-          }
-          if (event.newState === 'closed') {
-            $video.play()
-          }
-        })
-        $clearRecordsButton.addEventListener('click', () => {
-          arrays.skipNodesRecords = []
-          $skipTimeNodesRecordsArray.className = ''
-          $skipTimeNodesRecordsArray.innerText = ''
-          $setSkipTimeNodesPopoverRecords.style.display = 'none'
-          $setSkipTimeNodesInput.value = ''
-        })
-        $saveRecordsButton.addEventListener('click', () => {
-          $setSkipTimeNodesInput.value = JSON.stringify(convertArrayRecordToReadable(JSON.parse($skipTimeNodesRecordsArray.innerText.replace('打点数据：', '')))).slice(1, -1)
-        })
-        const resetResultContent = (delay = 3000) => {
-          const resetResultContentTimeout = setTimeout(() => {
-            $setSkipTimeNodesPopoverResult.innerText = ''
-            $setSkipTimeNodesPopoverResult.className = 'result'
-            clearTimeout(resetResultContentTimeout)
-          }, delay)
-          arrays.intervalIds.push(resetResultContentTimeout)
-        }
-        $uploadSkipTimeNodesButton.addEventListener('click', async () => {
-          const inputValue = $setSkipTimeNodesInput.value
-          if (!validateInputValue(inputValue)) {
-            $setSkipTimeNodesPopoverResult.classList.remove('success')
-            $setSkipTimeNodesPopoverResult.classList.add('danger')
-            $setSkipTimeNodesPopoverResult.innerText = '请按格式条件输入正确内容！'
-            resetResultContent()
-          } else {
-            const timeNodesArray = convertArrayReadableToSave(JSON.parse(`[${inputValue}]`))
-            const result_indexedDB = await modules.setVideoSkipTimeNodesByIndexedDB(timeNodesArray, videoID)
-            const result_axios = await modules.setVideoSkipTimeNodesByAxios(JSON.stringify(timeNodesArray), videoID)
-            // logger.debug(`${JSON.stringify(result_indexedDB)}丨${JSON.stringify(result_axios)}`)
-            if ((result_indexedDB.code && result_axios.code) === 200) {
-              $setSkipTimeNodesInput.value = ''
-              $setSkipTimeNodesPopoverResult.classList.remove('danger')
-              $setSkipTimeNodesPopoverResult.classList.add('success')
-              $setSkipTimeNodesPopoverResult.innerText = `${result_indexedDB.message}丨${result_axios.message}`
-            } else {
-              $setSkipTimeNodesPopoverResult.classList.remove('success')
-              $setSkipTimeNodesPopoverResult.classList.add('danger')
-              $setSkipTimeNodesPopoverResult.innerText = `${result_indexedDB.message}丨${result_axios.message}`
-            }
-            resetResultContent()
-          }
-        })
-        $syncSkipTimeNodesButton.addEventListener('click', async () => {
-          const cloudsArray = await modules.getVideoSkipTimeNodesByAxios(videoID)
-          if (cloudsArray) {
-            if (typeof cloudsArray === 'string') cloudsArray = JSON.parse(cloudsArray)
-            modules.setVideoSkipTimeNodesByIndexedDB(cloudsArray, videoID)
-            const readableArr = JSON.stringify(convertArrayReadableToSave(cloudsArray)).slice(1, -1)
-            $skipTimeNodesCloudsArray.innerText = readableArr
-            $setSkipTimeNodesInput.value = readableArr
-          }
-        })
-      }
+      })
+
     },
     // #endregion 插入设置跳过时间节点按钮
     /**
@@ -1834,8 +1833,8 @@
      * - #region 插入跳过时间节点功能开关
      */
     async insertSkipTimeNodesSwitchButton() {
-      if (++vars.insertSetSkipTimeNodesSwitchButtonCount === 1) {
-        const skipTimeNodesSwitchButtonHtml = `
+      if (++vars.insertSetSkipTimeNodesSwitchButtonCount !== 1) return
+      const skipTimeNodesSwitchButtonHtml = `
           <div id="autoSkipSwitchButton" class="bpx-player-dm-switch bui bui-danmaku-switch" aria-label="跳过开启关闭">
             <div class="bui-area">
                 <input id="${selectors.AutoSkipSwitchInput.slice(1)}" class="bui-danmaku-switch-input" type="checkbox" ${vals.auto_skip() ? 'checked' : ''}>
@@ -1859,33 +1858,33 @@
                 </label>
             </div>
           </div>`
-        const skipTimeNodesSwitchButtonTipHtml = `
+      const skipTimeNodesSwitchButtonTipHtml = `
           <div id="autoSkipTips" class="bpx-player-tooltip-item" style="visibility: hidden; opacity: 0; transform: translate(0px, 0px);">
               <div class="bpx-player-tooltip-title">关闭自动跳过(j)</div>
           </div>`
-        const [playerDanmuSetting, playerTooltipArea] = await utils.getElementAndCheckExistence([selectors.playerDanmuSetting, selectors.playerTooltipArea])
-        const $skipTimeNodesSwitchButton = utils.createElementAndInsert(skipTimeNodesSwitchButtonHtml, playerDanmuSetting, 'after')
-        const $autoSkipTips = utils.createElementAndInsert(skipTimeNodesSwitchButtonTipHtml, playerTooltipArea, 'append')
-        const $AutoSkipSwitchInput = await utils.getElementAndCheckExistence(selectors.AutoSkipSwitchInput)
-        $AutoSkipSwitchInput.addEventListener('change', async event => {
-          const $AutoSkipInput = await utils.getElementAndCheckExistence(selectors.AutoSkip)
-          utils.setValue('auto_skip', event.target.checked)
-          $AutoSkipInput.checked = event.target.checked
-          $autoSkipTips.querySelector(selectors.playerTooltipTitle).innerText = event.target.checked ? '关闭自动跳过(j)' : '开启自动跳过(j)'
-        })
-        $skipTimeNodesSwitchButton.addEventListener('mouseover', async function () {
-          const { top, left } = utils.getElementOffsetToDocument(this)
-          $autoSkipTips.style.top = `${top - window.pageYOffset - (this.clientHeight) - 12}px`
-          $autoSkipTips.style.left = `${left - ($autoSkipTips.clientWidth / 2) + (this.clientWidth / 2)}px`
-          $autoSkipTips.style.opacity = 1
-          $autoSkipTips.style.visibility = 'visible'
-          $autoSkipTips.style.transition = 'opacity .3s'
-        })
-        $skipTimeNodesSwitchButton.addEventListener('mouseout', function () {
-          $autoSkipTips.style.opacity = 0
-          $autoSkipTips.style.visibility = 'hidden'
-        })
-      }
+      const [playerDanmuSetting, playerTooltipArea] = await utils.getElementAndCheckExistence([selectors.playerDanmuSetting, selectors.playerTooltipArea])
+      const $skipTimeNodesSwitchButton = utils.createElementAndInsert(skipTimeNodesSwitchButtonHtml, playerDanmuSetting, 'after')
+      const $autoSkipTips = utils.createElementAndInsert(skipTimeNodesSwitchButtonTipHtml, playerTooltipArea, 'append')
+      const $AutoSkipSwitchInput = await utils.getElementAndCheckExistence(selectors.AutoSkipSwitchInput)
+      $AutoSkipSwitchInput.addEventListener('change', async event => {
+        const $AutoSkipInput = await utils.getElementAndCheckExistence(selectors.AutoSkip)
+        utils.setValue('auto_skip', event.target.checked)
+        $AutoSkipInput.checked = event.target.checked
+        $autoSkipTips.querySelector(selectors.playerTooltipTitle).innerText = event.target.checked ? '关闭自动跳过(j)' : '开启自动跳过(j)'
+      })
+      $skipTimeNodesSwitchButton.addEventListener('mouseover', async function () {
+        const { top, left } = utils.getElementOffsetToDocument(this)
+        $autoSkipTips.style.top = `${top - window.pageYOffset - (this.clientHeight) - 12}px`
+        $autoSkipTips.style.left = `${left - ($autoSkipTips.clientWidth / 2) + (this.clientWidth / 2)}px`
+        $autoSkipTips.style.opacity = 1
+        $autoSkipTips.style.visibility = 'visible'
+        $autoSkipTips.style.transition = 'opacity .3s'
+      })
+      $skipTimeNodesSwitchButton.addEventListener('mouseout', function () {
+        $autoSkipTips.style.opacity = 0
+        $autoSkipTips.style.visibility = 'hidden'
+      })
+
     },
     // #endregion 插入跳过时间节点功能开关
     // #endregion 自动跳过时间节点
@@ -1990,19 +1989,19 @@
      * - #region 将推荐视频写入本地
      */
     async setIndexRecordRecommendVideoHistory() {
-      if (++vars.setIndexRecordRecommendVideoHistoryArrayCount === 1) {
-        const indexRecommendVideoHistory = localforage.createInstance({
-          name: 'indexRecommendVideoHistory',
-        })
-        await elmGetter.each(selectors.indexRecommendVideoSix, document.body, async video => {
-          const url = video.querySelector('a').href
-          const title = video.querySelector('h3').title
-          if (window.location.host.includes('bilibili.com') && !url.includes('cm.bilibili.com')) {
-            const { data: { tid } } = await biliApis.getVideoInformation(modules.getCurrentVideoID(url))
-            indexRecommendVideoHistory.setItem(title, [tid, url])
-          }
-        })
-      }
+      if (++vars.setIndexRecordRecommendVideoHistoryArrayCount !== 1) return
+      const indexRecommendVideoHistory = localforage.createInstance({
+        name: 'indexRecommendVideoHistory',
+      })
+      await elmGetter.each(selectors.indexRecommendVideoSix, document.body, async video => {
+        const url = video.querySelector('a').href
+        const title = video.querySelector('h3').title
+        if (window.location.host.includes('bilibili.com') && !url.includes('cm.bilibili.com')) {
+          const { data: { tid } } = await biliApis.getVideoInformation(modules.getCurrentVideoID(url))
+          indexRecommendVideoHistory.setItem(title, [tid, url])
+        }
+      })
+
     },
     // #endregion 将推荐视频写入本地
     /**
@@ -2387,26 +2386,26 @@
      * 提前执行其他脚本功能所依赖的其他函数
      */
     thePrepFunction() {
-      if (++vars.thePrepFunctionRunningCount === 1) {
-        utils.initValue()
-        utils.clearAllTimersWhenCloseTab()
-        modules.registerMenuCommand()
-        utils.insertStyleToDocument('BilibiliAdjustmentStyle', styles.BilibiliAdjustment)
-        biliApis.autoSignIn()
-        if (window.location.href === 'https://www.bilibili.com/') {
-          utils.insertStyleToDocument('IndexAdjustmentStyle', styles.IndexAdjustment)
-        }
-        if (regexps.video.test(window.location.href)) {
-          utils.insertStyleToDocument('BodyHiddenStyle', styles.BodyHidden)
-          utils.insertStyleToDocument('VideoPageAdjustmentStyle', styles.VideoPageAdjustment)
-          utils.insertStyleToDocument('FreezeHeaderAndVideoTitleStyle', styles.FreezeHeaderAndVideoTitle)
-          utils.insertStyleToDocument('VideoSettingStyle', styles.VideoSetting)
-          modules.observerPlayerDataScreenChanges()
-        }
-        if (regexps.dynamic.test(window.location.href)) {
-          utils.insertStyleToDocument('DynamicSettingStyle', styles.DynamicSetting)
-        }
+      if (++vars.thePrepFunctionRunningCount !== 1) return
+      utils.initValue()
+      utils.clearAllTimersWhenCloseTab()
+      modules.registerMenuCommand()
+      utils.insertStyleToDocument('BilibiliAdjustmentStyle', styles.BilibiliAdjustment)
+      biliApis.autoSignIn()
+      if (window.location.href === 'https://www.bilibili.com/') {
+        utils.insertStyleToDocument('IndexAdjustmentStyle', styles.IndexAdjustment)
       }
+      if (regexps.video.test(window.location.href)) {
+        utils.insertStyleToDocument('BodyHiddenStyle', styles.BodyHidden)
+        utils.insertStyleToDocument('VideoPageAdjustmentStyle', styles.VideoPageAdjustment)
+        utils.insertStyleToDocument('FreezeHeaderAndVideoTitleStyle', styles.FreezeHeaderAndVideoTitle)
+        utils.insertStyleToDocument('VideoSettingStyle', styles.VideoSetting)
+        modules.observerPlayerDataScreenChanges()
+      }
+      if (regexps.dynamic.test(window.location.href)) {
+        utils.insertStyleToDocument('DynamicSettingStyle', styles.DynamicSetting)
+      }
+
     },
     // #endregion 前期准备函数
     /**
@@ -2414,58 +2413,58 @@
      * - #region 执行主函数
      */
     async theMainFunction() {
-      if (++vars.theMainFunctionRunningCount === 1) {
-        if (modules.isLogin()) {
-          modules.thePrepFunction()
-          console.log(await biliApis.getUserVideoList(8730238));
-          const timer = setInterval(async () => {
-            const documentHidden = utils.checkDocumentIsHidden()
-            if (!documentHidden) {
-              clearInterval(timer)
-              utils.logger.info('当前标签｜已激活｜开始应用配置')
-              let functionsArray = []
-              if (regexps.video.test(window.location.href)) {
-                functionsArray = [
-                  modules.getCurrentPlayerType,
-                  modules.checkVideoExistence,
-                  modules.checkVideoCanPlayThrough,
-                  modules.autoSelectScreenMode,
-                  modules.webfullScreenModeUnlock,
-                  modules.autoLocationToPlayer,
-                  modules.autoCancelMute,
-                  modules.autoSelectVideoHighestQuality,
-                  modules.clickPlayerAutoLocation,
-                  modules.insertFloatSideNavToolsButton,
-                  modules.clickVideoTimeAutoLocation,
-                  modules.insertVideoDescriptionToComment,
-                  modules.insertSetSkipTimeNodesButton,
-                  modules.insertSkipTimeNodesSwitchButton,
-                  modules.autoSkipTimeNodes,
-                ]
-              }
-              if (regexps.dynamic.test(window.location.href)) {
-                functionsArray = [
-                  modules.changeCurrentUrlToVideoSubmissions
-                ]
-              }
-              if (window.location.href === 'https://www.bilibili.com/') {
-                functionsArray = [
-                  modules.insertIndexRecommendVideoHistoryOpenButton,
-                  modules.setIndexRecordRecommendVideoHistory,
-                  modules.getIndexRecordRecommendVideoHistory,
-                  modules.generatorVideoCategories
-                ]
-              }
-              utils.addEventListenerToElement()
-              utils.executeFunctionsSequentially(functionsArray)
-            } else {
-              utils.logger.info('当前标签｜未激活｜等待激活')
+      if (++vars.theMainFunctionRunningCount !== 1) return
+      if (modules.isLogin()) {
+        modules.thePrepFunction()
+        console.log(await biliApis.getUserVideoList(8730238));
+        const timer = setInterval(async () => {
+          const documentHidden = utils.checkDocumentIsHidden()
+          if (!documentHidden) {
+            clearInterval(timer)
+            utils.logger.info('当前标签｜已激活｜开始应用配置')
+            let functionsArray = []
+            if (regexps.video.test(window.location.href)) {
+              functionsArray = [
+                modules.getCurrentPlayerType,
+                modules.checkVideoExistence,
+                modules.checkVideoCanPlayThrough,
+                modules.autoSelectScreenMode,
+                modules.webfullScreenModeUnlock,
+                modules.autoLocationToPlayer,
+                modules.autoCancelMute,
+                modules.autoSelectVideoHighestQuality,
+                modules.clickPlayerAutoLocation,
+                modules.insertFloatSideNavToolsButton,
+                modules.clickVideoTimeAutoLocation,
+                modules.insertVideoDescriptionToComment,
+                modules.insertSetSkipTimeNodesButton,
+                modules.insertSkipTimeNodesSwitchButton,
+                modules.autoSkipTimeNodes,
+              ]
             }
-          }, 100)
-          arrays.intervalIds.push(timer)
-        }
-        else utils.logger.warn('请登录｜本脚本只能在登录状态下使用')
+            if (regexps.dynamic.test(window.location.href)) {
+              functionsArray = [
+                modules.changeCurrentUrlToVideoSubmissions
+              ]
+            }
+            if (window.location.href === 'https://www.bilibili.com/') {
+              functionsArray = [
+                modules.insertIndexRecommendVideoHistoryOpenButton,
+                modules.setIndexRecordRecommendVideoHistory,
+                modules.getIndexRecordRecommendVideoHistory,
+                modules.generatorVideoCategories
+              ]
+            }
+            utils.addEventListenerToElement()
+            utils.executeFunctionsSequentially(functionsArray)
+          } else {
+            utils.logger.info('当前标签｜未激活｜等待激活')
+          }
+        }, 100)
+        arrays.intervalIds.push(timer)
       }
+      else utils.logger.warn('请登录｜本脚本只能在登录状态下使用')
+
     }
     // #endregion 执行主函数
     // #endregion 脚本最终执行函数
