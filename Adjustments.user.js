@@ -741,7 +741,8 @@
       else if (code === -404) utils.logger.info("获取视频基本信息丨无视频")
       else if (code === 62002) utils.logger.info("获取视频基本信息丨稿件不可见")
       else if (code === 62004) utils.logger.info("获取视频基本信息丨稿件审核中")
-      else utils.logger.warn("获取视频基本信息丨请求失败")
+      else if (code === 'ERR_BAD_REQUEST') utils.logger.info("获取视频基本信息丨请求失败")
+      else utils.logger.warn("获取视频基本信息丨请求错误")
     },
     // #endregion 获取视频基本信息
     /**
@@ -758,6 +759,7 @@
       else if (code === -400) utils.logger.info("获取用户基本信息丨请求错误")
       else if (code === -403) utils.logger.info("获取用户基本信息丨权限不足")
       else if (code === -404) utils.logger.info("获取用户基本信息丨用户不存在")
+      else if (code === 'ERR_BAD_REQUEST') utils.logger.info("获取用户基本信息丨请求失败")
       else utils.logger.warn("获取用户基本信息丨请求失败")
     },
     // #endregion 获取用户基本信息
@@ -2416,7 +2418,6 @@
       if (++vars.theMainFunctionRunningCount !== 1) return
       if (modules.isLogin()) {
         modules.thePrepFunction()
-        console.log(await biliApis.getUserVideoList(8730238));
         const timer = setInterval(async () => {
           const documentHidden = utils.checkDocumentIsHidden()
           if (!documentHidden) {
