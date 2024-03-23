@@ -733,8 +733,7 @@
      */
     async getVideoInformation(videoId) {
       const url = `https://api.bilibili.com/x/web-interface/view?bvid=${videoId}`
-      const { data } = await axios.get(url, { withCredentials: true })
-      const code = data.code
+      const { data, data: { code } } = await axios.get(url, { withCredentials: true })
       if (code === 0) return data
       else if (code === -400) utils.logger.info("获取视频基本信息丨请求错误")
       else if (code === -403) utils.logger.info("获取视频基本信息丨权限不足")
@@ -753,8 +752,7 @@
      */
     async getUserInformation(userId) {
       const url = `https://api.bilibili.com/x/web-interface/card?mid=${userId}`
-      const { data } = await axios.get(url, { withCredentials: true })
-      const code = data.code
+      const { data, data: { code } } = await axios.get(url, { withCredentials: true })
       if (code === 0) return data
       else if (code === -400) utils.logger.info("获取用户基本信息丨请求错误")
       else if (code === -403) utils.logger.info("获取用户基本信息丨权限不足")
@@ -808,8 +806,7 @@
     async getUserVideoList(userId) {
       const wib = await biliApis.getQueryWithWbi({ mid: userId })
       const url = `https://api.bilibili.com/x/space/wbi/arc/search?${wib}`
-      const { data } = await axios.get(url, { withCredentials: true })
-      const code = data.code
+      const { data, data: { code } } = await axios.get(url, { withCredentials: true })
       if (code === 0) return data
       else if (code === -400) {
         utils.logger.info("获取用户投稿视频列表丨权限不足")
