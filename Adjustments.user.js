@@ -175,6 +175,7 @@
     AutoReload: '#Auto-Reload',
     AutoSkip: '#Auto-Skip',
     InsertVideoDescriptionToComment: '#Insert-Video-Description-To-Comment',
+    notChargeHighLevelCover: '.not-charge-high-level-cover'
   }
   const vals = {
     is_vip: () => { return utils.getValue('is_vip') },
@@ -966,6 +967,14 @@
       }
     },
     // #endregion 视频未开始播放时显示视频封面
+    /**
+     * 判断当前视频是否未充电
+     * - #region 判断当前视频是否未充电
+     */
+    checkVideoNoCharge() {
+      return document.querySelector(selectors.notChargeHighLevelCover)
+    },
+    // #endregion 判断当前视频是否未充电
     // #region 自动选择播放器默认模式
     /**
      * 执行自动切换屏幕模式
@@ -975,6 +984,7 @@
      * - 功能开启，执行切换函数
      */
     async autoSelectScreenMode() {
+      if (modules.checkVideoNoCharge()) return
       if (++vars.autoSelectScreenModeRunningCount !== 1) return
       if (vals.selected_screen_mode() === 'close') return { message: '屏幕模式｜功能已关闭' }
       const currentScreenMode = await modules.getCurrentScreenMode()
@@ -1203,6 +1213,7 @@
      * - 16->360P 流畅；0->自动
      */
     async autoSelectVideoHighestQuality() {
+      if (modules.checkVideoNoCharge()) return
       if (++vars.autoSelectVideoHighestQualityRunningCount !== 1) return
       let message
       const qualitySwitchButtonsMap = new Map()
