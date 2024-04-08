@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.30
+// @version           0.1.31
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -154,7 +154,6 @@
     dynamicSettingSaveButton: '#dynamicSettingSaveButton',
     dynamicSettingPopoverTips: '#dynamicSettingPopoverTips',
     dynamicHeaderContainer: '#bili-header-container',
-    videoUpdateDifferenceTips: '#videoUpdateDifferenceTips',
     videoSettingPopover: '#videoSettingPopover',
     videoSettingSaveButton: '#videoSettingSaveButton',
     AutoSkipSwitchInput: '#Auto-Skip-Switch',
@@ -175,7 +174,7 @@
     WebfullUnlock: '#Webfull-Unlock',
     AutoReload: '#Auto-Reload',
     AutoSkip: '#Auto-Skip',
-    InsertVideoDescriptionToComment: '#Insert-Video-Description-To-Comment'
+    InsertVideoDescriptionToComment: '#Insert-Video-Description-To-Comment',
   }
   const vals = {
     is_vip: () => { return utils.getValue('is_vip') },
@@ -210,7 +209,8 @@
     UnlockWebscreen: 'body.webscreen-fix{padding-top:BODYHEIGHT;position:unset}#bilibili-player.mode-webscreen{height:BODYHEIGHT;position:absolute}#playerWrap{display:none}#danmukuBox{margin-top:0}',
     FreezeHeaderAndVideoTitle: '#biliMainHeader{height:64px!important}#viewbox_report{height:108px!important;padding-top:22px!important}.members-info-container{height:86px!important;overflow:hidden!important;padding-top:11px!important}.membersinfo-wide .header{display:none!important}',
     DynamicSetting: '#dynamicSettingPopoverTitle{margin-bottom:15px;text-align:center;font-weight:700;font-size:21px}#dynamicSettingPopover #dynamicSettingPopoverTips{margin-top:5px}',
-    VideoSetting: '#videoSettingPopover{width:550px;max-height:90vh}#Top-Offset{flex-grow:.5}'
+    VideoSetting: '#videoSettingPopover{width:550px;max-height:90vh}#Top-Offset{flex-grow:.5}',
+    UnlockEpisodeSelector: '.bpx-player-control-bottom-right .bpx-player-ctrl-btn.bpx-player-ctrl-eplist{visibility:visible!important;width:36px!important}'
   }
   const regexps = {
     // 如果使用全局检索符(g)，则在多次使用 RegExp.prototype.test() 时会导致脚本执行失败，
@@ -417,9 +417,7 @@
     reloadCurrentTab(...args) {
       if (args && args[0] === true) {
         location.reload()
-      } else {
-        if (vals.auto_reload()) location.reload()
-      }
+      } else if (vals.auto_reload()) location.reload()
     },
     // #endregion 刷新当前页面
     /**
@@ -559,8 +557,11 @@
      * @param {Array} elementsArray 元素数组
      */
     checkElementExistence(elementsArray) {
-      if (Array.isArray(elementsArray)) return elementsArray.map(element => Boolean(element))
-      else return Boolean(elementsArray)
+      if (Array.isArray(elementsArray)) {
+        return elementsArray.map(element => Boolean(element))
+      } else {
+        return [Boolean(elementsArray)]
+      }
     },
     // #endregion 检查元素数组中元素是否存在
     /**
@@ -851,7 +852,7 @@
      * - #region 判断用户是否登录
      */
     isLogin() {
-      return Boolean(document.cookie.replace(new RegExp(String.raw`(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$`), '$1') || window.UserStatus.userInfo.isLogin || null)
+      return Boolean(document.cookie.replace(/(?:(?:^|.*;\s*)bili_jct\s*=\s*([^;]*).*$)|^.*$/, '$1') || window.UserStatus.userInfo.isLogin || null)
     },
     // #endregion 判断用户是否登录
     /**
@@ -1106,17 +1107,17 @@
       const videoClientTop = Math.trunc($video.getBoundingClientRect().top)
       const playerOffsetTop = vals.player_type() === 'video' ? vals.video_player_offset_top() : vals.bangumi_player_offset_top()
       // 成功条件：实际偏移量与用户设置偏移量相等/期望文档滚动偏移量与当前文档滚动偏移量相等/实际偏移量与用户设置偏移量误差小于5
-      const success = (videoClientTop === vals.offset_top()) || ((playerOffsetTop - vals.offset_top()) - Math.trunc(window.pageYOffset) === 0) || (Math.abs(videoClientTop - vals.offset_top()) < 5)
+      const success = (videoClientTop === vals.offset_top()) || ((playerOffsetTop - vals.offset_top()) - Math.trunc(window.scrollY) === 0) || (Math.abs(videoClientTop - vals.offset_top()) < 5)
       if (success) return success
       else {
         if (++vars.autoLocationToPlayerRetryDepths === 10) return false
-        // utils.logger.debug(`${videoOffsetTop} ${videoClientTop} ${vals.offset_top()} ${Math.abs((videoOffsetTop - vals.offset_top()) - Math.trunc(window.pageYOffset))}`)
+        // utils.logger.debug(`${videoOffsetTop} ${videoClientTop} ${vals.offset_top()} ${Math.abs((videoOffsetTop - vals.offset_top()) - Math.trunc(window.scrollY))}`)
         utils.logger.warn(`
                     自动定位失败，继续尝试
                     -----------------
                     期望文档滚动偏移量：${playerOffsetTop - vals.offset_top()}
-                    当前文档滚动偏移量：${Math.trunc(window.pageYOffset)}
-                    文档滚动偏移量误差：${(playerOffsetTop - vals.offset_top()) - Math.trunc(window.pageYOffset)}
+                    当前文档滚动偏移量：${Math.trunc(window.scrollY)}
+                    文档滚动偏移量误差：${(playerOffsetTop - vals.offset_top()) - Math.trunc(window.scrollY)}
                     播放器顶部偏移量：${videoClientTop}
                     设置偏移量：${vals.offset_top()}`)
         utils.documentScrollTo(0)
@@ -1727,8 +1728,8 @@
       const $setSkipTimeNodesButtonTip = utils.createElementAndInsert(setSkipTimeNodesButtonTipHtml, $playerTooltipArea, 'append')
       $setSkipTimeNodesPopoverToggleButton.addEventListener('mouseover', function () {
         const { top, left } = utils.getElementOffsetToDocument(this)
-        // utils.logger.debug(`${top} ${left} ${window.pageYOffset} ${top - window.pageYOffset}`)
-        $setSkipTimeNodesButtonTip.style.top = `${top - window.pageYOffset - (this.clientHeight * 2) - 5}px`
+        // utils.logger.debug(`${top} ${left} ${window.scrollY} ${top - window.scrollY}`)
+        $setSkipTimeNodesButtonTip.style.top = `${top - window.scrollY - (this.clientHeight * 2) - 5}px`
         $setSkipTimeNodesButtonTip.style.left = `${left - ($setSkipTimeNodesButtonTip.clientWidth / 2) + (this.clientWidth / 2)}px`
         $setSkipTimeNodesButtonTip.style.opacity = 1
         $setSkipTimeNodesButtonTip.style.visibility = 'visible'
@@ -1873,7 +1874,7 @@
       })
       $skipTimeNodesSwitchButton.addEventListener('mouseover', async function () {
         const { top, left } = utils.getElementOffsetToDocument(this)
-        $autoSkipTips.style.top = `${top - window.pageYOffset - (this.clientHeight) - 12}px`
+        $autoSkipTips.style.top = `${top - window.scrollY - (this.clientHeight) - 12}px`
         $autoSkipTips.style.left = `${left - ($autoSkipTips.clientWidth / 2) + (this.clientWidth / 2)}px`
         $autoSkipTips.style.opacity = 1
         $autoSkipTips.style.visibility = 'visible'
@@ -1941,6 +1942,18 @@
       }
     },
     // #endregion 点击相关视频自动返回播放器并更新评论区简介
+    /**
+    * 解锁合集/选集视频集数选择按钮
+    * - #region 解锁合集/选集视频集数选择按钮
+    */
+    async unlockEpisodeSelector() {
+      const videoInfo = await biliApis.getVideoInformation(modules.getCurrentVideoID(window.location.href))
+      const { pages = false, ugc_season = false } = videoInfo.data
+      if (ugc_season || pages.length > 1) {
+        if (!document.getElementById('UnlockEpisodeSelectorStyle')) utils.insertStyleToDocument('UnlockEpisodeSelectorStyle', styles.UnlockEpisodeSelector)
+      } else if (document.getElementById('UnlockEpisodeSelectorStyle')) document.getElementById('UnlockEpisodeSelectorStyle').remove()
+    },
+    // #endregion 解锁合集/选集视频集数选择按钮
     // #endregion 视频播放页相关功能
     //** ----------------------- 动态页相关功能 ----------------------- **//
     // #region 动态页相关功能
@@ -1971,14 +1984,6 @@
       }
     },
     // #endregion 默认显示投稿视频
-    /**
-     * 插入距离上次更新时间提示
-     * - #region 插入距离上次更新时间提示
-     */
-    insertVideoUpdateDifferenceTips() {
-      const videoUpdateDifferenceTips = `<span id="${selectors.videoUpdateDifferenceTips.slice(1)}" class="bili-dyn-time fs-small">距离上次更新已过:${days}天</span>`
-    },
-    // #endregion 插入距离上次更新时间提示
     // #endregion 动态页相关功能
     //** ----------------------- 首页相关功能 ----------------------- **//
     // #region 首页相关功能
@@ -2438,6 +2443,7 @@
                 modules.insertSetSkipTimeNodesButton,
                 modules.insertSkipTimeNodesSwitchButton,
                 modules.autoSkipTimeNodes,
+                modules.unlockEpisodeSelector
               ]
             }
             if (regexps.dynamic.test(window.location.href)) {
