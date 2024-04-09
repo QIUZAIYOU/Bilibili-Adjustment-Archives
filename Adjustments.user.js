@@ -156,6 +156,7 @@
     dynamicHeaderContainer: '#bili-header-container',
     videoSettingPopover: '#videoSettingPopover',
     videoSettingSaveButton: '#videoSettingSaveButton',
+    notChargeHighLevelCover: '.not-charge-high-level-cover',
     AutoSkipSwitchInput: '#Auto-Skip-Switch',
     WebVideoLinkInput: '#Web-Video-Link',
     IsVip: '#Is-Vip',
@@ -175,7 +176,7 @@
     AutoReload: '#Auto-Reload',
     AutoSkip: '#Auto-Skip',
     InsertVideoDescriptionToComment: '#Insert-Video-Description-To-Comment',
-    notChargeHighLevelCover: '.not-charge-high-level-cover'
+   
   }
   const vals = {
     is_vip: () => { return utils.getValue('is_vip') },
