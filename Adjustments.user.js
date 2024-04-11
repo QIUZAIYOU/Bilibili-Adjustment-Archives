@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 - 纯原生JS版
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.31
+// @version           0.1.32
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -176,7 +176,8 @@
     AutoReload: '#Auto-Reload',
     AutoSkip: '#Auto-Skip',
     InsertVideoDescriptionToComment: '#Insert-Video-Description-To-Comment',
-   
+    PauseVideo: '#PauseVideo',
+    ContinuePlay: '#ContinuePlay',
   }
   const vals = {
     is_vip: () => { return utils.getValue('is_vip') },
@@ -201,6 +202,8 @@
     web_video_link: () => { return utils.getValue('web_video_link') },
     signIn_date: () => { return utils.getValue('signIn_date') },
     dev_checkScreenModeSwitchSuccess_method: () => { return utils.getValue('dev_checkScreenModeSwitchSuccess_method') },
+    pause_video: () => { return utils.getValue('pause_video') },
+    continue_play: () => { return utils.getValue('continue_play') },
   }
   const styles = {
     BilibiliAdjustment: '.adjustment_popover{position:fixed;top:50%;left:50%;box-sizing:border-box;margin:0;padding:20px;width:400px;max-height:70vh;border:none;border-radius:6px;font-size:1em;transform:translate(-50%,-50%);overscroll-behavior:contain}.adjustment_popover::backdrop{backdrop-filter:blur(3px)}.adjustment_popoverTitle{margin-bottom:15px;padding-bottom:20px;border-bottom:1px solid #dcdfe6;text-align:center;font-weight:700;font-size:22px}.adjustment_buttonGroup{display:flex;margin-top:10px;align-items:center;justify-content:end;gap:10px}.adjustment_button{display:inline-block;box-sizing:border-box;margin:0;padding:10px 20px;outline:0;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;text-align:center;white-space:nowrap;font-weight:500;font-size:14px;line-height:1;cursor:pointer;transition:.1s;-webkit-appearance:none;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none}.adjustment_button.plain:disabled,.adjustment_button.plain:disabled:active,.adjustment_button.plain:disabled:focus,.adjustment_button.plain:disabled:hover,.adjustment_button:disabled,.adjustment_button:disabled:active,.adjustment_button:disabled:focus,.adjustment_button:disabled:hover{border-color:#ebeef5;background-color:#fff;background-image:none;color:#c0c4cc;cursor:not-allowed}.adjustment_button.primary{border-color:#409eff;background-color:#409eff;color:#fff}.adjustment_button.success{border-color:#67c23a;background-color:#67c23a;color:#fff}.adjustment_button.info{border-color:#909399;background-color:#909399;color:#fff}.adjustment_button.warning{border-color:#e6a23c;background-color:#e6a23c;color:#fff}.adjustment_button.danger{border-color:#f56c6c;background-color:#f56c6c;color:#fff}.adjustment_button.primary:focus,.adjustment_button.primary:hover{border-color:#66b1ff;background:#66b1ff;color:#fff}.adjustment_button.success:focus,.adjustment_button.success:hover{border-color:#85ce61;background:#85ce61;color:#fff}.adjustment_button.info:focus,.adjustment_button.info:hover{border-color:#a6a9ad;background:#a6a9ad;color:#fff}.adjustment_button.warning:focus,.adjustment_button.warning:hover{border-color:#ebb563;background:#ebb563;color:#fff}.adjustment_button.danger:focus,.adjustment_button.danger:hover{border-color:#f78989;background:#f78989;color:#fff}.adjustment_button.primary.plain{border-color:#b3d8ff;background:#ecf5ff;color:#409eff}.adjustment_button.success.plain{border-color:#c2e7b0;background:#f0f9eb;color:#67c23a}.adjustment_button.info.plain{border-color:#a6a9ad;background:#a6a9ad;color:#fff}.adjustment_button.warning.plain{border-color:#f5dab1;background:#fdf6ec;color:#e6a23c}.adjustment_button.danger.plain{border-color:#fbc4c4;background:#fef0f0;color:#f56c6c}.adjustment_button.primary.plain:focus,.adjustment_button.primary.plain:hover{border-color:#409eff;background:#409eff;color:#fff}.adjustment_button.success.plain:focus,.adjustment_button.success.plain:hover{border-color:#67c23a;background-color:#67c23a;color:#fff}.adjustment_button.info.plain:focus,.adjustment_button.info.plain:hover{border-color:#909399;background-color:#909399;color:#fff}.adjustment_button.warning.plain:focus,.adjustment_button.warning.plain:hover{border-color:#e6a23c;background-color:#e6a23c;color:#fff}.adjustment_button.danger.plain:focus,.adjustment_button.danger.plain:hover{border-color:#f56c6c;background-color:#f56c6c;color:#fff}.adjustment_button.primary:disabled,.adjustment_button.primary:disabled:active,.adjustment_button.primary:disabled:focus,.adjustment_button.primary:disabled:hover{border-color:#a0cfff;background-color:#a0cfff;color:#fff}.adjustment_button.success:disabled,.adjustment_button.success:disabled:active,.adjustment_button.success:disabled:focus,.adjustment_button.success:disabled:hover{border-color:#b3e19d;background-color:#b3e19d;color:#fff}.adjustment_button.info:disabled,.adjustment_button.info:disabled:active,.adjustment_button.info:disabled:focus,.adjustment_button.info:disabled:hover{border-color:#c8c9cc;background-color:#c8c9cc;color:#fff}.adjustment_button.warning:disabled,.adjustment_button.warning:disabled:active,.adjustment_button.warning:disabled:focus,.adjustment_button.warning:disabled:hover{border-color:#f3d19e;background-color:#f3d19e;color:#fff}.adjustment_button.danger:disabled,.adjustment_button.danger:disabled:active,.adjustment_button.danger:disabled:focus,.adjustment_button.danger:disabled:hover{border-color:#fab6b6;background-color:#fab6b6;color:#fff}.adjustment_button.primary.plain:disabled,.adjustment_button.primary.plain:disabled:active,.adjustment_button.primary.plain:disabled:focus,.adjustment_button.primary.plain:disabled:hover{border-color:#d9ecff;background-color:#ecf5ff;color:#8cc5ff}.adjustment_button.success.plain:disabled,.adjustment_button.success.plain:disabled:active,.adjustment_button.success.plain:disabled:focus,.adjustment_button.success.plain:disabled:hover{border-color:#e1f3d8;background-color:#f0f9eb;color:#a4da89}.adjustment_button.info.plain:disabled,.adjustment_button.info.plain:disabled:active,.adjustment_button.info.plain:disabled:focus,.adjustment_button.info.plain:disabled:hover{border-color:#e9e9eb;background-color:#f4f4f5;color:#bcbec2}.adjustment_button.warning.plain:disabled,.adjustment_button.warning.plain:disabled:active,.adjustment_button.warning.plain:disabled:focus,.adjustment_button.warning.plain:disabled:hover{border-color:#faecd8;background-color:#fdf6ec;color:#f0c78a}.adjustment_button.danger.plain:disabled,.adjustment_button.danger.plain:disabled:active,.adjustment_button.danger.plain:disabled:focus,.adjustment_button.danger.plain:disabled:hover{border-color:#fde2e2;background-color:#fef0f0;color:#f9a7a7}.adjustment_tips{display:inline-block;box-sizing:border-box;padding:3px 5px;height:fit-content;border:1px solid #d9ecff;border-radius:4px;background-color:#ecf5ff;color:#409eff;font-size:14px;line-height:1.5}.adjustment_tips.info{border-color:#e9e9eb;background-color:#f4f4f5;color:#909399}.adjustment_tips.success{border-color:#e1f3d8;background-color:#f0f9eb;color:#67c23a}.adjustment_tips.warning{border-color:#faecd8;background-color:#fdf6ec;color:#e6a23c}.adjustment_tips.danger{border-color:#fde2e2;background-color:#fef0f0;color:#f56c6c}.adjustment_form,.adjustment_form_item{display:flex;flex-direction:column}.adjustment_form{gap:5px}.adjustment_form_item{gap:5px}.adjustment_checkbox,.adjustment_form_item_content{display:flex;align-items:center;justify-content:space-between}.adjustment_form_item label{font-size:18px}.adjustment_checkboxGroup{display:flex;align-items:center;justify-content:flex-start;gap:10px}.adjustment_checkbox{font-size:16px;gap:3px}.adjustment_input{display:inline-flex;padding:1px 11px;outline:0;border:1px solid #dcdfe6;border-radius:6px;background:#f5f5f5;line-height:32px;cursor:text;flex-grow:1;align-items:center;justify-content:center}',
@@ -298,7 +301,14 @@
       }, {
         name: 'dev_checkScreenModeSwitchSuccess_method',
         value: 'interval'
-      }]
+      }, {
+        name: 'pause_video',
+        value: false
+      }, {
+        name: 'continue_play',
+        value: false
+      },
+      ]
       value.forEach(v => {
         if (utils.getValue(v.name) === undefined) {
           utils.setValue(v.name, v.value)
@@ -1966,6 +1976,27 @@
       } else if (document.getElementById('UnlockEpisodeSelectorStyle')) document.getElementById('UnlockEpisodeSelectorStyle').remove()
     },
     // #endregion 解锁合集/选集视频集数选择按钮
+    /**
+    * 离开当前页面暂停视频
+    * - #region 离开当前页面暂停视频
+    */
+    async pauseVideoWhenLeavingCurrentPage() {
+      const $video = await utils.getElementAndCheckExistence(selectors.video)
+      let playFlag = false
+      const timer = setInterval(async () => {
+        const documentHidden = utils.checkDocumentIsHidden()
+        if (documentHidden) {
+          $video.pause()
+          playFlag = true
+        }
+        else if (vals.continue_play() && playFlag) {
+          $video.play()
+          playFlag = false
+        }
+      }, 100)
+      arrays.intervalIds.push(timer)
+    },
+    // #endregion 离开当前页面暂停视频
     // #endregion 视频播放页相关功能
     //** ----------------------- 动态页相关功能 ----------------------- **//
     // #region 动态页相关功能
@@ -2316,6 +2347,18 @@
               </div>
               <div class="adjustment_form_item">
                 <div class="adjustment_form_item_content">
+                  <label>离开页面自动暂停视频</label>
+                  <input type="checkbox" id="${selectors.PauseVideo.slice(1)}" ${vals.pause_video() ? 'checked' : ''} class="adjustment_checkbox">
+                </div>
+                <div class="adjustment_checkboxGroup">
+                  <div class="adjustment_checkbox continuePlay" style="display:${vals.is_vip() ? 'flex' : 'none'}">
+                    <span>返回页面恢复播放</span>
+                    <input type="checkbox" id="${selectors.ContinuePlay.slice(1)}" ${vals.continue_play() ? 'checked' : ''} class="adjustment_checkbox">
+                  </div>
+                </div>
+              </div>
+              <div class="adjustment_form_item">
+                <div class="adjustment_form_item_content">
                   <label>自动刷新</label>
                   <input type="checkbox" id="${selectors.AutoReload.slice(1)}" ${vals.auto_reload() ? 'checked' : ''} class="adjustment_checkbox">
                 </div>
@@ -2333,7 +2376,7 @@
           $videoSettingPopover.showPopover()
         })
         const $app = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.app) : await utils.getElementAndCheckExistence(selectors.bangumiApp)
-        const [$IsVip, $AutoLocate, $AutoLocateVideo, $AutoLocateBangumi, $TopOffset, $ClickPlayerAutoLocation, $AutoQuality, $Quality4K, $Quality8K, $Checkbox4K, $Checkbox8K, $WebfullUnlock, $AutoReload, $videoSettingSaveButton, $AutoSkip, $InsertVideoDescriptionToComment] = await utils.getElementAndCheckExistence([selectors.IsVip, selectors.AutoLocate, selectors.AutoLocateVideo, selectors.AutoLocateBangumi, selectors.TopOffset, selectors.ClickPlayerAutoLocation, selectors.AutoQuality, selectors.Quality4K, selectors.Quality8K, selectors.Checkbox4K, selectors.Checkbox8K, selectors.WebfullUnlock, selectors.AutoReload, selectors.videoSettingSaveButton, selectors.AutoSkip, selectors.InsertVideoDescriptionToComment])
+        const [$IsVip, $AutoLocate, $AutoLocateVideo, $AutoLocateBangumi, $TopOffset, $ClickPlayerAutoLocation, $AutoQuality, $Quality4K, $Quality8K, $Checkbox4K, $Checkbox8K, $WebfullUnlock, $AutoReload, $videoSettingSaveButton, $AutoSkip, $InsertVideoDescriptionToComment, $PauseVideo, $ContinuePlay] = await utils.getElementAndCheckExistence([selectors.IsVip, selectors.AutoLocate, selectors.AutoLocateVideo, selectors.AutoLocateBangumi, selectors.TopOffset, selectors.ClickPlayerAutoLocation, selectors.AutoQuality, selectors.Quality4K, selectors.Quality8K, selectors.Checkbox4K, selectors.Checkbox8K, selectors.WebfullUnlock, selectors.AutoReload, selectors.videoSettingSaveButton, selectors.AutoSkip, selectors.InsertVideoDescriptionToComment, selectors.PauseVideo, selectors.ContinuePlay])
         $videoSettingPopover.addEventListener('toggle', event => {
           if (event.newState === 'open') {
             // document.querySelector('*:not(#videoSettingPopover *)').style.pointerEvents = 'none'
@@ -2380,6 +2423,12 @@
         })
         $AutoSkip.addEventListener('change', event => {
           utils.setValue('auto_skip', event.target.checked)
+        })
+        $PauseVideo.addEventListener('change', event => {
+          utils.setValue('pause_video', event.target.checked)
+        })
+        $ContinuePlay.addEventListener('change', event => {
+          utils.setValue('continue_play', event.target.checked)
         })
         $AutoReload.addEventListener('change', event => {
           utils.setValue('auto_reload', event.target.checked)
@@ -2438,30 +2487,33 @@
             clearInterval(timer)
             utils.logger.info('当前标签｜已激活｜开始应用配置')
             let functionsArray = []
-            if (regexps.video.test(window.location.href)) {
-              functionsArray = [
-                modules.getCurrentPlayerType,
-                modules.checkVideoExistence,
-                modules.checkVideoCanPlayThrough,
-                modules.autoSelectScreenMode,
-                modules.webfullScreenModeUnlock,
-                modules.autoLocationToPlayer,
-                modules.autoCancelMute,
-                modules.autoSelectVideoHighestQuality,
-                modules.clickPlayerAutoLocation,
-                modules.insertFloatSideNavToolsButton,
-                modules.clickVideoTimeAutoLocation,
-                modules.insertVideoDescriptionToComment,
-                modules.insertSetSkipTimeNodesButton,
-                modules.insertSkipTimeNodesSwitchButton,
-                modules.autoSkipTimeNodes,
-                modules.unlockEpisodeSelector
-              ]
-            }
-            if (regexps.dynamic.test(window.location.href)) {
-              functionsArray = [
-                modules.changeCurrentUrlToVideoSubmissions
-              ]
+            if (regexps.video.test(window.location.href) || regexps.dynamic.test(window.location.href)) {
+              if (regexps.video.test(window.location.href)) {
+                functionsArray = [
+                  modules.getCurrentPlayerType,
+                  modules.checkVideoExistence,
+                  modules.checkVideoCanPlayThrough,
+                  modules.autoSelectScreenMode,
+                  modules.webfullScreenModeUnlock,
+                  modules.autoLocationToPlayer,
+                  modules.autoCancelMute,
+                  modules.autoSelectVideoHighestQuality,
+                  modules.clickPlayerAutoLocation,
+                  modules.insertFloatSideNavToolsButton,
+                  modules.clickVideoTimeAutoLocation,
+                  modules.insertVideoDescriptionToComment,
+                  modules.insertSetSkipTimeNodesButton,
+                  modules.insertSkipTimeNodesSwitchButton,
+                  modules.autoSkipTimeNodes,
+                  modules.unlockEpisodeSelector
+                ]
+              }
+              if (regexps.dynamic.test(window.location.href)) {
+                functionsArray = [
+                  modules.changeCurrentUrlToVideoSubmissions
+                ]
+              }
+              if (vals.pause_video()) functionsArray.push(modules.pauseVideoWhenLeavingCurrentPage)
             }
             if (window.location.href === 'https://www.bilibili.com/') {
               functionsArray = [
