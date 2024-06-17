@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.35
+// @version           0.1.36
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -96,6 +96,7 @@
     videoFloatNav: '.fixed-sidenav-storage',
     videoComment: '#comment',
     videoCommentReplyList: '#comment .reply-list',
+    videoRootReplyContainer: '#comment .root-reply-container',
     videoTime: '.video-time,.video-seek',
     videoDescription: '#v_desc',
     videoDescriptionInfo: '#v_desc .basic-desc-info',
@@ -613,10 +614,10 @@
             modules.getIndexRecordRecommendVideoHistory,
             modules.generatorVideoCategories
           ]
-          setTimeout(()=>{
-              vars.setIndexRecordRecommendVideoHistoryArrayCount = 0
-              utils.executeFunctionsSequentially(functionsArray)
-          },1000)
+          setTimeout(() => {
+            vars.setIndexRecordRecommendVideoHistoryArrayCount = 0
+            utils.executeFunctionsSequentially(functionsArray)
+          }, 1000)
         })
         $clearRecommendVideoHistoryButton.addEventListener('click', () => {
           modules.clearRecommendVideoHistory()
@@ -877,6 +878,25 @@
       return url.startsWith('https://www.bilibili.com/video') ? url.split('/')[4] : url.startsWith('https://www.bilibili.com/bangumi') ? url.split('/')[5].split('?')[0] : 'error'
     },
     // #endregion 获取视频ID
+    /**
+     * 获取Vue版本号
+     * - #region 获取Vue版本号
+     */
+    async getVueScopeId(selector) {
+      const element = await utils.getElementAndCheckExistence(selector)
+      utils.logger.debug(element)
+      return new Promise((resolve, reject) => {
+        let attrsArray = Array.from(element.attributes)
+        let vueScopeAttrs = attrsArray.filter(attr => attr.name.startsWith('data-v-'))
+        vueScopeAttrs.filter(attr => {
+          // 使用字符串分割来提取 'data-v-' 后面的部分  
+          const vueScopeId = attr.name.split('data-v-')[1];
+          resolve(vueScopeId)
+          // utils.logger.debug(vueScopeId) 
+        })
+      })
+    },
+    // #endregion 获取Vue版本号
     // #endregion 通用功能
     //** ----------------------- 视频播放页相关功能 ----------------------- **//
     // #region 视频播放页相关功能
@@ -1384,6 +1404,7 @@
      * - 若视频简介中包含 URL 链接，则将其转换为跳转链接
      * - 若视频简介中包含视频 BV 号或专栏 cv 号，则将其转换为跳转链接
      */
+
     async insertVideoDescriptionToComment() {
       if (!vals.insert_video_description_to_comment() || vals.player_type() === 'bangumi') return
       const $commentDescription = document.getElementById('comment-description')
@@ -1426,11 +1447,13 @@
           return `<a href="https://www.bilibili.com/read/${match}" target="_blank">${match}</a>`
         }).replace(blankRegexp, '')
         const upAvatarDecorationLink = document.querySelector(selectors.upAvatarDecoration) ? document.querySelector(selectors.upAvatarDecoration).dataset.src.replace('@144w_144h_!web-avatar', '@240w_240h_!web-avatar-comment') : ''
+        const vueScopeId = await modules.getVueScopeId(selectors.videoRootReplyContainer)
+        utils.logger.debug(vueScopeId)
         const videoDescriptionReplyTemplate = `
-          <div data-v-eb69efad="" data-v-bad1995c="" id="comment-description" class="reply-item">
-              <div data-v-eb69efad="" class="root-reply-container">
-                  <div data-v-eb69efad="" class="root-reply-avatar" >
-                      <div data-v-eb69efad="" class="avatar">
+          <div data-v-${vueScopeId}="" data-v-bad1995c="" id="comment-description" class="reply-item">
+              <div data-v-${vueScopeId}="" class="root-reply-container">
+                  <div data-v-${vueScopeId}="" class="root-reply-avatar" >
+                      <div data-v-${vueScopeId}="" class="avatar">
                           <div class="bili-avatar" style="width:48px;height:48px">
                               <img class="bili-avatar-img bili-avatar-face bili-avatar-img-radius" data-src="${upAvatarFaceLink}" src="${upAvatarFaceLink}">
                               <div class="bili-avatar-pendent-dom">
@@ -1440,18 +1463,18 @@
                           </div>
                       </div>
                   </div>
-                  <div data-v-eb69efad="" class="content-warp">
-                      <div data-v-eb69efad="" class="user-info">
-                          <div data-v-eb69efad="" class="user-name" style="color:#00a1d6!important">视频简介丨播放页调整</div>
+                  <div data-v-${vueScopeId}="" class="content-warp">
+                      <div data-v-${vueScopeId}="" class="user-info">
+                          <div data-v-${vueScopeId}="" class="user-name" style="color:#00a1d6!important">视频简介丨播放页调整</div>
                       </div>
-                      <div data-v-eb69efad="" class="root-reply">
-                          <span data-v-eb69efad="" class="reply-content-container root-reply">
+                      <div data-v-${vueScopeId}="" class="root-reply">
+                          <span data-v-${vueScopeId}="" class="reply-content-container root-reply">
                               <span class="reply-content">${decodeURIComponent(videoDescriptionInfoHtml)}</span>
                           </span>
                       </div>
                   </div>
               </div>
-              <div data-v-eb69efad="" class="bottom-line"></div>
+              <div data-v-${vueScopeId}="" class="bottom-line"></div>
           </div>`
         utils.createElementAndInsert(videoDescriptionReplyTemplate, $videoCommentReplyList, 'prepend')
         document.querySelector('#comment-description:not(:first-child)')?.remove()
