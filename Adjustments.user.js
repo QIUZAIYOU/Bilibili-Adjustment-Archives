@@ -884,7 +884,7 @@
      */
     async getVueScopeId(selector) {
       const element = await utils.getElementAndCheckExistence(selector)
-      utils.logger.debug(element)
+      // utils.logger.debug(element)
       return new Promise((resolve, reject) => {
         let attrsArray = Array.from(element.attributes)
         let vueScopeAttrs = attrsArray.filter(attr => attr.name.startsWith('data-v-'))
@@ -1448,7 +1448,7 @@
         }).replace(blankRegexp, '')
         const upAvatarDecorationLink = document.querySelector(selectors.upAvatarDecoration) ? document.querySelector(selectors.upAvatarDecoration).dataset.src.replace('@144w_144h_!web-avatar', '@240w_240h_!web-avatar-comment') : ''
         const vueScopeId = await modules.getVueScopeId(selectors.videoRootReplyContainer)
-        utils.logger.debug(vueScopeId)
+        // utils.logger.debug(vueScopeId)
         const videoDescriptionReplyTemplate = `
           <div data-v-${vueScopeId}="" data-v-bad1995c="" id="comment-description" class="reply-item">
               <div data-v-${vueScopeId}="" class="root-reply-container">
