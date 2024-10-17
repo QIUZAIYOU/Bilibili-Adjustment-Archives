@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.37
+// @version           0.1.37.2
 // @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -14,7 +14,7 @@
 // @require           https://cdn.jsdelivr.net/npm/md5@2.3.0/dist/md5.min.js
 // @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
 // @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
-// @require           https://scriptcat.org/lib/513/2.0.0/ElementGetter.js#sha256=KbLWud5OMbbXZHRoU/GLVgvIgeosObRYkDEbE/YanRU=
+// @require           https://scriptcat.org/lib/513/2.0.0/ElementGetter.js
 // @grant             GM_setValue
 // @grant             GM_getValue
 // @grant             GM_addStyle
@@ -37,8 +37,10 @@
     insertGoToCommentButtonCount: 0,
     insertSetSkipTimeNodesButtonCount: 0,
     insertSetSkipTimeNodesSwitchButtonCount: 0,
+    insertAutoEnableSubtitleSwitchButtonCount: 0,
     setIndexRecordRecommendVideoHistoryArrayCount: 0,
     functionExecutionsCount: 0,
+    autoSubtitleRunningCount: 0,
     checkScreenModeSwitchSuccessDepths: 0,
     autoLocationToPlayerRetryDepths: 0,
   }
@@ -102,7 +104,7 @@
     videoDescriptionInfo: '#v_desc .basic-desc-info',
     videoDescriptionText: '#v_desc .desc-info-text',
     videoNextPlayAndRecommendLink: '.video-page-card-small .card-box',
-    videoSectionsEpisodeLink: '.video-sections-content-list .video-episode-card',
+    videoSectionsEpisodeLink: '.video-pod__list .video-pod__item',
     videoMultiPageLink: '#multi_page ul li',
     bangumiApp: '#__next',
     bangumiComment: '#comment_module',
@@ -158,7 +160,9 @@
     videoSettingPopover: '#videoSettingPopover',
     videoSettingSaveButton: '#videoSettingSaveButton',
     notChargeHighLevelCover: '.not-charge-high-level-cover',
+    switchSubtitleButton: '.bpx-player-ctrl-btn.bpx-player-ctrl-subtitle',
     AutoSkipSwitchInput: '#Auto-Skip-Switch',
+    AutoEnableSubtitleSwitchInput: '#Auto-Enable-Subtitle',
     WebVideoLinkInput: '#Web-Video-Link',
     IsVip: '#Is-Vip',
     AutoLocate: '#Auto-Locate',
@@ -179,6 +183,13 @@
     InsertVideoDescriptionToComment: '#Insert-Video-Description-To-Comment',
     PauseVideo: '#PauseVideo',
     ContinuePlay: '#ContinuePlay',
+    AutoSubtitle: '#AutoSubtitle',
+  }
+  const shadowRootSelectors = {
+    videoComments: '#comment bili-comments',
+    videoComment: '#feed > bili-comment-thread-renderer',
+    biliRichText: '#content > bili-rich-text',
+    videoTime: '#contents > a[data-type="seek"][data-video-time]',
   }
   const vals = {
     is_vip: () => { return utils.getValue('is_vip') },
@@ -205,6 +216,7 @@
     dev_checkScreenModeSwitchSuccess_method: () => { return utils.getValue('dev_checkScreenModeSwitchSuccess_method') },
     pause_video: () => { return utils.getValue('pause_video') },
     continue_play: () => { return utils.getValue('continue_play') },
+    auto_subtitle: () => { return utils.getValue('auto_subtitle') },
   }
   const styles = {
     BilibiliAdjustment: '.adjustment_popover{position:fixed;top:50%;left:50%;box-sizing:border-box;margin:0;padding:20px;width:400px;max-height:70vh;border:none;border-radius:6px;font-size:1em;transform:translate(-50%,-50%);overscroll-behavior:contain}.adjustment_popover::backdrop{backdrop-filter:blur(3px)}.adjustment_popoverTitle{margin-bottom:15px;padding-bottom:20px;border-bottom:1px solid #dcdfe6;text-align:center;font-weight:700;font-size:22px}.adjustment_buttonGroup{display:flex;margin-top:10px;align-items:center;justify-content:end;gap:10px}.adjustment_button{display:inline-block;box-sizing:border-box;margin:0;padding:10px 20px;outline:0;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;text-align:center;white-space:nowrap;font-weight:500;font-size:14px;line-height:1;cursor:pointer;transition:.1s;-webkit-appearance:none;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none}.adjustment_button.plain:disabled,.adjustment_button.plain:disabled:active,.adjustment_button.plain:disabled:focus,.adjustment_button.plain:disabled:hover,.adjustment_button:disabled,.adjustment_button:disabled:active,.adjustment_button:disabled:focus,.adjustment_button:disabled:hover{border-color:#ebeef5;background-color:#fff;background-image:none;color:#c0c4cc;cursor:not-allowed}.adjustment_button.primary{border-color:#409eff;background-color:#409eff;color:#fff}.adjustment_button.success{border-color:#67c23a;background-color:#67c23a;color:#fff}.adjustment_button.info{border-color:#909399;background-color:#909399;color:#fff}.adjustment_button.warning{border-color:#e6a23c;background-color:#e6a23c;color:#fff}.adjustment_button.danger{border-color:#f56c6c;background-color:#f56c6c;color:#fff}.adjustment_button.primary:focus,.adjustment_button.primary:hover{border-color:#66b1ff;background:#66b1ff;color:#fff}.adjustment_button.success:focus,.adjustment_button.success:hover{border-color:#85ce61;background:#85ce61;color:#fff}.adjustment_button.info:focus,.adjustment_button.info:hover{border-color:#a6a9ad;background:#a6a9ad;color:#fff}.adjustment_button.warning:focus,.adjustment_button.warning:hover{border-color:#ebb563;background:#ebb563;color:#fff}.adjustment_button.danger:focus,.adjustment_button.danger:hover{border-color:#f78989;background:#f78989;color:#fff}.adjustment_button.primary.plain{border-color:#b3d8ff;background:#ecf5ff;color:#409eff}.adjustment_button.success.plain{border-color:#c2e7b0;background:#f0f9eb;color:#67c23a}.adjustment_button.info.plain{border-color:#a6a9ad;background:#a6a9ad;color:#fff}.adjustment_button.warning.plain{border-color:#f5dab1;background:#fdf6ec;color:#e6a23c}.adjustment_button.danger.plain{border-color:#fbc4c4;background:#fef0f0;color:#f56c6c}.adjustment_button.primary.plain:focus,.adjustment_button.primary.plain:hover{border-color:#409eff;background:#409eff;color:#fff}.adjustment_button.success.plain:focus,.adjustment_button.success.plain:hover{border-color:#67c23a;background-color:#67c23a;color:#fff}.adjustment_button.info.plain:focus,.adjustment_button.info.plain:hover{border-color:#909399;background-color:#909399;color:#fff}.adjustment_button.warning.plain:focus,.adjustment_button.warning.plain:hover{border-color:#e6a23c;background-color:#e6a23c;color:#fff}.adjustment_button.danger.plain:focus,.adjustment_button.danger.plain:hover{border-color:#f56c6c;background-color:#f56c6c;color:#fff}.adjustment_button.primary:disabled,.adjustment_button.primary:disabled:active,.adjustment_button.primary:disabled:focus,.adjustment_button.primary:disabled:hover{border-color:#a0cfff;background-color:#a0cfff;color:#fff}.adjustment_button.success:disabled,.adjustment_button.success:disabled:active,.adjustment_button.success:disabled:focus,.adjustment_button.success:disabled:hover{border-color:#b3e19d;background-color:#b3e19d;color:#fff}.adjustment_button.info:disabled,.adjustment_button.info:disabled:active,.adjustment_button.info:disabled:focus,.adjustment_button.info:disabled:hover{border-color:#c8c9cc;background-color:#c8c9cc;color:#fff}.adjustment_button.warning:disabled,.adjustment_button.warning:disabled:active,.adjustment_button.warning:disabled:focus,.adjustment_button.warning:disabled:hover{border-color:#f3d19e;background-color:#f3d19e;color:#fff}.adjustment_button.danger:disabled,.adjustment_button.danger:disabled:active,.adjustment_button.danger:disabled:focus,.adjustment_button.danger:disabled:hover{border-color:#fab6b6;background-color:#fab6b6;color:#fff}.adjustment_button.primary.plain:disabled,.adjustment_button.primary.plain:disabled:active,.adjustment_button.primary.plain:disabled:focus,.adjustment_button.primary.plain:disabled:hover{border-color:#d9ecff;background-color:#ecf5ff;color:#8cc5ff}.adjustment_button.success.plain:disabled,.adjustment_button.success.plain:disabled:active,.adjustment_button.success.plain:disabled:focus,.adjustment_button.success.plain:disabled:hover{border-color:#e1f3d8;background-color:#f0f9eb;color:#a4da89}.adjustment_button.info.plain:disabled,.adjustment_button.info.plain:disabled:active,.adjustment_button.info.plain:disabled:focus,.adjustment_button.info.plain:disabled:hover{border-color:#e9e9eb;background-color:#f4f4f5;color:#bcbec2}.adjustment_button.warning.plain:disabled,.adjustment_button.warning.plain:disabled:active,.adjustment_button.warning.plain:disabled:focus,.adjustment_button.warning.plain:disabled:hover{border-color:#faecd8;background-color:#fdf6ec;color:#f0c78a}.adjustment_button.danger.plain:disabled,.adjustment_button.danger.plain:disabled:active,.adjustment_button.danger.plain:disabled:focus,.adjustment_button.danger.plain:disabled:hover{border-color:#fde2e2;background-color:#fef0f0;color:#f9a7a7}.adjustment_tips{display:inline-block;box-sizing:border-box;padding:3px 5px;height:fit-content;border:1px solid #d9ecff;border-radius:4px;background-color:#ecf5ff;color:#409eff;font-size:14px;line-height:1.5}.adjustment_tips.info{border-color:#e9e9eb;background-color:#f4f4f5;color:#909399}.adjustment_tips.success{border-color:#e1f3d8;background-color:#f0f9eb;color:#67c23a}.adjustment_tips.warning{border-color:#faecd8;background-color:#fdf6ec;color:#e6a23c}.adjustment_tips.danger{border-color:#fde2e2;background-color:#fef0f0;color:#f56c6c}.adjustment_form,.adjustment_form_item{display:flex;flex-direction:column}.adjustment_form{gap:5px}.adjustment_form_item{gap:5px}.adjustment_checkbox,.adjustment_form_item_content{display:flex;align-items:center;justify-content:space-between}.adjustment_form_item label{font-size:18px}.adjustment_checkboxGroup{display:flex;align-items:center;justify-content:flex-start;gap:10px}.adjustment_checkbox{font-size:16px;gap:3px}.adjustment_input{display:inline-flex;padding:1px 11px;outline:0;border:1px solid #dcdfe6;border-radius:6px;background:#f5f5f5;line-height:32px;cursor:text;flex-grow:1;align-items:center;justify-content:center}',
@@ -307,6 +319,9 @@
         value: false
       }, {
         name: 'continue_play',
+        value: false
+      }, {
+        name: 'auto_subtitle',
         value: false
       },
       ]
@@ -626,17 +641,17 @@
       if (regexps.video.test(window.location.href)) {
         if (window.onurlchange === null) {
           window.addEventListener('urlchange', () => {
-            modules.locationToPlayer()
-            modules.insertVideoDescriptionToComment()
+            modules.functionsNeedToExecuteWhenUrlHasChanged()
             // utils.logger.debug('URL改变了！')
           })
         } else {
           modules.clickRelatedVideoAutoLocation()
         }
         window.addEventListener("popstate", () => {
-          modules.autoLocationAndInsertVideoDescriptionToComment()
+          // utils.logger.debug('URL改变了！！')
+          modules.functionsNeedToExecuteWhenUrlHasChanged()
         })
-        const [$playerContainer, $AutoSkipSwitchInput] = await utils.getElementAndCheckExistence([selectors.playerContainer, selectors.AutoSkipSwitchInput])
+        const [$playerContainer, $AutoSkipSwitchInput, $AutoEnableSubtitleSwitchInput] = await utils.getElementAndCheckExistence([selectors.playerContainer, selectors.AutoSkipSwitchInput, selectors.AutoEnableSubtitleSwitchInput])
         $playerContainer.addEventListener('fullscreenchange', (event) => {
           let isFullscreen = document.fullscreenElement === event.target
           if (!isFullscreen) modules.locationToPlayer()
@@ -644,6 +659,11 @@
         document.addEventListener('keydown', (event) => {
           if (event.key === 'j') {
             $AutoSkipSwitchInput.click()
+          }
+        })
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'l') {
+            $AutoEnableSubtitleSwitchInput.click()
           }
         })
         if (vals.auto_skip()) {
@@ -1221,6 +1241,7 @@
      * - #region 自动关闭静音
      */
     async autoCancelMute() {
+
       if (++vars.autoCancelMuteRunningCount !== 1) return
       const [$mutedButton, $volumeButton] = await utils.getElementAndCheckExistence([selectors.mutedButton, selectors.volumeButton])
       // const mutedButtonDisplay = getComputedStyle(mutedButton)['display']
@@ -1234,9 +1255,82 @@
           message: '静音丨已关闭'
         }
       }
-
     },
     // #endregion 自动关闭静音
+    /**
+     * 自动开启字幕
+     * - #region 自动开启字幕
+     */
+    async autoEnableSubtitle() {
+      if (!vals.auto_subtitle()) return
+      const $switchSubtitleButton = await utils.getElementAndCheckExistence(selectors.switchSubtitleButton)
+      const openStatus = $switchSubtitleButton.children[0].children[0].children[0].children[1].childElementCount === 1
+      if (!openStatus) {
+        $switchSubtitleButton.children[0].children[0].click()
+        return {
+          message: '视频字幕丨已开启'
+        }
+      }
+    },
+    // #endregion 自动开启字幕
+    /**
+     * 插入自动开启字幕功能开关
+     * - #region 插入自动开启字幕功能开关
+     */
+    async insertAutoEnableSubtitleSwitchButton() {
+      if (++vars.insertAutoEnableSubtitleSwitchButtonCount !== 1) return
+      const autoEnableSubtitleSwitchButtonHtml = `
+          <div id="autoEnableSubtitleSwitchButton" class="bpx-player-dm-switch bui bui-danmaku-switch" aria-label="跳过开启关闭">
+            <div class="bui-area">
+                <input id="${selectors.AutoEnableSubtitleSwitchInput.slice(1)}" class="bui-danmaku-switch-input" type="checkbox" ${vals.auto_subtitle() ? 'checked' : ''}>
+                <label class="bui-danmaku-switch-label">
+                <span class="bui-danmaku-switch-on">
+                    <svg xmlns="http://www.w3.org/2000/svg" data-pointer="none" viewBox="0 0 24 24">
+                    <path fill-rule="evenodd" d="M12 4.83h-1.53L8.76 2.27a1 1 0 1 0-1.67 1.12l1 1.5L5.92 5a4 4 0 0 0-3.83 3.4 30.92 30.92 0 0 0-.24 4.18 31.81 31.81 0 0 0 .35 5.12A4 4 0 0 0 6 21.06l.91.05c1.2.06 1.8.09 3.6.09a1 1 0 0 0 1-1 1 1 0 0 0-1-1c-1.76 0-2.34 0-3.5-.09l-.91-.05a2 2 0 0 1-1.91-1.71 29.75 29.75 0 0 1-.33-4.8 28 28 0 0 1 .23-3.9A2 2 0 0 1 6 6.93c2.45-.08 4.47-.13 6.06-.13s3.62 0 6.07.13A2 2 0 0 1 20 8.75c.08.52.12 2 .14 3.06v.88a1 1 0 1 0 2-.06v-.86c0-1.12-.08-2.66-.16-3.27A4 4 0 0 0 18.19 5l-2.53-.08 1.05-1.46a1 1 0 0 0-1.64-1.18l-1.86 2.55H12z" />
+                    <path fill="#00aeec" fill-rule="evenodd" d="M22.85 14.63a1 1 0 0 0-1.42.07l-5.09 5.7-2.21-2.27L14 18a1 1 0 0 0-1.32 1.49l3 3 .1.09a1 1 0 0 0 1.36-.12L22.93 16l.08-.1a1 1 0 0 0-.16-1.27z" />
+                    <path d="M7.58 8.23h3.12v3.54h-.9v1.62h1v.67a7.14 7.14 0 0 0 1.84-1.41v-1l-.72.36a17 17 0 0 0-1-2.17l.83-.41a18.26 18.26 0 0 1 .9 2.12V7.82h1v5a9 9 0 0 1-.47 3.05 5.26 5.26 0 0 1-1.4 2.13l-.78-.7a5 5 0 0 0 1.56-3.4 7.46 7.46 0 0 1-1.29 1.1l-.5-.83v.09h-1V16c.37-.13.7-.25 1-.37v.94a29.54 29.54 0 0 1-3.39 1.19l-.29-.93.42-.11v-3.9h.84v3.64l.55-.18v-4.51H7.58zm2.22 2.68V9.09H8.48v1.82zm6.53-1.81l.86.42a10 10 0 0 1-1.25 2.32l-.71-.5v.92a11.11 11.11 0 0 1 2 1.62l-.59.9a11.39 11.39 0 0 0-1.39-1.44v3.17c0 .21.1.32.29.32h.35a.36.36 0 0 0 .35-.22 4.31 4.31 0 0 0 .18-1.47l.9.28a4.27 4.27 0 0 1-.4 2 1.1 1.1 0 0 1-.83.3h-.84c-.66 0-1-.34-1-1v-8.9h1v3.33a9.28 9.28 0 0 0 1.08-2.05z" />
+                    </svg>
+                </span>
+                <span class="bui-danmaku-switch-off">
+                    <svg xmlns="http://www.w3.org/2000/svg" data-pointer="none" viewBox="0 0 24 24">
+                    <path fill-rule="evenodd" d="M8.09 4.89l-1-1.5a1 1 0 1 1 1.68-1.12l1.7 2.57h2.74l1.86-2.59a1 1 0 0 1 1.64 1.18l-1.05 1.45 2.53.12a4 4 0 0 1 3.74 3.51c.08.61.13 2.15.16 3.27v.86a1 1 0 0 1-2 .07v-.89c0-1.1-.06-2.54-.14-3.06a2 2 0 0 0-1.85-1.82c-2-.07-4-.12-6.07-.13-1.59 0-3.62 0-6.06.13a2 2 0 0 0-1.92 1.74 28 28 0 0 0-.23 3.91 29.71 29.71 0 0 0 .33 4.79 2 2 0 0 0 1.91 1.71c1.8.1 3.61.14 5.41.14a1 1 0 0 1 1 1 1 1 0 0 1-1 1c-1.84 0-3.67-.05-5.51-.15A4 4 0 0 1 2.2 17.7a31.81 31.81 0 0 1-.35-5.12 30.92 30.92 0 0 1 .24-4.18A4 4 0 0 1 5.92 5l2.16-.07zm10 17.17a4 4 0 1 0-4-4 4 4 0 0 0 3.97 4zm0-1.5a2.5 2.5 0 0 1-2.5-2.5 2.61 2.61 0 0 1 .28-1.16l3.33 3.4a2.55 2.55 0 0 1-1.14.26zm2.5-2.5a2.38 2.38 0 0 1-.29 1.16l-3.3-3.4a2.5 2.5 0 0 1 3.61 2.24z" />
+                    <path fill="none" d="M8.28 9.08H9.6v1.83H8.28zM13.42 15.08v-.85h-.11c0 .29-.09.58-.15.85z" />
+                    <path d="M13.31 14.23h-1a7.52 7.52 0 0 1-.18.85h1.05c.04-.27.09-.56.13-.85zM13.4 9.6v-.24l-.54.24h.54zM13.4 9V7.82h-1V8l.33-.11A8.32 8.32 0 0 1 13.4 9zM12.41 9.4v.2h.11a2 2 0 0 0-.11-.2zM11.59 9.6l-.08-.18-.84.41c.18.32.36.67.53 1V9.6z" />
+                    <path d="M11.2 13.64a7 7 0 0 1-.64.41v-.67h-1v-1.61h.9V8.22H7.37v3.55h1.32v4.5l-.55.18v-3.64h-.83v3.87l-.42.11.29.94a32.83 32.83 0 0 0 3.38-1.19v-.95c-.27.12-.59.24-1 .38v-1.69h1v-.08l.51.82a6.91 6.91 0 0 0 .94-.79h-.81zm-2.92-2.73V9.08H9.6v1.83zM15 8.2v-.38h-1V9.6h.34c.28-.46.5-.93.66-1.4zM10.78 17.3l.8.69a5.19 5.19 0 0 0 1.24-1.84h-1.15a4.22 4.22 0 0 1-.89 1.15zM16.81 9.89c.06-.13.12-.24.18-.38l-.86-.42c-.07.18-.16.34-.24.51h.92z" />
+                    <path d="M15 13.84v-.5c.1.08.21.2.32.3a4.33 4.33 0 0 1 .92-.44 11.62 11.62 0 0 0-1.24-.95v-.91l.7.49a9.47 9.47 0 0 0 1.08-1.94V9.6h-.92a8.86 8.86 0 0 1-.86 1.55v-3c-.19.47-.41.94-.65 1.4H14v5.17a5.13 5.13 0 0 1 1-.88zM13.4 12.83V9.6h-.54l.54-.24V9a8.32 8.32 0 0 0-.66-1.11l-.33.11v1.4a2 2 0 0 1 .11.2h-.11v2a18.76 18.76 0 0 0-.82-2h-.39v1.27a12.22 12.22 0 0 1 .48 1.13l.73-.37v1a7.31 7.31 0 0 1-1.21 1v.59h.8c.11-.11.23-.21.34-.33 0 .12 0 .22-.06.33h1a12.21 12.21 0 0 0 .12-1.39zM13.16 15.08h-1.05a4.9 4.9 0 0 1-.44 1.07h1.15c0-.09.07-.17.11-.27.07-.25.16-.52.23-.8z" />
+                    </svg>
+                </span>
+                </label>
+            </div>
+          </div>`
+      const autoEnableSubtitleSwitchButtonTipHtml = `
+          <div id="autoEnableSubtitleTips" class="bpx-player-tooltip-item" style="visibility: hidden; opacity: 0; transform: translate(0px, 0px);">
+              <div class="bpx-player-tooltip-title">关闭自动开启字幕(j)</div>
+          </div>`
+      const [playerDanmuSetting, playerTooltipArea] = await utils.getElementAndCheckExistence([selectors.playerDanmuSetting, selectors.playerTooltipArea])
+      const $autoEnableSubtitleSwitchButton = utils.createElementAndInsert(autoEnableSubtitleSwitchButtonHtml, playerDanmuSetting, 'after')
+      const autoEnableSubtitleTips = utils.createElementAndInsert(autoEnableSubtitleSwitchButtonTipHtml, playerTooltipArea, 'append')
+      const $AutoEnableSubtitleSwitchInput = await utils.getElementAndCheckExistence(selectors.AutoEnableSubtitleSwitchInput)
+      $AutoEnableSubtitleSwitchInput.addEventListener('change', async event => {
+        const $AutoEnableSubtitleSwitchInput = await utils.getElementAndCheckExistence(selectors.AutoSubtitle)
+        utils.setValue('auto_subtitle', event.target.checked)
+        $AutoEnableSubtitleSwitchInput.checked = event.target.checked
+        autoEnableSubtitleTips.querySelector(selectors.playerTooltipTitle).innerText = event.target.checked ? '关闭自动开启字幕(l)' : '开启自动开启字幕(l)'
+      })
+      $autoEnableSubtitleSwitchButton.addEventListener('mouseover', async function () {
+        const { top, left } = utils.getElementOffsetToDocument(this)
+        autoEnableSubtitleTips.style.top = `${top - window.scrollY - (this.clientHeight) - 12}px`
+        autoEnableSubtitleTips.style.left = `${left - (autoEnableSubtitleTips.clientWidth / 2) + (this.clientWidth / 2)}px`
+        autoEnableSubtitleTips.style.opacity = 1
+        autoEnableSubtitleTips.style.visibility = 'visible'
+        autoEnableSubtitleTips.style.transition = 'opacity .3s'
+      })
+      $autoEnableSubtitleSwitchButton.addEventListener('mouseout', function () {
+        autoEnableSubtitleTips.style.opacity = 0
+        autoEnableSubtitleTips.style.visibility = 'hidden'
+      })
+    },
+    // #endregion 插入自动开启字幕功能开关
     /**
      * 自动选择最高画质
      * - #region 自动选择最高画质
@@ -1476,6 +1570,185 @@
               </div>
               <div data-v-${vueScopeId}="" class="bottom-line"></div>
           </div>`
+        const shadowRootVideoDescriptionReplyTemplate = `
+            <div id="body" class=" light ">
+              <a id="user-avatar" target="_blank" href="//space.bilibili.com/404163851" data-user-profile-id="404163851">
+                  <bili-avatar style="--avatar-width: 48px; --avatar-height: 48px;">
+                      <style>
+                          :host {
+                              display: inline-block;
+                              position: relative;
+                              width: var(--avatar-width);
+                              height: var(--avatar-height);
+                          }
+
+                          #canvas {
+                              width: var(--avatar-canvas-width);
+                              height: var(--avatar-canvas-height);
+                              position: absolute;
+                              left: 50%;
+                              top: 50%;
+                              transform: translate(-50%, -50%);
+                              pointer-events: none;
+                          }
+
+                          .layers {
+                              position: absolute;
+                              left: 0;
+                              right: 0;
+                              top: 0;
+                              bottom: 0;
+                          }
+
+                          .layer {
+                              position: absolute;
+                              isolation: isolate;
+                              overflow: hidden;
+                          }
+
+                          .layer.center {
+                              left: 50%;
+                              top: 50%;
+                              transform: translate(-50%, -50%);
+                          }
+
+                          .layer-res {
+                              width: 100%;
+                              height: 100%;
+                              isolation: isolate;
+                              overflow: hidden;
+                              background-size: cover;
+                              background-repeat: no-repeat;
+                              background-position: center;
+                          }
+
+                          .layer-res picture {
+                              display: inline-block;
+                          }
+
+                          .layer-res div,
+                          .layer-res picture,
+                          .layer-res img {
+                              width: 100%;
+                              height: 100%;
+                          }
+                      </style>
+                      <div id="canvas" style="--avatar-canvas-width: 86.4px; --avatar-canvas-height: 86.4px;">
+                          <div id="canvas" style="--avatar-canvas-width: 86.4px; --avatar-canvas-height: 86.4px;">
+                              <div class="layers">
+                                  <div class="layer center" style="width: 48px; height: 48px; opacity: 1; border-radius: 50%;">
+                                      <div class="layer-res"
+                                          style="background-image: url(&quot;//i0.hdslb.com/bfs/seed/jinkela/short/webui/avatar/img/res-local6.jpeg&quot;);">
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="layers">
+                                  <div class="layer center"
+                                      style="width: 37.776px; height: 37.776px; opacity: 1; border-radius: 50%;">
+                                      <div class="layer-res"
+                                          style="background-image: url(&quot;//i0.hdslb.com/bfs/seed/jinkela/short/webui/avatar/img/res-local6.jpeg&quot;);">
+                                          <picture>
+                                              <source type="image/avif" srcset="${upAvatarFaceLink}">
+                                              <source type="image/webp" srcset="${upAvatarFaceLink}"><img
+                                                  src="${upAvatarFaceLink}" onload="bmgOnLoad(this)" onerror="bmgOnError(this)"
+                                                  data-onerror="onAvtSrcError">
+                                          </picture>
+                                      </div>
+                                  </div>
+                                  <div class="layer center" style="width: 66px; height: 66px; opacity: 1;">
+                                      <div class="layer-res">
+                                          <picture>
+                                              <source type="image/avif" srcset="${upAvatarDecorationLink}">
+                                              <source type="image/webp" srcset="${upAvatarDecorationLink}">
+                                              <img src="${upAvatarDecorationLink}" onload="bmgOnLoad(this)"
+                                                  onerror="bmgOnError(this)" data-onerror="onAvtSrcError">
+                                          </picture>
+                                      </div>
+                                  </div>
+                                  <div class="layer"
+                                      style="left: 46.488px; top: 47.288px; width: 20px; height: 20px; opacity: 1; background-color: rgb(255, 255, 255); border: 2px solid rgb(255, 255, 255); border-radius: 50%; box-sizing: border-box;">
+                                      <div class="layer-res"
+                                          style="background-image: url(&quot;//i0.hdslb.com/bfs/seed/jinkela/short/webui/avatar/img/res-local1.png&quot;);">
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </bili-avatar>
+              </a>
+              <div id="main">
+                  <div id="header">
+                      <bili-comment-user-info>
+                          <div id="info">
+                              <slot></slot>
+                              <div id="user-name" data-user-profile-id="98716625">
+                                  <a target="_blank"
+                                      href="https://greasyfork.org/zh-CN/scripts/493405-%E5%93%94%E5%93%A9%E5%93%94%E5%93%A9-bilibili-com-%E8%B0%83%E6%95%B4"
+                                      class="">视频简介丨播放页调整</a>
+                              </div>
+                              <div id="user-level">
+                                  <img width="30" height="30"
+                                      src="//i0.hdslb.com/bfs/seed/jinkela/short/webui/user-profile/img/level_6.svg">
+                              </div>
+                          </div>
+                      </bili-comment-user-info>
+                  </div>
+                  <div id="content">
+                      <bili-rich-text
+                          style="--bili-rich-text-font-size:var(--bili-comments-font-size-content);--bili-rich-text-line-height:var(--bili-comments-line-height-content);--bili-rich-text-link-color:var(--Lb6);--bili-rich-text-display:inline;">
+                          <style>
+                              :host {
+                                  --bili-rich-text-display: block;
+                                  --bili-rich-text-white-space: pre-line;
+                                  --bili-rich-text-icon-vertical-align: sub;
+                                  --bili-rich-text-link-color: var(--text_link, #008AC5);
+                                  --bili-rich-text-link-color-hover: var(--brand_blue, #00AEEC);
+                                  --icon-vertical-align: var(--bili-rich-text-icon-vertical-align);
+                                  color: var(--bili-rich-text-color, var(--text1, #18191C));
+                                  font-size: var(--bili-rich-text-font-size, 15px);
+                                  line-height: var(--bili-rich-text-line-height, 21px);
+                                  font-family: var(--bili-font-family);
+                              }
+
+                              #contents {
+                                  margin-block-start: 0;
+                                  margin-block-end: 0;
+                                  margin-inline-start: 0;
+                                  margin-inline-end: 0;
+                                  display: var(--bili-rich-text-display);
+                                  white-space: var(--bili-rich-text-white-space);
+                                  -webkit-font-smoothing: antialiased;
+                              }
+
+                              #contents a {
+                                  color: var(--bili-rich-text-link-color);
+                                  text-decoration: none;
+                                  background-color: transparent;
+                                  cursor: pointer;
+                              }
+
+                              #contents a:hover {
+                                  color: var(--bili-rich-text-link-color-hover);
+                              }
+
+                              #contents a bili-icon {
+                                  vertical-align: var(--bili-rich-text-icon-vertical-align);
+                              }
+
+                              #contents img,
+                              #contents a i {
+                                  display: inline-block;
+                                  width: 1.2em;
+                                  height: 1.2em;
+                                  vertical-align: var(--bili-rich-text-icon-vertical-align);
+                              }
+                          </style>
+                          <p id="contents"><span>${decodeURIComponent(videoDescriptionInfoHtml)}</span></p>
+                      </bili-rich-text>
+                  </div>
+              </div>
+          </div>
+          `
         utils.createElementAndInsert(videoDescriptionReplyTemplate, $videoCommentReplyList, 'prepend')
         document.querySelector('#comment-description:not(:first-child)')?.remove()
       } else {
@@ -1931,7 +2204,6 @@
         $autoSkipTips.style.opacity = 0
         $autoSkipTips.style.visibility = 'hidden'
       })
-
     },
     // #endregion 插入跳过时间节点功能开关
     // #endregion 自动跳过时间节点
@@ -1939,10 +2211,11 @@
      * 自动返回播放器并更新评论区简介
      * - #region 自动返回播放器并更新评论区简介
      */
-    async autoLocationAndInsertVideoDescriptionToComment() {
+    async functionsNeedToExecuteWhenUrlHasChanged() {
       modules.locationToPlayer()
       await utils.sleep(1500)
-      modules.insertVideoDescriptionToComment()
+      modules.autoEnableSubtitle()
+      // modules.insertVideoDescriptionToComment()
     },
     // #endregion 自动返回播放器并更新评论区简介
     /**
@@ -1956,25 +2229,25 @@
         // 视频合集
         await elmGetter.each(selectors.videoSectionsEpisodeLink, (link) => {
           link.addEventListener('click', () => {
-            modules.autoLocationAndInsertVideoDescriptionToComment()
+            modules.functionsNeedToExecuteWhenUrlHasChanged()
           })
         })
         // 视频选集
         await elmGetter.each(selectors.videoMultiPageLink, (link) => {
           link.addEventListener('click', () => {
-            modules.autoLocationAndInsertVideoDescriptionToComment()
+            modules.functionsNeedToExecuteWhenUrlHasChanged()
           })
         })
         // 接下来播放及推荐视频
         await elmGetter.each(selectors.videoNextPlayAndRecommendLink, (link) => {
           link.addEventListener('click', () => {
-            modules.autoLocationAndInsertVideoDescriptionToComment()
+            modules.functionsNeedToExecuteWhenUrlHasChanged()
           })
         })
         // 视频结尾推荐视频
         await elmGetter.each(selectors.playerEndingRelateVideo, (link) => {
           link.addEventListener('click', () => {
-            modules.autoLocationAndInsertVideoDescriptionToComment()
+            modules.functionsNeedToExecuteWhenUrlHasChanged()
           })
         })
       }
@@ -2384,6 +2657,12 @@
               </div>
               <div class="adjustment_form_item">
                 <div class="adjustment_form_item_content">
+                  <label>自动开启字幕</label>
+                  <input type="checkbox" id="${selectors.AutoSubtitle.slice(1)}" ${vals.auto_subtitle() ? 'checked' : ''} class="adjustment_checkbox">
+                </div>
+              </div>
+              <div class="adjustment_form_item">
+                <div class="adjustment_form_item_content">
                   <label>自动刷新</label>
                   <input type="checkbox" id="${selectors.AutoReload.slice(1)}" ${vals.auto_reload() ? 'checked' : ''} class="adjustment_checkbox">
                 </div>
@@ -2401,7 +2680,7 @@
           $videoSettingPopover.showPopover()
         })
         const $app = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.app) : await utils.getElementAndCheckExistence(selectors.bangumiApp)
-        const [$IsVip, $AutoLocate, $AutoLocateVideo, $AutoLocateBangumi, $TopOffset, $ClickPlayerAutoLocation, $AutoQuality, $Quality4K, $Quality8K, $Checkbox4K, $Checkbox8K, $WebfullUnlock, $AutoReload, $videoSettingSaveButton, $AutoSkip, $InsertVideoDescriptionToComment, $PauseVideo, $ContinuePlay] = await utils.getElementAndCheckExistence([selectors.IsVip, selectors.AutoLocate, selectors.AutoLocateVideo, selectors.AutoLocateBangumi, selectors.TopOffset, selectors.ClickPlayerAutoLocation, selectors.AutoQuality, selectors.Quality4K, selectors.Quality8K, selectors.Checkbox4K, selectors.Checkbox8K, selectors.WebfullUnlock, selectors.AutoReload, selectors.videoSettingSaveButton, selectors.AutoSkip, selectors.InsertVideoDescriptionToComment, selectors.PauseVideo, selectors.ContinuePlay])
+        const [$IsVip, $AutoLocate, $AutoLocateVideo, $AutoLocateBangumi, $TopOffset, $ClickPlayerAutoLocation, $AutoQuality, $Quality4K, $Quality8K, $Checkbox4K, $Checkbox8K, $WebfullUnlock, $AutoReload, $videoSettingSaveButton, $AutoSkip, $InsertVideoDescriptionToComment, $PauseVideo, $ContinuePlay, $AutoSubtitle] = await utils.getElementAndCheckExistence([selectors.IsVip, selectors.AutoLocate, selectors.AutoLocateVideo, selectors.AutoLocateBangumi, selectors.TopOffset, selectors.ClickPlayerAutoLocation, selectors.AutoQuality, selectors.Quality4K, selectors.Quality8K, selectors.Checkbox4K, selectors.Checkbox8K, selectors.WebfullUnlock, selectors.AutoReload, selectors.videoSettingSaveButton, selectors.AutoSkip, selectors.InsertVideoDescriptionToComment, selectors.PauseVideo, selectors.ContinuePlay, selectors.AutoSubtitle])
         $videoSettingPopover.addEventListener('toggle', event => {
           if (event.newState === 'open') {
             // document.querySelector('*:not(#videoSettingPopover *)').style.pointerEvents = 'none'
@@ -2457,6 +2736,9 @@
         })
         $AutoReload.addEventListener('change', event => {
           utils.setValue('auto_reload', event.target.checked)
+        })
+        $AutoSubtitle.addEventListener('change', event => {
+          utils.setValue('auto_subtitle', event.target.checked)
         })
         await elmGetter.each(selectors.SelectScreenMode, $videoSettingPopover, radioInput => {
           radioInput.addEventListener('click', function () {
@@ -2523,14 +2805,17 @@
                   modules.autoLocationToPlayer,
                   modules.autoCancelMute,
                   modules.autoSelectVideoHighestQuality,
+                  modules.autoEnableSubtitle,
+                  modules.insertAutoEnableSubtitleSwitchButton,
                   modules.clickPlayerAutoLocation,
                   modules.insertFloatSideNavToolsButton,
                   modules.clickVideoTimeAutoLocation,
-                  modules.insertVideoDescriptionToComment,
-                  modules.insertSetSkipTimeNodesButton,
-                  modules.insertSkipTimeNodesSwitchButton,
-                  modules.autoSkipTimeNodes,
-                  modules.unlockEpisodeSelector
+                  // modules.insertVideoDescriptionToComment,
+
+                  // modules.insertSetSkipTimeNodesButton,
+                  // modules.insertSkipTimeNodesSwitchButton,
+                  // modules.autoSkipTimeNodes,
+                  // modules.unlockEpisodeSelector,
                 ]
               }
               if (regexps.dynamic.test(window.location.href)) {
