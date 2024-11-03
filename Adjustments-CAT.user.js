@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name              哔哩哔哩（bilibili.com）调整
-// @namespace         哔哩哔哩（bilibili.com）调整
+// @name              哔哩哔哩（bilibili.com）调整 For ScriptCat
+// @namespace         哔哩哔哩（bilibili.com）调整 For ScriptCat
 // @copyright         QIAN
 // @license           GPL-3.0 License
 // @version           0.1.37.4
