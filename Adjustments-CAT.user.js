@@ -3,8 +3,8 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 For ScriptCat
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.37.7
-// @description       一、1.自动签到；2.首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
+// @version           0.1.37.9
+// @description       一、首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
 // @match             *://www.bilibili.com/video/*
@@ -106,6 +106,8 @@
     videoNextPlayAndRecommendLink: '.video-page-card-small .card-box',
     videoSectionsEpisodeLink: '.video-pod__list .video-pod__item',
     videoMultiPageLink: '#multi_page ul li',
+    videoPreviousButton: '.bpx-player-ctrl-btn.bpx-player-ctrl-prev',
+    videoNextButton: '.bpx-player-ctrl-btn.bpx-player-ctrl-next',
     bangumiApp: '#__next',
     bangumiComment: '#comment_module',
     bangumiFloatNav: '#__next div[class*="navTools_floatNavExp"] div[class*="navTools_navMenu"]',
@@ -420,30 +422,30 @@
      * - #region 检查当前文档是否被激活
      */
     checkDocumentIsHidden() {
-        // 定义可见性变化事件名称
-        const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
-        // 确定文档隐藏属性名称
-        const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null
-        if (documentHiddenPropertyName !== null) {
-            // 定义一个函数来检查文档是否隐藏
-            const isHidden = () => document[documentHiddenPropertyName]
-            // 定义一个函数来处理可见性变化事件
-            const onChange = () => isHidden()
-            // 为所有相关事件添加监听器
-            utils.addVisibilityEventListeners(visibilityChangeEventNames, onChange)
-            // 返回当前的隐藏状态
-            return isHidden()
-        }
-        // 如果无法判断是否隐藏，则返回undefined
-        return undefined
+      // 定义可见性变化事件名称
+      const visibilityChangeEventNames = ['visibilitychange', 'mozvisibilitychange', 'webkitvisibilitychange', 'msvisibilitychange']
+      // 确定文档隐藏属性名称
+      const documentHiddenPropertyName = visibilityChangeEventNames.find(name => name in document) || 'onfocusin' in document || 'onpageshow' in window ? 'hidden' : null
+      if (documentHiddenPropertyName !== null) {
+        // 定义一个函数来检查文档是否隐藏
+        const isHidden = () => document[documentHiddenPropertyName]
+        // 定义一个函数来处理可见性变化事件
+        const onChange = () => isHidden()
+        // 为所有相关事件添加监听器
+        utils.addVisibilityEventListeners(visibilityChangeEventNames, onChange)
+        // 返回当前的隐藏状态
+        return isHidden()
+      }
+      // 如果无法判断是否隐藏，则返回undefined
+      return undefined
     },
     // 辅助函数，用于添加事件监听器
     addVisibilityEventListeners(eventList, handler) {
-        eventList.forEach(eventName => document.addEventListener(eventName, handler))
-        window.addEventListener('focus', handler)
-        window.addEventListener('blur', handler)
-        window.addEventListener('pageshow', handler)
-        window.addEventListener('pagehide', handler)
+      eventList.forEach(eventName => document.addEventListener(eventName, handler))
+      window.addEventListener('focus', handler)
+      window.addEventListener('blur', handler)
+      window.addEventListener('pageshow', handler)
+      window.addEventListener('pagehide', handler)
     },
     // #endregion 检查当前文档是否被激活
     /**
@@ -957,6 +959,7 @@
             clearInterval(timer)
           } else if (attempts <= 0) {
             message = '视频资源｜加载失败'
+            utils.reloadCurrentTab(true)
             reject({ message })
             clearInterval(timer)
           }
@@ -1158,8 +1161,8 @@
       const result = await modules.checkAutoLocationSuccess(playerOffsetTop - vals.offset_top())
       if (result) return { message: '自动定位｜成功', callback: [unlockbody] }
       else {
-          unlockbody()
-          throw new Error(`自动定位｜失败：已达到最大重试次数`)
+        unlockbody()
+        throw new Error(`自动定位｜失败：已达到最大重试次数`)
       }
     },
     // #endregion 自动定位至播放器并检查是否成功
@@ -2252,6 +2255,18 @@
             modules.functionsNeedToExecuteWhenUrlHasChanged()
           })
         })
+        // 上一个视频
+        await elmGetter.each(selectors.videoPreviousButton, (button) => {
+          button.addEventListener('click', () => {
+            modules.functionsNeedToExecuteWhenUrlHasChanged()
+          })
+        })
+        // 下一个视频
+        await elmGetter.each(selectors.videoNextButton, (button) => {
+          button.addEventListener('click', () => {
+            modules.functionsNeedToExecuteWhenUrlHasChanged()
+          })
+        })
       }
       if (vals.player_type() === 'bangumi') {
         // 番剧剧集
@@ -2765,7 +2780,7 @@
       utils.clearAllTimersWhenCloseTab()
       modules.registerMenuCommand()
       utils.insertStyleToDocument('BilibiliAdjustmentStyle', styles.BilibiliAdjustment)
-      biliApis.autoSignIn()
+      // biliApis.autoSignIn() 官方签到活动已下线
       if (window.location.href === 'https://www.bilibili.com/') {
         utils.insertStyleToDocument('IndexAdjustmentStyle', styles.IndexAdjustment)
       }
