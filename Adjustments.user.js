@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name              哔哩哔哩（bilibili.com）调整
-// @namespace         哔哩哔哩（bilibili.com）调整
+// @name              哔哩哔哩（bilibili.com）调整 For ScriptCat
+// @namespace         哔哩哔哩（bilibili.com）调整 For ScriptCat
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.37.9
+// @version           0.1.38.1
 // @description       一、首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -14,7 +14,7 @@
 // @require           https://cdn.jsdelivr.net/npm/md5@2.3.0/dist/md5.min.js
 // @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
 // @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
-// @require           https://scriptcat.org/lib/513/2.0.0/ElementGetter.js#sha256=KbLWud5OMbbXZHRoU/GLVgvIgeosObRYkDEbE/YanRU=
+// @require           https://scriptcat.org/lib/513/2.0.0/ElementGetter.js?#sha256=KbLWud5OMbbXZHRoU/GLVgvIgeosObRYkDEbE/YanRU=
 // @grant             GM_setValue
 // @grant             GM_getValue
 // @grant             GM_addStyle
@@ -99,7 +99,7 @@
     videoComment: '#comment',
     videoCommentReplyList: '#comment .reply-list',
     videoRootReplyContainer: '#comment .root-reply-container',
-    videoTime: '.video-time,.video-seek',
+    videoTime: '.video-time,.video-seek,[data-type="seek"]',
     videoDescription: '#v_desc',
     videoDescriptionInfo: '#v_desc .basic-desc-info',
     videoDescriptionText: '#v_desc .desc-info-text',
@@ -1235,12 +1235,24 @@
     async clickVideoTimeAutoLocation() {
       await utils.sleep(100)
       const $video = await utils.getElementAndCheckExistence('video')
-      const $clickTarget = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.videoComment) : await utils.getElementAndCheckExistence(selectors.bangumiComment)
+      // const $clickTarget = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.videoComment) : await utils.getElementAndCheckExistence(selectors.bangumiComment)
+      const $descriptionClickTarget = vals.player_type() === 'video' ? document.querySelector('#commentapp > bili-comments').shadowRoot.querySelector('#contents').querySelector('#feed #bili-adjustment-contents') : ''
+      const $clickTarget = vals.player_type() === 'video' ? document.querySelector("#commentapp > bili-comments").shadowRoot.querySelector("#feed > bili-comment-thread-renderer").shadowRoot.querySelector("#comment").shadowRoot.querySelector("#content > bili-rich-text").shadowRoot.querySelector("#contents") : ''
       await elmGetter.each(selectors.videoTime, $clickTarget, async (target) => {
         target.addEventListener('click', async (event) => {
           event.stopPropagation()
           await modules.locationToPlayer()
           // const targetTime = vals.player_type() === 'video' ? target.dataset.videoTime : target.dataset.time
+          const targetTime = target.dataset.videoTime
+          if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
+          $video.currentTime = targetTime
+          $video.play()
+        })
+      })
+      await elmGetter.each(selectors.videoTime, $descriptionClickTarget, async (target) => {
+        target.addEventListener('click', async (event) => {
+          event.stopPropagation()
+          await modules.locationToPlayer()
           const targetTime = target.dataset.videoTime
           if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
           $video.currentTime = targetTime
@@ -1507,7 +1519,8 @@
       if (!vals.insert_video_description_to_comment() || vals.player_type() === 'bangumi') return
       const $commentDescription = document.getElementById('comment-description')
       if ($commentDescription) $commentDescription.remove()
-      const [$videoDescription, $videoDescriptionInfo, $videoCommentReplyList] = await utils.getElementAndCheckExistence([selectors.videoDescription, selectors.videoDescriptionInfo, selectors.videoCommentReplyList])
+      const [$videoDescription, $videoDescriptionInfo] = await utils.getElementAndCheckExistence([selectors.videoDescription, selectors.videoDescriptionInfo])
+      const $videoCommentReplyListShadowRoot = document.querySelector('#commentapp > bili-comments').shadowRoot.querySelector('#contents').querySelector('#feed')
       const getTotalSecondsFromTimeString = (timeString) => {
         if (timeString.length === 5) timeString = '00:' + timeString
         const [hours, minutes, seconds] = timeString.split(':').map(Number)
@@ -1536,7 +1549,7 @@
         const resetVideoDescriptionInfoHtml = decodeURIComponent(encodeURIComponent($videoDescriptionInfo.innerHTML).replace(specialBlankRegexp, '%20'))
         // 先将 % 编码为 %25 防止后续执行 decodeURIComponent() 报错，因为 % 为非法字符
         const videoDescriptionInfoHtml = resetVideoDescriptionInfoHtml.replaceAll('%', '%25').replace(nbspToBlankRegexp, ' ').replace(timeStringRegexp, (match) => {
-          return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
+          return `<a data-type="seek" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
         }).replace(urlRegexp, (match) => {
           return `<a href="${match}" target="_blank">${match}</a>`
         }).replace(plaintVideoIdRegexp, (match) => {
@@ -1544,220 +1557,111 @@
         }).replace(plaintReadIdRegexp, (match) => {
           return `<a href="https://www.bilibili.com/read/${match}" target="_blank">${match}</a>`
         }).replace(blankRegexp, '')
-        const upAvatarDecorationLink = document.querySelector(selectors.upAvatarDecoration) ? document.querySelector(selectors.upAvatarDecoration).dataset.src.replace('@144w_144h_!web-avatar', '@240w_240h_!web-avatar-comment') : ''
-        const vueScopeId = await modules.getVueScopeId(selectors.videoRootReplyContainer)
-        // utils.logger.debug(vueScopeId)
-        const videoDescriptionReplyTemplate = `
-          <div data-v-${vueScopeId}="" data-v-bad1995c="" id="comment-description" class="reply-item">
-              <div data-v-${vueScopeId}="" class="root-reply-container">
-                  <div data-v-${vueScopeId}="" class="root-reply-avatar" >
-                      <div data-v-${vueScopeId}="" class="avatar">
-                          <div class="bili-avatar" style="width:48px;height:48px">
-                              <img class="bili-avatar-img bili-avatar-face bili-avatar-img-radius" data-src="${upAvatarFaceLink}" src="${upAvatarFaceLink}">
-                              <div class="bili-avatar-pendent-dom">
-                                  <img class="bili-avatar-img" data-src="${upAvatarDecorationLink}" alt="" src="${upAvatarDecorationLink}">
-                              </div>
-                              <span class="${$upAvatarIcon?.classList}"></span>
-                          </div>
-                      </div>
-                  </div>
-                  <div data-v-${vueScopeId}="" class="content-warp">
-                      <div data-v-${vueScopeId}="" class="user-info">
-                          <div data-v-${vueScopeId}="" class="user-name" style="color:#00a1d6!important">视频简介丨播放页调整</div>
-                      </div>
-                      <div data-v-${vueScopeId}="" class="root-reply">
-                          <span data-v-${vueScopeId}="" class="reply-content-container root-reply">
-                              <span class="reply-content">${decodeURIComponent(videoDescriptionInfoHtml)}</span>
-                          </span>
-                      </div>
-                  </div>
-              </div>
-              <div data-v-${vueScopeId}="" class="bottom-line"></div>
-          </div>`
+        // const upAvatarDecorationLink = document.querySelector(selectors.upAvatarDecoration) ? document.querySelector(selectors.upAvatarDecoration).dataset.src.replace('@144w_144h_!web-avatar', '@240w_240h_!web-avatar-comment') : ''
         const shadowRootVideoDescriptionReplyTemplate = `
-            <div id="body" class=" light ">
-              <a id="user-avatar" target="_blank" href="//space.bilibili.com/404163851" data-user-profile-id="404163851">
-                  <bili-avatar style="--avatar-width: 48px; --avatar-height: 48px;">
-                      <style>
-                          :host {
-                              display: inline-block;
-                              position: relative;
-                              width: var(--avatar-width);
-                              height: var(--avatar-height);
-                          }
+          <bili-adjustment-comment-thread-renderer>
+              <style>
+                  #bili-adjustment-body {
+                      position: relative;
+                      padding-left: 80px;
+                      padding-top: 22px;
+                  }
 
-                          #canvas {
-                              width: var(--avatar-canvas-width);
-                              height: var(--avatar-canvas-height);
-                              position: absolute;
-                              left: 50%;
-                              top: 50%;
-                              transform: translate(-50%, -50%);
-                              pointer-events: none;
-                          }
+                  #bili-adjustment-user-avatar {
+                      position: absolute;
+                      left: 20px;
+                      top: 22px;
+                      width: 48px;
+                      height: 48px;
+                      transform-origin: left top;
+                      transform: scale(1);
+                  }
 
-                          .layers {
-                              position: absolute;
-                              left: 0;
-                              right: 0;
-                              top: 0;
-                              bottom: 0;
-                          }
+                  #bili-adjustment-avatar-picture {
+                      width: 48px;
+                      height: 48px;
+                      opacity: 1;
+                      border-radius: 50%;
+                  }
 
-                          .layer {
-                              position: absolute;
-                              isolation: isolate;
-                              overflow: hidden;
-                          }
+                  #bili-adjustment-info {
+                      display: inline-flex;
+                      align-items: center;
+                  }
 
-                          .layer.center {
-                              left: 50%;
-                              top: 50%;
-                              transform: translate(-50%, -50%);
-                          }
+                  #bili-adjustment-user-name {
+                      font-size: 13px;
+                      font-weight: 500;
+                  }
 
-                          .layer-res {
-                              width: 100%;
-                              height: 100%;
-                              isolation: isolate;
-                              overflow: hidden;
-                              background-size: cover;
-                              background-repeat: no-repeat;
-                              background-position: center;
-                          }
+                  #bili-adjustment-user-name a {
+                      color: #00a1d6;
+                      text-decoration: none;
 
-                          .layer-res picture {
-                              display: inline-block;
-                          }
+                  }
 
-                          .layer-res div,
-                          .layer-res picture,
-                          .layer-res img {
-                              width: 100%;
-                              height: 100%;
-                          }
-                      </style>
-                      <div id="canvas" style="--avatar-canvas-width: 86.4px; --avatar-canvas-height: 86.4px;">
-                          <div id="canvas" style="--avatar-canvas-width: 86.4px; --avatar-canvas-height: 86.4px;">
-                              <div class="layers">
-                                  <div class="layer center" style="width: 48px; height: 48px; opacity: 1; border-radius: 50%;">
-                                      <div class="layer-res"
-                                          style="background-image: url(&quot;//i0.hdslb.com/bfs/seed/jinkela/short/webui/avatar/img/res-local6.jpeg&quot;);">
+                  #bili-adjustment-content {
+                      font-size: 15px;
+                      line-height: 24px;
+                  }
+
+                  #bili-adjustment-contents {
+                      margin-block-start: 0;
+                      margin-block-end: 0;
+                      margin-inline-start: 0;
+                      margin-inline-end: 0;
+                      display: inline;
+                      white-space: pre-line;
+                      word-break: break-word;
+                      -webkit-font-smoothing: antialiased;
+                  }
+
+                  #bili-adjustment-contents a {
+                      color: #00a1d6;
+                      text-decoration: none;
+                      background-color: transparent;
+                      cursor: pointer;
+                  }
+
+                  #bili-adjustment-spread-line {
+                      padding-bottom: 14px;
+                      margin-left: 80px;
+                      border-bottom: 1px solid var(--graph_bg_thick);
+                  }
+              </style>
+              <bili-adjustment-comment-renderer id="comment">
+                  <div id="bili-adjustment-body" class="light">
+                      <a id="bili-adjustment-user-avatar">
+                          <bili-adjustment-avatar>
+                              <img id="bili-adjustment-avatar-picture" src="${upAvatarFaceLink}" alt="${upAvatarFaceLink}">
+                          </bili-adjustment-avatar>
+                      </a>
+                      <div id="bili-adjustment-main" style="width:100%">
+                          <div id="bili-adjustment-header">
+                              <bili-adjustment-comment-user-info>
+                                  <div id="bili-adjustment-info">
+                                      <div id="bili-adjustment-user-name">
+                                          <a href="#" onclick="event.preventDefault()">Bilibili调整丨视频简介已优化并插入评论区</a>
                                       </div>
                                   </div>
-                              </div>
-                              <div class="layers">
-                                  <div class="layer center"
-                                      style="width: 37.776px; height: 37.776px; opacity: 1; border-radius: 50%;">
-                                      <div class="layer-res"
-                                          style="background-image: url(&quot;//i0.hdslb.com/bfs/seed/jinkela/short/webui/avatar/img/res-local6.jpeg&quot;);">
-                                          <picture>
-                                              <source type="image/avif" srcset="${upAvatarFaceLink}">
-                                              <source type="image/webp" srcset="${upAvatarFaceLink}"><img
-                                                  src="${upAvatarFaceLink}" onload="bmgOnLoad(this)" onerror="bmgOnError(this)"
-                                                  data-onerror="onAvtSrcError">
-                                          </picture>
-                                      </div>
-                                  </div>
-                                  <div class="layer center" style="width: 66px; height: 66px; opacity: 1;">
-                                      <div class="layer-res">
-                                          <picture>
-                                              <source type="image/avif" srcset="${upAvatarDecorationLink}">
-                                              <source type="image/webp" srcset="${upAvatarDecorationLink}">
-                                              <img src="${upAvatarDecorationLink}" onload="bmgOnLoad(this)"
-                                                  onerror="bmgOnError(this)" data-onerror="onAvtSrcError">
-                                          </picture>
-                                      </div>
-                                  </div>
-                                  <div class="layer"
-                                      style="left: 46.488px; top: 47.288px; width: 20px; height: 20px; opacity: 1; background-color: rgb(255, 255, 255); border: 2px solid rgb(255, 255, 255); border-radius: 50%; box-sizing: border-box;">
-                                      <div class="layer-res"
-                                          style="background-image: url(&quot;//i0.hdslb.com/bfs/seed/jinkela/short/webui/avatar/img/res-local1.png&quot;);">
-                                      </div>
-                                  </div>
-                              </div>
+                              </bili-adjustment-comment-user-info>
+                          </div>
+                          <div id="bili-adjustment-content">
+                              <bili-adjustment-rich-text>
+                                  <p id="bili-adjustment-contents">${decodeURIComponent(videoDescriptionInfoHtml)}</p>
+                              </bili-adjustment-rich-text>
                           </div>
                       </div>
-                  </bili-avatar>
-              </a>
-              <div id="main">
-                  <div id="header">
-                      <bili-comment-user-info>
-                          <div id="info">
-                              <slot></slot>
-                              <div id="user-name" data-user-profile-id="98716625">
-                                  <a target="_blank"
-                                      href="https://greasyfork.org/zh-CN/scripts/493405-%E5%93%94%E5%93%A9%E5%93%94%E5%93%A9-bilibili-com-%E8%B0%83%E6%95%B4"
-                                      class="">视频简介丨播放页调整</a>
-                              </div>
-                              <div id="user-level">
-                                  <img width="30" height="30"
-                                      src="//i0.hdslb.com/bfs/seed/jinkela/short/webui/user-profile/img/level_6.svg">
-                              </div>
-                          </div>
-                      </bili-comment-user-info>
                   </div>
-                  <div id="content">
-                      <bili-rich-text
-                          style="--bili-rich-text-font-size:var(--bili-comments-font-size-content);--bili-rich-text-line-height:var(--bili-comments-line-height-content);--bili-rich-text-link-color:var(--Lb6);--bili-rich-text-display:inline;">
-                          <style>
-                              :host {
-                                  --bili-rich-text-display: block;
-                                  --bili-rich-text-white-space: pre-line;
-                                  --bili-rich-text-icon-vertical-align: sub;
-                                  --bili-rich-text-link-color: var(--text_link, #008AC5);
-                                  --bili-rich-text-link-color-hover: var(--brand_blue, #00AEEC);
-                                  --icon-vertical-align: var(--bili-rich-text-icon-vertical-align);
-                                  color: var(--bili-rich-text-color, var(--text1, #18191C));
-                                  font-size: var(--bili-rich-text-font-size, 15px);
-                                  line-height: var(--bili-rich-text-line-height, 21px);
-                                  font-family: var(--bili-font-family);
-                              }
-
-                              #contents {
-                                  margin-block-start: 0;
-                                  margin-block-end: 0;
-                                  margin-inline-start: 0;
-                                  margin-inline-end: 0;
-                                  display: var(--bili-rich-text-display);
-                                  white-space: var(--bili-rich-text-white-space);
-                                  -webkit-font-smoothing: antialiased;
-                              }
-
-                              #contents a {
-                                  color: var(--bili-rich-text-link-color);
-                                  text-decoration: none;
-                                  background-color: transparent;
-                                  cursor: pointer;
-                              }
-
-                              #contents a:hover {
-                                  color: var(--bili-rich-text-link-color-hover);
-                              }
-
-                              #contents a bili-icon {
-                                  vertical-align: var(--bili-rich-text-icon-vertical-align);
-                              }
-
-                              #contents img,
-                              #contents a i {
-                                  display: inline-block;
-                                  width: 1.2em;
-                                  height: 1.2em;
-                                  vertical-align: var(--bili-rich-text-icon-vertical-align);
-                              }
-                          </style>
-                          <p id="contents"><span>${decodeURIComponent(videoDescriptionInfoHtml)}</span></p>
-                      </bili-rich-text>
-                  </div>
-              </div>
-          </div>
+              </bili-adjustment-comment-renderer>
+              <div id="bili-adjustment-spread-line"></div>
+          </bili-adjustment-comment-thread-renderer>
           `
-        utils.createElementAndInsert(videoDescriptionReplyTemplate, $videoCommentReplyList, 'prepend')
+        utils.createElementAndInsert(shadowRootVideoDescriptionReplyTemplate, $videoCommentReplyListShadowRoot, 'prepend')
         document.querySelector('#comment-description:not(:first-child)')?.remove()
       } else {
         $videoDescriptionInfo.innerHTML = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp, ' ').replace(timeStringRegexp, (match) => {
-          return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
+          return `<a data-type="seek" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
         }).replace(urlRegexp, (match) => {
           return `<a href="${match}" target="_blank">${match}</a>`
         }).replace(plaintVideoIdRegexp, (match) => {
@@ -2220,7 +2124,7 @@
       modules.locationToPlayer()
       await utils.sleep(1500)
       modules.autoEnableSubtitle()
-      // modules.insertVideoDescriptionToComment()
+      modules.insertVideoDescriptionToComment()
     },
     // #endregion 自动返回播放器并更新评论区简介
     /**
@@ -2820,6 +2724,7 @@
                   modules.autoSelectScreenMode,
                   modules.webfullScreenModeUnlock,
                   modules.autoLocationToPlayer,
+                  modules.insertVideoDescriptionToComment,
                   modules.autoCancelMute,
                   modules.autoSelectVideoHighestQuality,
                   modules.autoEnableSubtitle,
@@ -2827,7 +2732,6 @@
                   modules.clickPlayerAutoLocation,
                   modules.insertFloatSideNavToolsButton,
                   modules.clickVideoTimeAutoLocation,
-                  // modules.insertVideoDescriptionToComment,
 
                   // modules.insertSetSkipTimeNodesButton,
                   // modules.insertSkipTimeNodesSwitchButton,
