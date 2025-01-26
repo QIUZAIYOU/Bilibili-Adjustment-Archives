@@ -99,7 +99,7 @@
     videoComment: '#comment',
     videoCommentReplyList: '#comment .reply-list',
     videoRootReplyContainer: '#comment .root-reply-container',
-    videoTime: '.video-time,.video-seek',
+    videoTime: '.video-time,.video-seek,[data-type="seek"]',
     videoDescription: '#v_desc',
     videoDescriptionInfo: '#v_desc .basic-desc-info',
     videoDescriptionText: '#v_desc .desc-info-text',
@@ -1235,12 +1235,24 @@
     async clickVideoTimeAutoLocation() {
       await utils.sleep(100)
       const $video = await utils.getElementAndCheckExistence('video')
-      const $clickTarget = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.videoComment) : await utils.getElementAndCheckExistence(selectors.bangumiComment)
+      // const $clickTarget = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.videoComment) : await utils.getElementAndCheckExistence(selectors.bangumiComment)
+      const $descriptionClickTarget = vals.player_type() === 'video' ? document.querySelector('#commentapp > bili-comments').shadowRoot.querySelector('#contents').querySelector('#feed #bili-adjustment-contents') : ''
+      const $clickTarget = vals.player_type() === 'video' ? document.querySelector("#commentapp > bili-comments").shadowRoot.querySelector("#feed > bili-comment-thread-renderer").shadowRoot.querySelector("#comment").shadowRoot.querySelector("#content > bili-rich-text").shadowRoot.querySelector("#contents") : ''
       await elmGetter.each(selectors.videoTime, $clickTarget, async (target) => {
         target.addEventListener('click', async (event) => {
           event.stopPropagation()
           await modules.locationToPlayer()
           // const targetTime = vals.player_type() === 'video' ? target.dataset.videoTime : target.dataset.time
+          const targetTime = target.dataset.videoTime
+          if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
+          $video.currentTime = targetTime
+          $video.play()
+        })
+      })
+      await elmGetter.each(selectors.videoTime, $descriptionClickTarget, async (target) => {
+        target.addEventListener('click', async (event) => {
+          event.stopPropagation()
+          await modules.locationToPlayer()
           const targetTime = target.dataset.videoTime
           if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
           $video.currentTime = targetTime
@@ -1508,7 +1520,7 @@
       const $commentDescription = document.getElementById('comment-description')
       if ($commentDescription) $commentDescription.remove()
       const [$videoDescription, $videoDescriptionInfo] = await utils.getElementAndCheckExistence([selectors.videoDescription, selectors.videoDescriptionInfo])
-      const $videoCommentReplyListShadowRoot = document.querySelector('#commentapp').children[0].shadowRoot.querySelector('#contents').querySelector('#feed')
+      const $videoCommentReplyListShadowRoot = document.querySelector('#commentapp > bili-comments').shadowRoot.querySelector('#contents').querySelector('#feed')
       const getTotalSecondsFromTimeString = (timeString) => {
         if (timeString.length === 5) timeString = '00:' + timeString
         const [hours, minutes, seconds] = timeString.split(':').map(Number)
@@ -1537,7 +1549,7 @@
         const resetVideoDescriptionInfoHtml = decodeURIComponent(encodeURIComponent($videoDescriptionInfo.innerHTML).replace(specialBlankRegexp, '%20'))
         // 先将 % 编码为 %25 防止后续执行 decodeURIComponent() 报错，因为 % 为非法字符
         const videoDescriptionInfoHtml = resetVideoDescriptionInfoHtml.replaceAll('%', '%25').replace(nbspToBlankRegexp, ' ').replace(timeStringRegexp, (match) => {
-          return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
+          return `<a data-type="seek" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
         }).replace(urlRegexp, (match) => {
           return `<a href="${match}" target="_blank">${match}</a>`
         }).replace(plaintVideoIdRegexp, (match) => {
@@ -1545,36 +1557,7 @@
         }).replace(plaintReadIdRegexp, (match) => {
           return `<a href="https://www.bilibili.com/read/${match}" target="_blank">${match}</a>`
         }).replace(blankRegexp, '')
-        const upAvatarDecorationLink = document.querySelector(selectors.upAvatarDecoration) ? document.querySelector(selectors.upAvatarDecoration).dataset.src.replace('@144w_144h_!web-avatar', '@240w_240h_!web-avatar-comment') : ''
-        // const vueScopeId = await modules.getVueScopeId(selectors.videoRootReplyContainer)
-        // utils.logger.debug(vueScopeId)
-        // const videoDescriptionReplyTemplate = `
-        //   <div data-v-${vueScopeId}="" data-v-bad1995c="" id="comment-description" class="reply-item">
-        //       <div data-v-${vueScopeId}="" class="root-reply-container">
-        //           <div data-v-${vueScopeId}="" class="root-reply-avatar" >
-        //               <div data-v-${vueScopeId}="" class="avatar">
-        //                   <div class="bili-avatar" style="width:48px;height:48px">
-        //                       <img class="bili-avatar-img bili-avatar-face bili-avatar-img-radius" data-src="${upAvatarFaceLink}" src="${upAvatarFaceLink}">
-        //                       <div class="bili-avatar-pendent-dom">
-        //                           <img class="bili-avatar-img" data-src="${upAvatarDecorationLink}" alt="" src="${upAvatarDecorationLink}">
-        //                       </div>
-        //                       <span class="${$upAvatarIcon?.classList}"></span>
-        //                   </div>
-        //               </div>
-        //           </div>
-        //           <div data-v-${vueScopeId}="" class="content-warp">
-        //               <div data-v-${vueScopeId}="" class="user-info">
-        //                   <div data-v-${vueScopeId}="" class="user-name" style="color:#00a1d6!important">视频简介丨播放页调整</div>
-        //               </div>
-        //               <div data-v-${vueScopeId}="" class="root-reply">
-        //                   <span data-v-${vueScopeId}="" class="reply-content-container root-reply">
-        //                       <span class="reply-content">${decodeURIComponent(videoDescriptionInfoHtml)}</span>
-        //                   </span>
-        //               </div>
-        //           </div>
-        //       </div>
-        //       <div data-v-${vueScopeId}="" class="bottom-line"></div>
-        //   </div>`
+        // const upAvatarDecorationLink = document.querySelector(selectors.upAvatarDecoration) ? document.querySelector(selectors.upAvatarDecoration).dataset.src.replace('@144w_144h_!web-avatar', '@240w_240h_!web-avatar-comment') : ''
         const shadowRootVideoDescriptionReplyTemplate = `
           <bili-adjustment-comment-thread-renderer>
               <style>
@@ -1674,14 +1657,11 @@
               <div id="bili-adjustment-spread-line"></div>
           </bili-adjustment-comment-thread-renderer>
           `
-        // utils.createElementAndInsert(videoDescriptionReplyTemplate, $videoCommentReplyList, 'prepend')
-        utils.logger.info(decodeURIComponent(videoDescriptionInfoHtml))
-
         utils.createElementAndInsert(shadowRootVideoDescriptionReplyTemplate, $videoCommentReplyListShadowRoot, 'prepend')
         document.querySelector('#comment-description:not(:first-child)')?.remove()
       } else {
         $videoDescriptionInfo.innerHTML = $videoDescriptionInfo.innerHTML.replace(nbspToBlankRegexp, ' ').replace(timeStringRegexp, (match) => {
-          return `<a class="jump-link video-time" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
+          return `<a data-type="seek" data-video-part="-1" data-video-time="${getTotalSecondsFromTimeString(match)}">${match}</a>`
         }).replace(urlRegexp, (match) => {
           return `<a href="${match}" target="_blank">${match}</a>`
         }).replace(plaintVideoIdRegexp, (match) => {
