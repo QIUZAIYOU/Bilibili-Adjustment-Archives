@@ -1,0 +1,97 @@
+<bili-adjustment-comment-thread-renderer>
+    <style>
+        #bili-adjustment-body {
+            position: relative;
+            padding-left: 80px;
+            padding-top: 22px;
+        }
+
+        #bili-adjustment-user-avatar {
+            position: absolute;
+            left: 20px;
+            top: 22px;
+            width: 48px;
+            height: 48px;
+            transform-origin: left top;
+            transform: scale(1);
+        }
+
+        #bili-adjustment-avatar-picture {
+            width: 48px;
+            height: 48px;
+            opacity: 1;
+            border-radius: 50%;
+        }
+
+        #bili-adjustment-info {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        #bili-adjustment-user-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        #bili-adjustment-user-name a {
+            color: #00a1d6;
+            text-decoration: none;
+
+        }
+
+        #bili-adjustment-content {
+            font-size: 15px;
+            line-height: 24px;
+        }
+
+        #bili-adjustment-contents {
+            margin-block-start: 0;
+            margin-block-end: 0;
+            margin-inline-start: 0;
+            margin-inline-end: 0;
+            display: inline;
+            white-space: pre-line;
+            word-break: break-word;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #bili-adjustment-contents a {
+            color: #00a1d6;
+            text-decoration: none;
+            background-color: transparent;
+            cursor: pointer;
+        }
+
+        #bili-adjustment-spread-line {
+            padding-bottom: 14px;
+            margin-left: 80px;
+            border-bottom: 1px solid var(--graph_bg_thick);
+        }
+    </style>
+    <bili-adjustment-comment-renderer id="comment">
+        <div id="bili-adjustment-body" class="light">
+            <a id="bili-adjustment-user-avatar">
+                <bili-adjustment-avatar>
+                    <img id="bili-adjustment-avatar-picture" src="${upAvatarFaceLink}" alt="${upAvatarFaceLink}">
+                </bili-adjustment-avatar>
+            </a>
+            <div id="bili-adjustment-main" style="width:100%">
+                <div id="bili-adjustment-header">
+                    <bili-adjustment-comment-user-info>
+                        <div id="bili-adjustment-info">
+                            <div id="bili-adjustment-user-name">
+                                <a href="#" onclick="event.preventDefault()">Bilibili调整丨视频简介已优化并插入评论区</a>
+                            </div>
+                        </div>
+                    </bili-adjustment-comment-user-info>
+                </div>
+                <div id="bili-adjustment-content">
+                    <bili-adjustment-rich-text>
+                        <p id="bili-adjustment-contents">${decodeURIComponent(videoDescriptionInfoHtml)}</p>
+                    </bili-adjustment-rich-text>
+                </div>
+            </div>
+        </div>
+    </bili-adjustment-comment-renderer>
+    <div id="bili-adjustment-spread-line"></div>
+</bili-adjustment-comment-thread-renderer>

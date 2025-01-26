@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 For ScriptCat
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.37.10
+// @version           0.1.38
 // @description       一、首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -1576,83 +1576,107 @@
         //       <div data-v-${vueScopeId}="" class="bottom-line"></div>
         //   </div>`
         const shadowRootVideoDescriptionReplyTemplate = `
-        <bili-comment-thread-renderer asifadeaway="">
-          <bili-comment-renderer id="comment">
-            <div id="body" class=" light ">
-              <a id="user-avatar" target="_blank" href="//space.bilibili.com/404163851" data-user-profile-id="404163851">
-                  <bili-avatar style="--avatar-width: 48px; --avatar-height: 48px;">
-                      <div id="canvas" style="--avatar-canvas-width: 86.4px; --avatar-canvas-height: 86.4px;">
-                          <div id="canvas" style="--avatar-canvas-width: 86.4px; --avatar-canvas-height: 86.4px;">
-                              <div class="layers">
-                                  <div class="layer center" style="width: 48px; height: 48px; opacity: 1; border-radius: 50%;">
-                                      <div class="layer-res"
-                                          style="background-image: url(&quot;//i0.hdslb.com/bfs/seed/jinkela/short/webui/avatar/img/res-local6.jpeg&quot;);">
+          <bili-adjustment-comment-thread-renderer>
+              <style>
+                  #bili-adjustment-body {
+                      position: relative;
+                      padding-left: 80px;
+                      padding-top: 22px;
+                  }
+
+                  #bili-adjustment-user-avatar {
+                      position: absolute;
+                      left: 20px;
+                      top: 22px;
+                      width: 48px;
+                      height: 48px;
+                      transform-origin: left top;
+                      transform: scale(1);
+                  }
+
+                  #bili-adjustment-avatar-picture {
+                      width: 48px;
+                      height: 48px;
+                      opacity: 1;
+                      border-radius: 50%;
+                  }
+
+                  #bili-adjustment-info {
+                      display: inline-flex;
+                      align-items: center;
+                  }
+
+                  #bili-adjustment-user-name {
+                      font-size: 13px;
+                      font-weight: 500;
+                  }
+
+                  #bili-adjustment-user-name a {
+                      color: #00a1d6;
+                      text-decoration: none;
+
+                  }
+
+                  #bili-adjustment-content {
+                      font-size: 15px;
+                      line-height: 24px;
+                  }
+
+                  #bili-adjustment-contents {
+                      margin-block-start: 0;
+                      margin-block-end: 0;
+                      margin-inline-start: 0;
+                      margin-inline-end: 0;
+                      display: inline;
+                      white-space: pre-line;
+                      word-break: break-word;
+                      -webkit-font-smoothing: antialiased;
+                  }
+
+                  #bili-adjustment-contents a {
+                      color: #00a1d6;
+                      text-decoration: none;
+                      background-color: transparent;
+                      cursor: pointer;
+                  }
+
+                  #bili-adjustment-spread-line {
+                      padding-bottom: 14px;
+                      margin-left: 80px;
+                      border-bottom: 1px solid var(--graph_bg_thick);
+                  }
+              </style>
+              <bili-adjustment-comment-renderer id="comment">
+                  <div id="bili-adjustment-body" class="light">
+                      <a id="bili-adjustment-user-avatar">
+                          <bili-adjustment-avatar>
+                              <img id="bili-adjustment-avatar-picture" src="${upAvatarFaceLink}" alt="${upAvatarFaceLink}">
+                          </bili-adjustment-avatar>
+                      </a>
+                      <div id="bili-adjustment-main" style="width:100%">
+                          <div id="bili-adjustment-header">
+                              <bili-adjustment-comment-user-info>
+                                  <div id="bili-adjustment-info">
+                                      <div id="bili-adjustment-user-name">
+                                          <a href="#" onclick="event.preventDefault()">Bilibili调整丨视频简介已优化并插入评论区</a>
                                       </div>
                                   </div>
-                              </div>
-                              <div class="layers">
-                                  <div class="layer center"
-                                      style="width: 37.776px; height: 37.776px; opacity: 1; border-radius: 50%;">
-                                      <div class="layer-res"
-                                          style="background-image: url(&quot;//i0.hdslb.com/bfs/seed/jinkela/short/webui/avatar/img/res-local6.jpeg&quot;);">
-                                          <picture>
-                                              <source type="image/avif" srcset="${upAvatarFaceLink}">
-                                              <source type="image/webp" srcset="${upAvatarFaceLink}"><img
-                                                  src="${upAvatarFaceLink}" onload="bmgOnLoad(this)" onerror="bmgOnError(this)"
-                                                  data-onerror="onAvtSrcError">
-                                          </picture>
-                                      </div>
-                                  </div>
-                                  <div class="layer center" style="width: 66px; height: 66px; opacity: 1;">
-                                      <div class="layer-res">
-                                          <picture>
-                                              <source type="image/avif" srcset="${upAvatarDecorationLink}">
-                                              <source type="image/webp" srcset="${upAvatarDecorationLink}">
-                                              <img src="${upAvatarDecorationLink}" onload="bmgOnLoad(this)"
-                                                  onerror="bmgOnError(this)" data-onerror="onAvtSrcError">
-                                          </picture>
-                                      </div>
-                                  </div>
-                                  <div class="layer"
-                                      style="left: 46.488px; top: 47.288px; width: 20px; height: 20px; opacity: 1; background-color: rgb(255, 255, 255); border: 2px solid rgb(255, 255, 255); border-radius: 50%; box-sizing: border-box;">
-                                      <div class="layer-res"
-                                          style="background-image: url(&quot;//i0.hdslb.com/bfs/seed/jinkela/short/webui/avatar/img/res-local1.png&quot;);">
-                                      </div>
-                                  </div>
-                              </div>
+                              </bili-adjustment-comment-user-info>
+                          </div>
+                          <div id="bili-adjustment-content">
+                              <bili-adjustment-rich-text>
+                                  <p id="bili-adjustment-contents">${decodeURIComponent(videoDescriptionInfoHtml)}</p>
+                              </bili-adjustment-rich-text>
                           </div>
                       </div>
-                  </bili-avatar>
-              </a>
-              <div id="main">
-                  <div id="header">
-                      <bili-comment-user-info>
-                          <div id="info">
-                              <slot></slot>
-                              <div id="user-name" data-user-profile-id="98716625">
-                                  <a target="_blank"
-                                      href="https://greasyfork.org/zh-CN/scripts/493405-%E5%93%94%E5%93%A9%E5%93%94%E5%93%A9-bilibili-com-%E8%B0%83%E6%95%B4"
-                                      class="">视频简介丨播放页调整</a>
-                              </div>
-                              <div id="user-level">
-                                  <img width="30" height="30"
-                                      src="//i0.hdslb.com/bfs/seed/jinkela/short/webui/user-profile/img/level_6.svg">
-                              </div>
-                          </div>
-                      </bili-comment-user-info>
                   </div>
-                  <div id="content">
-                      <bili-rich-text
-                          style="--bili-rich-text-font-size:var(--bili-comments-font-size-content);--bili-rich-text-line-height:var(--bili-comments-line-height-content);--bili-rich-text-link-color:var(--Lb6);--bili-rich-text-display:inline;">
-                          <p id="contents"><span>${decodeURIComponent(videoDescriptionInfoHtml)}</span></p>
-                      </bili-rich-text>
-                  </div>
-              </div>
-          </div>
-          </bili-comment-renderer>
-          </bili-comment-thread-renderer>
+              </bili-adjustment-comment-renderer>
+              <div id="bili-adjustment-spread-line"></div>
+          </bili-adjustment-comment-thread-renderer>
           `
         // utils.createElementAndInsert(videoDescriptionReplyTemplate, $videoCommentReplyList, 'prepend')
+        utils.logger.info(decodeURIComponent(videoDescriptionInfoHtml))
+
         utils.createElementAndInsert(shadowRootVideoDescriptionReplyTemplate, $videoCommentReplyListShadowRoot, 'prepend')
         document.querySelector('#comment-description:not(:first-child)')?.remove()
       } else {
@@ -2120,7 +2144,7 @@
       modules.locationToPlayer()
       await utils.sleep(1500)
       modules.autoEnableSubtitle()
-      // modules.insertVideoDescriptionToComment()
+      modules.insertVideoDescriptionToComment()
     },
     // #endregion 自动返回播放器并更新评论区简介
     /**
@@ -2720,6 +2744,7 @@
                   modules.autoSelectScreenMode,
                   modules.webfullScreenModeUnlock,
                   modules.autoLocationToPlayer,
+                  modules.insertVideoDescriptionToComment,
                   modules.autoCancelMute,
                   modules.autoSelectVideoHighestQuality,
                   modules.autoEnableSubtitle,
@@ -2727,7 +2752,6 @@
                   modules.clickPlayerAutoLocation,
                   modules.insertFloatSideNavToolsButton,
                   modules.clickVideoTimeAutoLocation,
-                  // modules.insertVideoDescriptionToComment,
 
                   // modules.insertSetSkipTimeNodesButton,
                   // modules.insertSkipTimeNodesSwitchButton,
