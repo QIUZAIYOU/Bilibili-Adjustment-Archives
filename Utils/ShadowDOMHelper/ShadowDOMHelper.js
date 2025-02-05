@@ -1,112 +1,137 @@
 // ==UserScript==
-// @name         ShadowDOMHelper
-// @author       QIAN
-// @version      0.0.2
-// @homepageURL  https://github.com/QIUZAIYOU/Bilibili-Adjustment/edit/main/ShadowDOMHelper.js
+// @name        ShadowDOMHelper
+// @author      QIAN
+// @version     0.0.4
+// @homepageURL	https://github.com/QIUZAIYOU/Bilibili-Adjustment/blob/main/Utils/ShadowDOMHelper/ShadowDOMHelper.js
 // ==/UserScript==
 
 class ShadowDOMHelper {
-  static #shadowRoots = new WeakMap(); // 存储 closed 模式的 shadowRoot
+  static #shadowRoots = new WeakMap();
 
-  /**
-   * 初始化拦截 attachShadow 以捕获 closed 模式的 shadowRoot
-   */
+  // ----------- 核心功能 -----------
   static init() {
     const originalAttachShadow = Element.prototype.attachShadow;
-
-    // 重写 attachShadow 方法以捕获 closed 模式的 shadowRoot
     Element.prototype.attachShadow = function (options) {
       const shadowRoot = originalAttachShadow.call(this, options);
-      ShadowDOMHelper.#shadowRoots.set(this, shadowRoot); // 存储到 WeakMap
+      ShadowDOMHelper.#shadowRoots.set(this, shadowRoot);
       return shadowRoot;
     };
   }
 
-  /**
-   * 获取 shadowRoot（兼容 open/closed 模式）
-   * @param {HTMLElement} host
-   * @returns {ShadowRoot|null}
-   */
   static getShadowRoot(host) {
-    // 优先尝试通过标准接口获取 open 模式的 shadowRoot
     return host.shadowRoot || ShadowDOMHelper.#shadowRoots.get(host) || null;
   }
 
-  /**
-   * 查询 shadowDOM 内的元素（支持嵌套）
-   * @param {HTMLElement} host - 宿主元素
-   * @param {string} selector - CSS 选择器（支持多级，如 ".level1 > .level2"）
-   * @returns {HTMLElement|null}
-   */
-  // 支持混合模式查询（使用 >> 和 > 区分层级）
   static querySelector(host, selector) {
-    const parts = selector.split(/(\s*>>\s*|\s*>\s*)/).filter(p => p.trim());
-    let currentElement = host;
+    return this.#query(host, selector, false)[0] || null;
+  }
 
+  static querySelectorAll(host, selector) {
+    return this.#query(host, selector, true);
+  }
+
+  static #query(host, selector, findAll) {
+    const parts = selector.split(/(\s*>>\s*|\s*>\s*)/).filter(p => p.trim());
+    let elements = [host];
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i].trim();
       if (part === '>>' || part === '>') continue;
-
       const prevSeparator = i > 0 ? parts[i - 1].trim() : null;
-
-      if (prevSeparator === '>>') {
-        const shadowRoot = this.getShadowRoot(currentElement);
-        if (!shadowRoot) return null;
-        currentElement = shadowRoot.querySelector(part);
-      } else if (prevSeparator === '>') {
-        currentElement = currentElement.querySelector(part);
-      } else {
-        // 初始查询：进入宿主的 shadowRoot
-        const shadowRoot = this.getShadowRoot(currentElement);
-        currentElement = shadowRoot?.querySelector(part);
+      const newElements = [];
+      for (const el of elements) {
+        let targets = [];
+        if (prevSeparator === '>>') {
+          const shadowRoot = this.getShadowRoot(el);
+          targets = shadowRoot ? shadowRoot.querySelectorAll(part) : [];
+        } else if (prevSeparator === '>') {
+          targets = el.querySelectorAll(part);
+        } else {
+          const shadowRoot = this.getShadowRoot(el);
+          targets = shadowRoot ? shadowRoot.querySelectorAll(part) : [];
+        }
+        newElements.push(...Array.from(targets));
       }
-
-      if (!currentElement) return null;
+      elements = newElements;
+      if (elements.length === 0 && !findAll) break;
     }
+    return findAll ? elements : elements.slice(0, 1);
+  }
 
-    return currentElement;
+  // ----------- 调试功能 -----------
+  /**
+   * 调试查询路径（打印每一步的结果）
+   * @param {HTMLElement} host - 宿主元素
+   * @param {string} selector - 查询路径
+   * @param {boolean} [findAll=false] - 是否查询所有匹配元素
+   */
+  static debugQuery(host, selector, findAll = false) {
+    console.groupCollapsed('[ShadowDOMHelper] 开始调试查询路径:', selector);
+    console.log('初始宿主元素:', host);
+
+    const parts = selector.split(/(\s*>>\s*|\s*>\s*)/).filter(p => p.trim());
+    let elements = [host];
+
+    parts.forEach((part, index) => {
+      if (part === '>>' || part === '>') return;
+
+      const prevSeparator = index > 0 ? parts[index - 1].trim() : null;
+      const newElements = [];
+
+      console.group(`层级 ${index + 1}: ${prevSeparator || 'INIT'} ${part}`);
+      console.log('当前元素数量:', elements.length);
+
+      elements.forEach((el, elIndex) => {
+        console.groupCollapsed(`元素 ${elIndex + 1}:`, el);
+
+        // 操作类型判断
+        let operation;
+        if (prevSeparator === '>>') {
+          const shadowRoot = this.getShadowRoot(el);
+          console.log('ShadowRoot:', shadowRoot);
+          operation = shadowRoot ? shadowRoot.querySelectorAll(part) : [];
+        } else if (prevSeparator === '>') {
+          operation = el.querySelectorAll(part);
+        } else {
+          const shadowRoot = this.getShadowRoot(el);
+          console.log('ShadowRoot:', shadowRoot);
+          operation = shadowRoot ? shadowRoot.querySelectorAll(part) : [];
+        }
+
+        console.log('找到匹配元素:', Array.from(operation));
+        newElements.push(...Array.from(operation));
+        console.groupEnd();
+      });
+
+      elements = newElements;
+      console.log('本层级后剩余元素:', elements.length);
+      console.groupEnd();
+    });
+
+    console.log('最终结果:', findAll ? elements : elements[0] || null);
+    console.groupEnd();
+    return findAll ? elements : elements[0] || null;
   }
 
   /**
-   * 查询所有匹配的元素
-   * @param {HTMLElement} host
-   * @param {string} selector
-   * @returns {HTMLElement[]}
+   * 验证 ShadowRoot 存在性
+   * @param {HTMLElement} host - 宿主元素
    */
-  static querySelectorAll(host, selector) {
+  static debugShadowRoot(host) {
+    console.groupCollapsed('[ShadowDOMHelper] 验证 ShadowRoot');
+    console.log('宿主元素:', host);
+
     const shadowRoot = this.getShadowRoot(host);
-    return shadowRoot ? [...shadowRoot.querySelectorAll(selector)] : [];
+    console.log('是否存在:', !!shadowRoot);
+
+    if (shadowRoot) {
+      console.log('模式:', host.shadowRoot ? 'open' : 'closed (通过库捕获)');
+      console.log('内容摘要:', shadowRoot.innerHTML.slice(0, 100) + '...');
+    }
+
+    console.groupEnd();
+    return shadowRoot;
   }
 }
 
-// 初始化拦截（只需调用一次）
+// 自动初始化
 ShadowDOMHelper.init();
-
-// ----------------------
-// 示例用法
-// ----------------------
-
-// 创建一个 closed 模式的 shadowDOM
-// const host = document.createElement("div");
-// document.body.appendChild(host);
-// host.attachShadow({ mode: "closed" });
-// host.shadowRoot.innerHTML = `
-//   <div class="outer">
-//     <div class="inner">
-//       <span id="target">找到我！</span>
-//     </div>
-//   </div>
-// `;
-
-// // 查询嵌套的 closed shadowDOM 元素
-// const result = ShadowDOMHelper.querySelector(
-//   host,
-//   ".outer > .inner > #target"
-// );
-
-// if (result) {
-//   console.log("找到 closed shadowDOM 元素:", result); // 成功获取
-//   result.textContent = "已被修改！";
-// } else {
-//   console.log("未找到元素");
-// }
