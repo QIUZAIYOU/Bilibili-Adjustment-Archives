@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ShadowDOMHelper
 // @author       QIAN
-// @version      0.0.1
+// @version      0.0.2
 // @homepageURL  https://github.com/QIUZAIYOU/Bilibili-Adjustment/edit/main/ShadowDOMHelper.js
 // ==/UserScript==
 
