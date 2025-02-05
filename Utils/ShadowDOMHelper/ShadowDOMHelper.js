@@ -67,9 +67,6 @@ class ShadowDOMHelper {
     return currentElement;
   }
 
-    return currentHost;
-  }
-
   /**
    * 查询所有匹配的元素
    * @param {HTMLElement} host
