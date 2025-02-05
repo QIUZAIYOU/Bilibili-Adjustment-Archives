@@ -72,26 +72,26 @@ ShadowDOMHelper.init();
 // ----------------------
 
 // 创建一个 closed 模式的 shadowDOM
-const host = document.createElement("div");
-document.body.appendChild(host);
-host.attachShadow({ mode: "closed" });
-host.shadowRoot.innerHTML = `
-  <div class="outer">
-    <div class="inner">
-      <span id="target">找到我！</span>
-    </div>
-  </div>
-`;
+// const host = document.createElement("div");
+// document.body.appendChild(host);
+// host.attachShadow({ mode: "closed" });
+// host.shadowRoot.innerHTML = `
+//   <div class="outer">
+//     <div class="inner">
+//       <span id="target">找到我！</span>
+//     </div>
+//   </div>
+// `;
 
-// 查询嵌套的 closed shadowDOM 元素
-const result = ShadowDOMHelper.querySelector(
-  host,
-  ".outer > .inner > #target"
-);
+// // 查询嵌套的 closed shadowDOM 元素
+// const result = ShadowDOMHelper.querySelector(
+//   host,
+//   ".outer > .inner > #target"
+// );
 
-if (result) {
-  console.log("找到 closed shadowDOM 元素:", result); // 成功获取
-  result.textContent = "已被修改！";
-} else {
-  console.log("未找到元素");
-}
+// if (result) {
+//   console.log("找到 closed shadowDOM 元素:", result); // 成功获取
+//   result.textContent = "已被修改！";
+// } else {
+//   console.log("未找到元素");
+// }
