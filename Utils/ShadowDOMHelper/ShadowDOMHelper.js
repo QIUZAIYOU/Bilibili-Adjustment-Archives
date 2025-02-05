@@ -38,16 +38,34 @@ class ShadowDOMHelper {
    * @param {string} selector - CSS 选择器（支持多级，如 ".level1 > .level2"）
    * @returns {HTMLElement|null}
    */
+  // 支持混合模式查询（使用 >> 和 > 区分层级）
   static querySelector(host, selector) {
-    const selectors = selector.split(">").map((s) => s.trim());
-    let currentHost = host;
+    const parts = selector.split(/(\s*>>\s*|\s*>\s*)/).filter(p => p.trim());
+    let currentElement = host;
 
-    for (const s of selectors) {
-      const shadowRoot = this.getShadowRoot(currentHost);
-      if (!shadowRoot) return null;
-      currentHost = shadowRoot.querySelector(s);
-      if (!currentHost) return null;
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i].trim();
+      if (part === '>>' || part === '>') continue;
+
+      const prevSeparator = i > 0 ? parts[i - 1].trim() : null;
+
+      if (prevSeparator === '>>') {
+        const shadowRoot = this.getShadowRoot(currentElement);
+        if (!shadowRoot) return null;
+        currentElement = shadowRoot.querySelector(part);
+      } else if (prevSeparator === '>') {
+        currentElement = currentElement.querySelector(part);
+      } else {
+        // 初始查询：进入宿主的 shadowRoot
+        const shadowRoot = this.getShadowRoot(currentElement);
+        currentElement = shadowRoot?.querySelector(part);
+      }
+
+      if (!currentElement) return null;
     }
+
+    return currentElement;
+  }
 
     return currentHost;
   }
