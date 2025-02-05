@@ -1,3 +1,10 @@
+// ==UserScript==
+// @name         ShadowDOMHelper
+// @author       QIAN
+// @version      0.0.1
+// @homepageURL   https://github.com/QIUZAIYOU/Bilibili-Adjustment/edit/main/ShadowDOMHelper.js
+// ==/UserScript==
+
 class ShadowDOMHelper {
   static #shadowRoots = new WeakMap(); // 存储 closed 模式的 shadowRoot
 
