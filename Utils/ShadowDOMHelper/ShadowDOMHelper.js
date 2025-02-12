@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        ShadowDOMHelper
 // @author      QIAN
-// @version     0.0.4
+// @version     0.0.5
 // @homepageURL	https://github.com/QIUZAIYOU/Bilibili-Adjustment/blob/main/Utils/ShadowDOMHelper/ShadowDOMHelper.js
 // ==/UserScript==
 
@@ -57,6 +57,74 @@ class ShadowDOMHelper {
     return findAll ? elements : elements.slice(0, 1);
   }
 
+  // ----------- 样式操作功能 -----------
+  /**
+   * 向 ShadowDOM 内的元素添加样式
+   * @param {HTMLElement} host - 宿主元素
+   * @param {string} selector - 目标元素路径（支持 >> 和 > 操作符）
+   * @param {string|Object} styles - CSS 字符串或样式对象（如 { color: 'red', fontSize: '14px' }）
+   * @param {boolean} [isolate=true] - 是否隔离样式（为元素添加唯一属性）
+   */
+  static addStyle(host, selector, styles, isolate = true) {
+    const targets = this.querySelectorAll(host, selector);
+    if (targets.length === 0) {
+      console.warn(`未找到匹配元素: ${selector}`);
+      return false;
+    }
+
+    const styleContent = this.#parseStyles(styles);
+    targets.forEach(target => {
+      const styleId = `shadow-style-${Date.now()}`;
+      let styleEl = target.shadowRoot?.querySelector(`#${styleId}`);
+
+      // 动态创建或复用样式标签
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        const shadowRoot = this.getShadowRoot(target) || target.attachShadow({ mode: 'open' });
+        shadowRoot.appendChild(styleEl);
+      }
+
+      // 添加隔离属性（防止全局污染）
+      if (isolate) {
+        const uniqueAttr = `data-shadow-${Math.random().toString(36).slice(2, 9)}`;
+        target.setAttribute(uniqueAttr, '');
+        styleEl.textContent = `[${uniqueAttr}] { ${styleContent} }`;
+      } else {
+        styleEl.textContent += styleContent;
+      }
+    });
+
+    return true;
+  }
+  // 解析样式输入
+  static #parseStyles(styles) {
+    if (typeof styles === 'string') {
+      return styles.replace(/^\s*\{|\}\s*$/g, ''); // 去除 CSS 外层大括号
+    } else if (typeof styles === 'object') {
+      return Object.entries(styles)
+        .map(([prop, value]) =>
+          `${prop.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${value};`
+        )
+        .join(' ');
+    }
+    return '';
+  }
+  /**
+ * 更新已有样式
+ * @param {HTMLElement} host - 宿主元素
+ * @param {string} selector - 目标元素路径
+ * @param {string|Object} newStyles - 新样式
+ */
+  static updateStyle(host, selector, newStyles) {
+    const targets = this.querySelectorAll(host, selector);
+    targets.forEach(target => {
+      const styleEl = target.shadowRoot?.querySelector('style[data-shadow-style]');
+      if (styleEl) {
+        styleEl.textContent = this.#parseStyles(newStyles);
+      }
+    });
+  }
   // ----------- 调试功能 -----------
   /**
    * 调试查询路径（打印每一步的结果）
@@ -132,6 +200,5 @@ class ShadowDOMHelper {
     return shadowRoot;
   }
 }
-
 // 自动初始化
 ShadowDOMHelper.init();
