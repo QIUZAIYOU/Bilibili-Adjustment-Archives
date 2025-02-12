@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name        ShadowDOMHelper
 // @author      QIAN
-// @version     0.0.5
+// @version     0.0.6
 // @homepageURL	https://github.com/QIUZAIYOU/Bilibili-Adjustment/blob/main/Utils/ShadowDOMHelper/ShadowDOMHelper.js
 // ==/UserScript==
 
 class ShadowDOMHelper {
   static #shadowRoots = new WeakMap();
-
+  static #observers = new WeakMap(); // 存储宿主元素与观察器的关系
   // ----------- 核心功能 -----------
   static init() {
     const originalAttachShadow = Element.prototype.attachShadow;
@@ -56,7 +56,136 @@ class ShadowDOMHelper {
     }
     return findAll ? elements : elements.slice(0, 1);
   }
+  // ----------- 增强版查询核心 -----------
+  /**
+   * 实时查询元素（支持动态新增）
+   * @param {HTMLElement} host - 宿主元素
+   * @param {string} selector - 查询路径
+   * @param {Function} callback - 匹配到元素时的回调 (element) => void
+   * @param {Object} [options]
+   * @param {boolean} [options.observeSubtree=true] - 是否监控子树变化
+   * @param {boolean} [options.observeExisting=true] - 是否立即处理已存在元素
+   */
+  static watchQuery(host, selector, callback, options = {}) {
+    const {
+      observeSubtree = true,
+      observeExisting = true
+    } = options;
 
+    // 初始化观察器
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        this.#processNewNodes(mutation.addedNodes, host, selector, callback);
+      });
+    });
+
+    // 存储观察器
+    this.#observers.set(host, { observer, selector, callback });
+
+    // 开始观察
+    observer.observe(this.getShadowRoot(host) || host, {
+      childList: true,
+      subtree: observeSubtree
+    });
+
+    // 处理现有元素
+    if (observeExisting) {
+      const existing = this.querySelectorAll(host, selector);
+      existing.forEach(el => callback(el));
+    }
+
+    // 返回停止观察的方法
+    return () => {
+      observer.disconnect();
+      this.#observers.delete(host);
+    };
+  }
+
+  // 处理新增节点
+  static #processNewNodes(nodes, host, selector, callback) {
+    nodes.forEach(node => {
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+      // 新增：检查当前节点自身是否匹配完整路径
+      if (this.#isFullMatch(node, host, selector)) {
+        callback(node);
+      }
+
+      // 深度遍历所有可能包含目标元素的容器
+      const containers = [node, ...this.#getAllShadowRoots(node)];
+      containers.forEach(container => {
+        const walker = document.createTreeWalker(
+          container,
+          NodeFilter.SHOW_ELEMENT,
+          {
+            acceptNode: (n) =>
+              this.#isFullMatch(n, host, selector) ?
+                NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+          }
+        );
+
+        while (walker.nextNode()) {
+          callback(walker.currentNode);
+        }
+      });
+    });
+  }
+
+  // 新增：获取元素下所有嵌套的 ShadowRoot
+  static #getAllShadowRoots(element) {
+    const roots = [];
+    const walk = (el) => {
+      const root = this.getShadowRoot(el);
+      if (root) {
+        roots.push(root);
+        root.querySelectorAll('*').forEach(child => walk(child));
+      }
+    };
+    walk(element);
+    return roots;
+  }
+
+  // 重构：精确全路径匹配验证
+  static #isFullMatch(element, host, selector) {
+    const pathParts = selector.split(/(\s*>>\s*|\s*>\s*)/g)
+      .filter(p => p.trim() && !['>>', '>'].includes(p.trim()));
+
+    let currentElement = element;
+    for (let i = pathParts.length - 1; i >= 0; i--) {
+      const part = pathParts[i].trim();
+      const parent = this.#getHierarchyParent(currentElement);
+
+      if (!parent || !this.#matchSelectorPart(parent, part)) {
+        return false;
+      }
+      currentElement = parent;
+    }
+
+    return currentElement === host;
+  }
+
+  // 重构：获取逻辑父级（考虑 ShadowDOM）
+  static #getHierarchyParent(element) {
+    if (element.assignedSlot) { // 处理 slot 元素
+      return element.assignedSlot;
+    }
+    const parentNode = element.parentNode;
+    if (parentNode?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parentNode.host) {
+      return parentNode.host; // ShadowRoot 的宿主
+    }
+    return parentNode;
+  }
+
+  // 新增：支持复合选择器匹配
+  static #matchSelectorPart(element, selector) {
+    try {
+      return element.matches(selector) ||
+        element.assignedSlot?.matches(selector) ||
+        element.getRootNode().host?.matches(selector);
+    } catch {
+      return false;
+    }
+  }
   // ----------- 样式操作功能 -----------
   /**
    * 向 ShadowDOM 内的元素添加样式
@@ -97,6 +226,7 @@ class ShadowDOMHelper {
 
     return true;
   }
+
   // 解析样式输入
   static #parseStyles(styles) {
     if (typeof styles === 'string') {
