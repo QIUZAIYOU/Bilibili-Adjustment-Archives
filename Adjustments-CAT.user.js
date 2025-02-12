@@ -27,7 +27,8 @@
 // @homepageURL       https://github.com/QIUZAIYOU/Bilibili-Adjustment
 // @icon              https://www.bilibili.com/favicon.ico?v=1
 // ==/UserScript==
-// #sha256=V0EUYIfbOrr63nT8+W7BP1xEmWcumTLWu2PXFJHh5dg=
+// ?#sha256=V0EUYIfbOrr63nT8+W7BP1xEmWcumTLWu2PXFJHh5dg=
+// ?#sha256 = 4594d8c914441187907bce6a6e66eecfc302cffeb709e7e3185b7fd45fad2ff3
 (function () {
   'use strict';
   let vars = {
