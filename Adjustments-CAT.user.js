@@ -14,7 +14,7 @@
 // @require           https://cdn.jsdelivr.net/npm/md5@2.3.0/dist/md5.min.js
 // @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
 // @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
-// @require           https://asifadeaway.com/utils/ShadowDOMHelper.js?v=0.0.9
+// @require           https://asifadeaway.com/utils/ShadowDOMHelper.js?v=0.0.8
 // @require           https://scriptcat.org/lib/513/2.0.1/ElementGetter.js
 // @grant             GM_info
 // @grant             GM_setValue
@@ -1260,16 +1260,32 @@
           })
         })
       }
-      // const $clickTargets = vals.player_type() === 'video' ? document.querySelector("#commentapp > bili-comments").shadowRoot.querySelector("#feed > bili-comment-thread-renderer").shadowRoot.querySelector("#comment").shadowRoot.querySelector("#content > bili-rich-text").shadowRoot.querySelector("#contents") : '' 
+      // const $clickTargets = vals.player_type() === 'video' ? document.querySelector("#commentapp > bili-comments").shadowRoot.querySelector("#feed > bili-comment-thread-renderer").shadowRoot.querySelector("#comment").shadowRoot.querySelector("#content > bili-rich-text").shadowRoot.querySelector("#contents") : ''
       // const $clickTargets = vals.player_type() === 'video' ? ShadowDOMHelper.querySelectorAll(document.querySelector("#commentapp > bili-comments"), "#contents > bili-comment-thread-renderer >> #comment >> bili-rich-text >> #contents") : ''
       // utils.logger.debug($clickTargets)
-      ShadowDOMHelper.watchQuery(document.querySelector("#commentapp > bili-comments"), "#contents > bili-comment-thread-renderer >> #comment >> .tag:not(:empty)", (tag) => {
-        utils.logger.debug("新评论加载了！")
+      const host = document.querySelector("#commentapp > bili-comments")
+      const existingSeekTargets = ShadowDOMHelper.querySelectorAll(host, "#contents > bili-comment-thread-renderer >> #comment >> bili-rich-text >> #contents > a[data-type='seek']")
+      if (existingSeekTargets.length > 0) {
+        existingSeekTargets.forEach(seek => {
+          seek.style.color = 'red'
+        })
+      }
+
+      ShadowDOMHelper.watchQuerySimple(host, "#contents > #feed", (element) => {
+        const seekTargets = ShadowDOMHelper.querySelectorAll(host, "#contents > bili-comment-thread-renderer >> #comment >> bili-rich-text >> #contents > a[data-type='seek']")
+        utils.logger.debug(seekTargets)
+        if (seekTargets.length > 0) {
+          seekTargets.forEach(seek => {
+            seek.style.color = 'red'
+          })
+        }
       },
         {
-          observeSubtree: true,
-          observeExisting: true
-        })
+          tagNameFilter: 'bili-comment-thread-renderer',
+          checkHostChain: false // 不限制宿主层级
+        }
+      )
+
       // if ($clickTargets) {
       //   $clickTargets.forEach(async (target) => {
       //     await elmGetter.each(selectors.videoTime, target, async (target) => {

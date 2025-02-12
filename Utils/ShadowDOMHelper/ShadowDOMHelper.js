@@ -186,6 +186,58 @@ class ShadowDOMHelper {
       return false;
     }
   }
+  /**
+   * 实时查询优化版（针对已知标签名的自定义元素）
+   * @param {HTMLElement} host - 宿主元素
+   * @param {string} selector - 查询路径（仅用于验证层级）
+   * @param {Function} callback - 元素匹配时的回调
+   * @param {Object} options
+   * @param {string} options.tagNameFilter - 目标元素标签名（如 "my-component"）
+   * @param {boolean} [options.checkHostChain=true] - 是否验证宿主层级
+   */
+  static watchQuerySimple(host, selector, callback, options) {
+    const { tagNameFilter, checkHostChain = true } = options;
+    const expectedTag = tagNameFilter.toUpperCase();
+    const watchTarget = this.querySelector(host, selector);
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+          // 快速标签名匹配
+          if (node.nodeName !== expectedTag) return;
+
+          // 轻量级宿主验证
+          if (checkHostChain && !this.#isInHostTree(node, watchTarget)) return;
+
+          // 执行回调
+          callback(node);
+        });
+      });
+    });
+
+    observer.observe(watchTarget, {
+      childList: true,
+      subtree: true
+    });
+
+    return () => observer.disconnect();
+  }
+
+  /**
+   * 验证元素是否在宿主树中
+   * @param {HTMLElement} element
+   * @param {HTMLElement} watchTarget
+   */
+  static #isInHostTree(element, watchTarget) {
+    let root = element.getRootNode();
+    while (root) {
+      if (root.watchTarget === watchTarget) return true;
+      root = root.watchTarget?.getRootNode();
+    }
+    return false;
+  }
+
   // ----------- 样式操作功能 -----------
   /**
    * 向 ShadowDOM 内的元素添加样式
