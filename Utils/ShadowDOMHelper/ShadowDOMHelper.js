@@ -7,19 +7,43 @@
 
 class ShadowDOMHelper {
   static #shadowRoots = new WeakMap();
-  static #observers = new WeakMap(); // 存储宿主元素与观察器的关系
-  // ----------- 核心功能 -----------
+  static #observers = new WeakMap();
+  static #selectorCache = new Map();
+  static #styleCache = new WeakMap();
+
+  // ==================== 核心初始化 ====================
   static init() {
+    if (Element.prototype.attachShadow.__monkeyPatched) return;
     const originalAttachShadow = Element.prototype.attachShadow;
+
     Element.prototype.attachShadow = function (options) {
       const shadowRoot = originalAttachShadow.call(this, options);
       ShadowDOMHelper.#shadowRoots.set(this, shadowRoot);
       return shadowRoot;
     };
+
+    Element.prototype.attachShadow.__monkeyPatched = true;
+    this.#processExistingElements();
   }
 
+  static #processExistingElements() {
+    const walker = document.createTreeWalker(
+      document.documentElement,
+      NodeFilter.SHOW_ELEMENT
+    );
+
+    let currentNode;
+    while ((currentNode = walker.nextNode())) {
+      if (currentNode.shadowRoot && !this.#shadowRoots.has(currentNode)) {
+        this.#shadowRoots.set(currentNode, currentNode.shadowRoot);
+      }
+    }
+  }
+
+  // ==================== DOM 查询 ====================
   static getShadowRoot(host) {
-    return host.shadowRoot || ShadowDOMHelper.#shadowRoots.get(host) || null;
+    this.#validateElement(host);
+    return host.shadowRoot || this.#shadowRoots.get(host) || null;
   }
 
   static querySelector(host, selector) {
@@ -31,356 +55,402 @@ class ShadowDOMHelper {
   }
 
   static #query(host, selector, findAll) {
-    const parts = selector.split(/(\s*>>\s*|\s*>\s*)/).filter(p => p.trim());
+    this.#validateElement(host);
+    this.#validateSelector(selector);
+
+    const parts = this.#parseSelector(selector);
     let elements = [host];
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i].trim();
-      if (part === '>>' || part === '>') continue;
-      const prevSeparator = i > 0 ? parts[i - 1].trim() : null;
+
+    for (const part of parts) {
       const newElements = [];
+
       for (const el of elements) {
-        let targets = [];
-        if (prevSeparator === '>>') {
-          const shadowRoot = this.getShadowRoot(el);
-          targets = shadowRoot ? shadowRoot.querySelectorAll(part) : [];
-        } else if (prevSeparator === '>') {
-          targets = el.querySelectorAll(part);
-        } else {
-          const shadowRoot = this.getShadowRoot(el);
-          targets = shadowRoot ? shadowRoot.querySelectorAll(part) : [];
-        }
-        newElements.push(...Array.from(targets));
+        if (el.NodeType === Node.COMMENT_NODE) break;
+        const contexts = this.#getQueryContexts(el, part);
+        contexts.forEach(context => {
+          try {
+            const matches = context.querySelectorAll(part.selector);
+            newElements.push(...matches);
+          } catch (error) {
+            console.error(`选择器错误: "${part.selector}"`, error);
+          }
+        });
       }
-      elements = newElements;
-      if (elements.length === 0 && !findAll) break;
+
+      elements = [...new Set(newElements)]; // 去重
+      if (!findAll && elements.length === 0) break;
     }
-    return findAll ? elements : elements.slice(0, 1);
+    console.log(elements)
+    const result = findAll ? elements : elements.slice(0, 1);
+
+    return result;
   }
-  // ----------- 增强版查询核心 -----------
-  /**
-   * 实时查询元素（支持动态新增）
-   * @param {HTMLElement} host - 宿主元素
-   * @param {string} selector - 查询路径
-   * @param {Function} callback - 匹配到元素时的回调 (element) => void
-   * @param {Object} [options]
-   * @param {boolean} [options.observeSubtree=true] - 是否监控子树变化
-   * @param {boolean} [options.observeExisting=true] - 是否立即处理已存在元素
-   */
+
+  static #getQueryContexts(el, part) {
+    const contexts = [];
+    if (part.isShadow) {
+      let current = el;
+      while (current) {
+        const root = this.getShadowRoot(current);
+        if (root) {
+          // 过滤shadowRoot中的注释节点
+          contexts.push(root);
+          current = Array.from(root.childNodes).find(
+            child => child.nodeType === Node.ELEMENT_NODE
+          );
+        } else {
+          break;
+        }
+      }
+    } else {
+      contexts.push(el);
+    }
+    return contexts;
+  }
+
+  // ==================== 实时监控 ====================
   static watchQuery(host, selector, callback, options = {}) {
+    this.#validateElement(host);
+
     const {
-      observeSubtree = true,
-      observeExisting = true
+      nodeNameFilter,
+      checkHostTree = true,
+      observeExisting = true,
+      debounce = 50,
+      maxRetries = 3
     } = options;
 
-    // 初始化观察器
-    const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        this.#processNewNodes(mutation.addedNodes, host, selector, callback);
-      });
-    });
-
-    // 存储观察器
-    this.#observers.set(host, { observer, selector, callback });
-
-    // 开始观察
-    observer.observe(this.getShadowRoot(host) || host, {
-      childList: true,
-      subtree: observeSubtree
-    });
-
-    // 处理现有元素
-    if (observeExisting) {
-      const existing = this.querySelectorAll(host, selector);
-      existing.forEach(el => callback(el));
+    if (!nodeNameFilter && !selector) {
+      throw new Error('必须提供 selector 或  nodeNameFilter');
     }
 
-    // 返回停止观察的方法
+    const observer = new MutationObserver(this.#debounceHandler(debounce, mutations => {
+      mutations.flatMap(m => Array.from(m.addedNodes))
+        .forEach(node => this.#processNode(node, host, selector, callback, nodeNameFilter, checkHostTree, maxRetries));
+    }));
+
+    this.#observers.set(host, { observer, callback });
+
+    observer.observe(this.getShadowRoot(host) || host, {
+      childList: true,
+      subtree: true
+    });
+
+    if (observeExisting) {
+      const existing = nodeNameFilter
+        ? this.#findByTagName(host, nodeNameFilter, checkHostTree)
+        : this.querySelectorAll(host, selector);
+      existing.forEach(el => this.#safeCallback(callback, el));
+    }
+
     return () => {
       observer.disconnect();
       this.#observers.delete(host);
     };
   }
 
-  // 处理新增节点
-  static #processNewNodes(nodes, host, selector, callback) {
-    nodes.forEach(node => {
-      if (node.nodeType !== Node.ELEMENT_NODE) return;
+  static #processNode(node, host, selector, callback, nodeNameFilter, checkHostTree, maxRetries) {
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
 
-      // 新增：检查当前节点自身是否匹配完整路径
-      if (this.#isFullMatch(node, host, selector)) {
-        callback(node);
+    // 模式1：标签名快速匹配
+    if (nodeNameFilter) {
+      if (node.nodeName === nodeNameFilter.toUpperCase()) {
+        //if (!checkHostTree || this.#isInHostTree(node, host)) {
+        //  this.#retryFindNested(node, callback, maxRetries);
+        //}
+        this.#safeCallback(callback, node);
       }
+      return;
+    }
 
-      // 深度遍历所有可能包含目标元素的容器
-      const containers = [node, ...this.#getAllShadowRoots(node)];
-      containers.forEach(container => {
-        const walker = document.createTreeWalker(
-          container,
-          NodeFilter.SHOW_ELEMENT,
-          {
-            acceptNode: (n) =>
-              this.#isFullMatch(n, host, selector) ?
-                NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
-          }
-        );
-
-        while (walker.nextNode()) {
-          callback(walker.currentNode);
-        }
-      });
-    });
+    // 模式2：完整路径验证
+    if (this.#isFullMatch(node, host, selector)) {
+      this.#safeCallback(callback, node);
+    }
   }
 
-  // 新增：获取元素下所有嵌套的 ShadowRoot
-  static #getAllShadowRoots(element) {
-    const roots = [];
-    const walk = (el) => {
-      const root = this.getShadowRoot(el);
-      if (root) {
-        roots.push(root);
-        root.querySelectorAll('*').forEach(child => walk(child));
+  static #retryFindNested(element, callback, retriesLeft) {
+    const check = () => {
+      const targets = this.#deepQueryAll(element);
+      if (targets.length > 0) {
+        targets.forEach(t => this.#safeCallback(callback, t));
+        return true;
       }
+      return false;
     };
+
+    if (check()) return;
+
+    if (retriesLeft > 0) {
+      setTimeout(() => {
+        this.#retryFindNested(element, callback, retriesLeft - 1);
+      }, 100 * (4 - retriesLeft));
+    }
+  }
+
+  static #deepQueryAll(element) {
+    const results = [];
+    const walk = (el) => {
+      const shadowRoot = this.getShadowRoot(el);
+      if (!shadowRoot) return;
+
+      // 过滤注释节点和非元素节点
+      const children = Array.from(shadowRoot.childNodes).filter(
+        child => child.nodeType === Node.ELEMENT_NODE
+      );
+
+      results.push(...children);
+      children.forEach(child => walk(child));
+    };
+
     walk(element);
-    return roots;
+    return results;
   }
 
-  // 重构：精确全路径匹配验证
   static #isFullMatch(element, host, selector) {
-    const pathParts = selector.split(/(\s*>>\s*|\s*>\s*)/g)
-      .filter(p => p.trim() && !['>>', '>'].includes(p.trim()));
-
-    let currentElement = element;
-    for (let i = pathParts.length - 1; i >= 0; i--) {
-      const part = pathParts[i].trim();
-      const parent = this.#getHierarchyParent(currentElement);
-
-      if (!parent || !this.#matchSelectorPart(parent, part)) {
-        return false;
-      }
-      currentElement = parent;
-    }
-
-    return currentElement === host;
-  }
-
-  // 重构：获取逻辑父级（考虑 ShadowDOM）
-  static #getHierarchyParent(element) {
-    if (element.assignedSlot) { // 处理 slot 元素
-      return element.assignedSlot;
-    }
-    const parentNode = element.parentNode;
-    if (parentNode?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parentNode.host) {
-      return parentNode.host; // ShadowRoot 的宿主
-    }
-    return parentNode;
-  }
-
-  // 新增：支持复合选择器匹配
-  static #matchSelectorPart(element, selector) {
     try {
-      return element.matches(selector) ||
-        element.assignedSlot?.matches(selector) ||
-        element.getRootNode().host?.matches(selector);
+      const parts = this.#parseSelector(selector);
+      let current = element;
+
+      for (const part of [...parts].reverse()) {
+        const parent = part.isShadow
+          ? current.getRootNode().host
+          : current.parentElement;
+
+        if (!parent || !parent.matches(part.selector)) return false;
+        current = parent;
+      }
+
+      return current === host;
     } catch {
       return false;
     }
   }
-  /**
-   * 实时查询优化版（针对已知标签名的自定义元素）
-   * @param {HTMLElement} host - 宿主元素
-   * @param {string} selector - 查询路径（仅用于验证层级）
-   * @param {Function} callback - 元素匹配时的回调
-   * @param {Object} options
-   * @param {string} options.tagNameFilter - 目标元素标签名（如 "my-component"）
-   * @param {boolean} [options.checkHostChain=true] - 是否验证宿主层级
-   */
-  static watchQuerySimple(host, selector, callback, options) {
-    const { tagNameFilter, checkHostChain = true } = options;
-    const expectedTag = tagNameFilter.toUpperCase();
-    const watchTarget = this.querySelector(host, selector);
-    const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (node.nodeType !== Node.ELEMENT_NODE) return;
 
-          // 快速标签名匹配
-          if (node.nodeName !== expectedTag) return;
+  // ==================== 样式操作 ====================
+  static addStyle(host, selector, styles, options = {}) {
+    const {
+      isolate = true,
+      mode = 'append',
+      priority = 'low'
+    } = options;
 
-          // 轻量级宿主验证
-          if (checkHostChain && !this.#isInHostTree(node, watchTarget)) return;
-
-          // 执行回调
-          callback(node);
-        });
-      });
-    });
-
-    observer.observe(watchTarget, {
-      childList: true,
-      subtree: true
-    });
-
-    return () => observer.disconnect();
-  }
-
-  /**
-   * 验证元素是否在宿主树中
-   * @param {HTMLElement} element
-   * @param {HTMLElement} watchTarget
-   */
-  static #isInHostTree(element, watchTarget) {
-    let root = element.getRootNode();
-    while (root) {
-      if (root.watchTarget === watchTarget) return true;
-      root = root.watchTarget?.getRootNode();
-    }
-    return false;
-  }
-
-  // ----------- 样式操作功能 -----------
-  /**
-   * 向 ShadowDOM 内的元素添加样式
-   * @param {HTMLElement} host - 宿主元素
-   * @param {string} selector - 目标元素路径（支持 >> 和 > 操作符）
-   * @param {string|Object} styles - CSS 字符串或样式对象（如 { color: 'red', fontSize: '14px' }）
-   * @param {boolean} [isolate=true] - 是否隔离样式（为元素添加唯一属性）
-   */
-  static addStyle(host, selector, styles, isolate = true) {
     const targets = this.querySelectorAll(host, selector);
-    if (targets.length === 0) {
-      console.warn(`未找到匹配元素: ${selector}`);
-      return false;
-    }
+    if (targets.length === 0) return false;
 
-    const styleContent = this.#parseStyles(styles);
+    const styleStr = this.#parseStyles(styles);
     targets.forEach(target => {
-      const styleId = `shadow-style-${Date.now()}`;
-      let styleEl = target.shadowRoot?.querySelector(`#${styleId}`);
+      const styleTag = this.#getStyleTag(target, isolate);
+      const rule = isolate
+        ? `[${styleTag.dataset.uniqueAttr}] { ${styleStr} }`
+        : styleStr;
 
-      // 动态创建或复用样式标签
-      if (!styleEl) {
-        styleEl = document.createElement('style');
-        styleEl.id = styleId;
-        const shadowRoot = this.getShadowRoot(target) || target.attachShadow({ mode: 'open' });
-        shadowRoot.appendChild(styleEl);
-      }
-
-      // 添加隔离属性（防止全局污染）
-      if (isolate) {
-        const uniqueAttr = `data-shadow-${Math.random().toString(36).slice(2, 9)}`;
-        target.setAttribute(uniqueAttr, '');
-        styleEl.textContent = `[${uniqueAttr}] { ${styleContent} }`;
-      } else {
-        styleEl.textContent += styleContent;
-      }
+      this.#applyStyle(styleTag, rule, mode, priority);
     });
 
     return true;
   }
 
-  // 解析样式输入
-  static #parseStyles(styles) {
-    if (typeof styles === 'string') {
-      return styles.replace(/^\s*\{|\}\s*$/g, ''); // 去除 CSS 外层大括号
-    } else if (typeof styles === 'object') {
-      return Object.entries(styles)
-        .map(([prop, value]) =>
-          `${prop.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${value};`
-        )
-        .join(' ');
+  static #applyStyle(styleTag, rule, mode, priority) {
+    if (mode === 'replace') {
+      styleTag.textContent = rule;
+    } else {
+      const method = priority === 'high' ? 'insertBefore' : 'appendChild';
+      const textNode = document.createTextNode(rule);
+      styleTag[method](textNode, styleTag.firstChild);
     }
-    return '';
   }
-  /**
- * 更新已有样式
- * @param {HTMLElement} host - 宿主元素
- * @param {string} selector - 目标元素路径
- * @param {string|Object} newStyles - 新样式
- */
-  static updateStyle(host, selector, newStyles) {
-    const targets = this.querySelectorAll(host, selector);
-    targets.forEach(target => {
-      const styleEl = target.shadowRoot?.querySelector('style[data-shadow-style]');
-      if (styleEl) {
-        styleEl.textContent = this.#parseStyles(newStyles);
-      }
-    });
-  }
-  // ----------- 调试功能 -----------
-  /**
-   * 调试查询路径（打印每一步的结果）
-   * @param {HTMLElement} host - 宿主元素
-   * @param {string} selector - 查询路径
-   * @param {boolean} [findAll=false] - 是否查询所有匹配元素
-   */
-  static debugQuery(host, selector, findAll = false) {
-    console.groupCollapsed('[ShadowDOMHelper] 开始调试查询路径:', selector);
-    console.log('初始宿主元素:', host);
 
-    const parts = selector.split(/(\s*>>\s*|\s*>\s*)/).filter(p => p.trim());
-    let elements = [host];
+  // ==================== 调试工具 ====================
+  static debugQuery(host, selector) {
+    console.groupCollapsed('[ShadowDOMHelper] 查询路径调试');
+    const result = this.querySelector(host, selector);
 
+    const parts = this.#parseSelector(selector);
     parts.forEach((part, index) => {
-      if (part === '>>' || part === '>') return;
-
-      const prevSeparator = index > 0 ? parts[index - 1].trim() : null;
-      const newElements = [];
-
-      console.group(`层级 ${index + 1}: ${prevSeparator || 'INIT'} ${part}`);
-      console.log('当前元素数量:', elements.length);
-
-      elements.forEach((el, elIndex) => {
-        console.groupCollapsed(`元素 ${elIndex + 1}:`, el);
-
-        // 操作类型判断
-        let operation;
-        if (prevSeparator === '>>') {
-          const shadowRoot = this.getShadowRoot(el);
-          console.log('ShadowRoot:', shadowRoot);
-          operation = shadowRoot ? shadowRoot.querySelectorAll(part) : [];
-        } else if (prevSeparator === '>') {
-          operation = el.querySelectorAll(part);
-        } else {
-          const shadowRoot = this.getShadowRoot(el);
-          console.log('ShadowRoot:', shadowRoot);
-          operation = shadowRoot ? shadowRoot.querySelectorAll(part) : [];
-        }
-
-        console.log('找到匹配元素:', Array.from(operation));
-        newElements.push(...Array.from(operation));
-        console.groupEnd();
-      });
-
-      elements = newElements;
-      console.log('本层级后剩余元素:', elements.length);
+      console.group(`层级 ${index + 1}: ${part.isShadow ? 'Shadow' : 'DOM'} 选择器 "${part.selector}"`);
+      console.log('上下文元素:', part.contexts);
+      console.log('匹配元素:', part.results);
       console.groupEnd();
     });
 
-    console.log('最终结果:', findAll ? elements : elements[0] || null);
+    console.log('最终结果:', result);
     console.groupEnd();
-    return findAll ? elements : elements[0] || null;
+    return result;
   }
 
-  /**
-   * 验证 ShadowRoot 存在性
-   * @param {HTMLElement} host - 宿主元素
-   */
   static debugShadowRoot(host) {
-    console.groupCollapsed('[ShadowDOMHelper] 验证 ShadowRoot');
-    console.log('宿主元素:', host);
+    console.groupCollapsed('[ShadowDOMHelper] ShadowRoot 诊断');
+    try {
+      const root = this.getShadowRoot(host);
+      console.log('宿主:', host);
+      console.log('是否存在:', !!root);
+      console.log('模式:', host.shadowRoot ? 'open' : 'closed');
+      console.log('子元素数量:', root?.children.length || 0);
+      console.log('内容摘要:', root?.innerHTML?.slice(0, 200) + (root?.innerHTML?.length > 200 ? '...' : ''));
+    } catch (error) {
+      console.error('诊断失败:', error);
+    }
+    console.groupEnd();
+  }
 
-    const shadowRoot = this.getShadowRoot(host);
-    console.log('是否存在:', !!shadowRoot);
-
-    if (shadowRoot) {
-      console.log('模式:', host.shadowRoot ? 'open' : 'closed (通过库捕获)');
-      console.log('内容摘要:', shadowRoot.innerHTML.slice(0, 100) + '...');
+  // ==================== 私有工具方法 ====================
+  static #parseSelector(selector) {
+    if (this.#selectorCache.has(selector)) {
+      return this.#selectorCache.get(selector);
     }
 
-    console.groupEnd();
-    return shadowRoot;
+    const parts = [];
+    const tokens = selector.split(/(\s*>>\s*|\s*>\s*)/g).map(t => t.trim()).filter(t => t !== '');
+
+    let isShadow = false;
+    let currentSelector = '';
+
+    // 智能模式：当无操作符时默认进入 ShadowRoot
+    if (tokens.length === 1 && !['>>', '>'].includes(tokens[0])) {
+      parts.push({ selector: tokens[0].trim(), isShadow: true });
+      this.#selectorCache.set(selector, parts);
+      return parts;
+    }
+
+    for (const token of tokens) {
+      if (token === '>>') {
+        if (currentSelector) {
+          parts.push({ selector: currentSelector, isShadow: true });
+          currentSelector = '';
+        }
+        isShadow = true;
+      } else if (token === '>') {
+        if (currentSelector) {
+          parts.push({ selector: currentSelector, isShadow: false });
+          currentSelector = '';
+        }
+        isShadow = false;
+      } else {
+        currentSelector += token;
+      }
+    }
+
+    if (currentSelector) {
+      parts.push({ selector: currentSelector, isShadow });
+    }
+
+    this.#selectorCache.set(selector, parts);
+    return parts;
+  }
+
+  static #parseStyles(styles) {
+    if (typeof styles === 'string') {
+      return styles
+        .replace(/^\s*\{|\}\s*$/g, '')
+        .replace(/;(\s*})/g, '$1')
+        .trim();
+    }
+
+    if (typeof styles === 'object' && styles !== null) {
+      return Object.entries(styles)
+        .map(([prop, value]) =>
+          `${prop.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${value}`
+        )
+        .join('; ');
+    }
+
+    throw new TypeError('样式必须是字符串或对象');
+  }
+
+  static #findByTagName(host, nodeName, checkHostTree) {
+    const root = this.getShadowRoot(host) || host;
+    const elements = Array.from(root.querySelectorAll('*'))
+      .filter(el => el.nodeName.toLowerCase() === nodeName.toLowerCase());
+
+    return checkHostTree
+      ? elements.filter(el => this.#isInHostTree(el, host))
+      : elements;
+  }
+
+  static #isInHostTree(element, host) {
+    try {
+      let root = element.getRootNode();
+      while (root) {
+        if (root === host.getRootNode()) return true;
+        root = root.host?.getRootNode();
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  static #debounceHandler(delay, fn) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+  }
+
+  static #safeCallback(callback, el) {
+    try {
+      if (el?.isConnected) callback(el);
+    } catch (error) {
+      console.error('回调执行失败:', error);
+    }
+  }
+
+  static #getStyleTag(element, isolate) {
+    const shadowRoot = this.getShadowRoot(element) || element.attachShadow({ mode: 'open' });
+    // 清理可能存在的注释节点
+    const comments = Array.from(shadowRoot.childNodes).filter(
+      node => node.nodeType === Node.COMMENT_NODE
+    );
+    comments.forEach(c => c.remove());
+
+    let styleTag = shadowRoot.querySelector('style[data-shadow-style]');
+
+    if (!styleTag) {
+      styleTag = document.createElement('style');
+      styleTag.dataset.shadowStyle = true;
+      shadowRoot.prepend(styleTag);
+
+      if (isolate) {
+        const uniqueAttr = `s-${Math.random().toString(36).slice(2, 8)}`;
+        styleTag.dataset.uniqueAttr = uniqueAttr;
+        element.setAttribute(uniqueAttr, '');
+      }
+    }
+
+    return styleTag;
+  }
+
+  static #validateElement(el) {
+    if (!(el instanceof HTMLElement)) {
+      throw new TypeError('宿主元素必须是有效的 HTML 元素');
+    }
+  }
+
+  static #validateSelector(selector) {
+    if (typeof selector !== 'string' || selector.trim() === '') {
+      throw new TypeError('选择器必须是有效的非空字符串');
+    }
+  }
+
+  // ==================== 辅助方法 ====================
+  static async queryUntil(host, selector, timeout = 1000) {
+    let elapsed = 0;
+    const start = Date.now();
+
+    while (elapsed < timeout) {
+      const el = this.querySelector(host, selector);
+      if (el) return el;
+
+      await new Promise(r => setTimeout(r, 50));
+      elapsed = Date.now() - start;
+    }
+
+    console.warn(`查询超时: ${selector}`);
+    return null;
   }
 }
+
 // 自动初始化
 ShadowDOMHelper.init();
