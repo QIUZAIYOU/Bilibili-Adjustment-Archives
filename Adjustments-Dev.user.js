@@ -3,7 +3,7 @@
 // @namespace         哔哩哔哩（bilibili.com）调整 For ScriptCat
 // @copyright         QIAN
 // @license           GPL-3.0 License
-// @version           0.1.40
+// @version           0.1.41
 // @description       一、首页新增推荐视频历史记录(仅记录前6个推荐位中的非广告内容)，以防误点刷新错过想看的视频。二、动态页调整：默认显示"投稿视频"内容，可自行设置URL以免未来URL发生变化。三、播放页调整：1.自动定位到播放器（进入播放页，可自动定位到播放器，可设置偏移量及是否在点击主播放器时定位）；2.可设置播放器默认模式；3.可设置是否自动选择最高画质；4.新增快速返回播放器漂浮按钮；5.新增点击评论区时间锚点可快速返回播放器；6.网页全屏模式解锁(网页全屏模式下可滚动查看评论，并在播放器控制栏新增快速跳转至评论区按钮)；7.将视频简介内容优化后插入评论区或直接替换原简介区内容(替换原简介中固定格式的静态内容为跳转链接)；8.视频播放过程中跳转指定时间节点至目标时间节点(可用来跳过片头片尾及中间广告等)；9.新增点击视频合集、下方推荐视频、结尾推荐视频卡片快速返回播放器；
 // @author            QIAN
 // @match             *://www.bilibili.com
@@ -14,7 +14,7 @@
 // @require           https://cdn.jsdelivr.net/npm/md5@2.3.0/dist/md5.min.js
 // @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
 // @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
-// @require           https://asifadeaway.com/utils/ShadowDOMHelperDev.js?v=0.7
+// @require           https://asifadeaway.com/utils/ShadowDOMHelperDev.js?v=0.4
 // @require           https://scriptcat.org/lib/513/2.0.1/ElementGetter.js
 // @grant             GM_info
 // @grant             GM_setValue
@@ -28,7 +28,7 @@
 // @icon              https://www.bilibili.com/favicon.ico?v=1
 // ==/UserScript==
 // ?#sha256=V0EUYIfbOrr63nT8+W7BP1xEmWcumTLWu2PXFJHh5dg=
-// ?#sha256=0x4F0224AB47701DC5458D720E421730F31ADF3EBE20554995305C1E1A54964FAC
+// ?#sha256=0xAA74B3D43C30B9F7F9CD2750FBEE58E7EBF2725CA11CBCE22EF8F028FEF2A916
 (function () {
   'use strict';
   let vars = {
@@ -1244,46 +1244,44 @@
      */
     async clickVideoTimeAutoLocation() {
       const $video = await utils.getElementAndCheckExistence('video')
-      // const $clickTargets = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.videoComment) : await utils.getElementAndCheckExistence(selectors.bangumiComment)
-      // const $descriptionClickTarget = vals.player_type() === 'video' ? document.querySelector('#commentapp > bili-comments').shadowRoot.querySelector('#contents').querySelector('#feed #bili-adjustment-contents') : ''
-      // if ($descriptionClickTarget) {
-      //   await elmGetter.each(selectors.videoTime, $descriptionClickTarget, async (target) => {
-      //     target.addEventListener('click', async (event) => {
-      //       event.stopPropagation()
-      //       await modules.locationToPlayer()
-      //       // const targetTime = vals.player_type() === 'video' ? target.dataset.videoTime : target.dataset.time
-      //       const targetTime = target.dataset.videoTime
-      //       if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
-      //       $video.currentTime = targetTime
-      //       $video.play()
-      //     })
-      //   })
-      // }
       const host = document.querySelector("#commentapp > bili-comments")
+      const $descriptionClickTarget = 'video' ? await ShadowDOMHelper.queryUntil(host, "#feed > #bili-adjustment-contents") : ''
+      if ($descriptionClickTarget) {
+        await elmGetter.each(selectors.videoTime, $descriptionClickTarget, async (target) => {
+          target.addEventListener('click', async (event) => {
+            event.stopPropagation()
+            await modules.locationToPlayer()
+            // const targetTime = vals.player_type() === 'video' ? target.dataset.videoTime : target.dataset.time
+            const targetTime = target.dataset.videoTime
+            if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
+            $video.currentTime = targetTime
+            $video.play()
+          })
+        })
+      }
       const stop = ShadowDOMHelper.watchQuery(
         host,
         '#feed',
         async item => {
-          // utils.logger.debug(item)
-          const seekLink = await ShadowDOMHelper.queryUntil(
+          const seekLinks = await ShadowDOMHelper.queryUntil(
             item,
             '#comment >> bili-rich-text >> #contents > a[data-type="seek"]',
-            1500
+            {
+              findAll: true,
+            }
           )
-          console.log(seekLink)
-          // if (seekLink) {
-          //   const seekLinks = seekLink.querySelectorAll('a[data-type="seek"]');
-          //   seekLinks.forEach(link => {
-          //     link.addEventListener('click', async (event) => {
-          //       event.stopPropagation();
-          //       await modules.locationToPlayer()
-          //       const targetTime = link.dataset.videoTime
-          //       if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
-          //       $video.currentTime = targetTime
-          //       $video.play();
-          //     })
-          //   })
-          // }
+          if (seekLinks) {
+            seekLinks.forEach(link => {
+              link.addEventListener('click', async (event) => {
+                event.stopPropagation();
+                await modules.locationToPlayer()
+                const targetTime = link.dataset.videoTime
+                if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
+                $video.currentTime = targetTime
+                $video.play();
+              })
+            })
+          }
         },
         {
           nodeNameFilter: 'bili-comment-thread-renderer',
@@ -1553,7 +1551,7 @@
       const [$videoDescription, $videoDescriptionInfo] = await utils.getElementAndCheckExistence([selectors.videoDescription, selectors.videoDescriptionInfo])
       // const $videoCommentReplyListShadowRoot = document.querySelector('#commentapp > bili-comments').shadowRoot.querySelector('#contents').querySelector('#feed')
       const host = document.querySelector('#commentapp > bili-comments')
-      const $videoCommentReplyListShadowRoot = ShadowDOMHelper.querySelector(host, '#feed')
+      const $videoCommentReplyListShadowRoot = await ShadowDOMHelper.queryUntil(host, '#feed')
       // utils.logger.debug($videoCommentReplyListShadowRoot)
       const getTotalSecondsFromTimeString = (timeString) => {
         if (timeString.length === 5) timeString = '00:' + timeString
