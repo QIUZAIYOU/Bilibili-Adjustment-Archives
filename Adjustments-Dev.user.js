@@ -28,7 +28,7 @@
 // @icon              https://www.bilibili.com/favicon.ico?v=1
 // ==/UserScript==
 // ?#sha256=V0EUYIfbOrr63nT8+W7BP1xEmWcumTLWu2PXFJHh5dg=
-// ?#sha256=AA74B3D43C30B9F7F9CD2750FBEE58E7EBF2725CA11CBCE22EF8F028FEF2A916
+// ?#sha256=bd02b4523d46ea074751d7c0fa124de60b365c0101585ee9a567cce87633778e
 (function () {
   'use strict';
   let vars = {

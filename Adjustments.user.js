@@ -14,7 +14,7 @@
 // @require           https://cdn.jsdelivr.net/npm/md5@2.3.0/dist/md5.min.js
 // @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
 // @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
-// @require           https://asifadeaway.com/utils/ShadowDOMHelper.js?#sha256=AA74B3D43C30B9F7F9CD2750FBEE58E7EBF2725CA11CBCE22EF8F028FEF2A916
+// @require           https://asifadeaway.com/utils/ShadowDOMHelper.js?#sha256=bd02b4523d46ea074751d7c0fa124de60b365c0101585ee9a567cce87633778e
 // @require           https://scriptcat.org/lib/513/2.0.1/ElementGetter.js?#sha256=V0EUYIfbOrr63nT8+W7BP1xEmWcumTLWu2PXFJHh5dg=
 // @grant             GM_info
 // @grant             GM_setValue
@@ -28,7 +28,7 @@
 // @icon              https://www.bilibili.com/favicon.ico?v=1
 // ==/UserScript==
 // ?#sha256=V0EUYIfbOrr63nT8+W7BP1xEmWcumTLWu2PXFJHh5dg=
-// ?#sha256=AA74B3D43C30B9F7F9CD2750FBEE58E7EBF2725CA11CBCE22EF8F028FEF2A916
+// ?#sha256=bd02b4523d46ea074751d7c0fa124de60b365c0101585ee9a567cce87633778e
 (function () {
   'use strict';
   let vars = {
