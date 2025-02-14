@@ -59,26 +59,43 @@ class ShadowDOMHelper {
 
     const parts = this.#parseSelector(selector);
     let elements = [host];
-
-
-    // ...（原有验证和初始化逻辑）
+    console.log("解析后主体: ", parts);
 
     for (const part of parts) {
+      // console.log("当前匹配: ", part);
       const newElements = [];
       for (const el of elements) {
         if (el.nodeType === Node.COMMENT_NODE) break;
         const contexts = this.#getQueryContexts(el, part);
+        console.log(`当前元素 ${el.nodeName.toLowerCase()} 的上下文: `, contexts);
         contexts.forEach(context => {
           try {
-            // 关键修改：直接使用 context.querySelectorAll
-            const matches = context.querySelectorAll(part.selector);
+            let matches;
+            console.log("当前匹配对象: ", context, "\n匹配选择器: ", part.selector, "\nisShadow: ", part.isShadow);
+            const root = this.getShadowRoot(context);
+            if (part.isShadow) {
+              if (root) {
+                matches = context.shadowRoot.querySelectorAll(part.selector);
+              } else {
+                matches = context.querySelectorAll(part.selector);
+              }
+            } else {
+              if (root) {
+                matches = context.shadowRoot.querySelectorAll(part.selector);
+              } else {
+                matches = context.querySelectorAll(part.selector);
+              }
+            }
+            console.log("匹配结果： ", matches);
             newElements.push(...matches);
+            console.log("匹配合集： ", newElements);
           } catch (error) {
             console.error(`选择器错误: "${part.selector}"`, error);
           }
         });
       }
       elements = [...new Set(newElements)];
+      // console.log("当前匹配结果: ", elements);
       if (!findAll && elements.length === 0) break;
     }
     return findAll ? elements : elements.slice(0, 1);
@@ -86,18 +103,14 @@ class ShadowDOMHelper {
   }
 
   static #getQueryContexts(el, part) {
+    // console.log(`// ==================== 获取 ${el.nodeName.toLowerCase()} 的上下文 ====================`);
     const contexts = [];
     if (part.isShadow) {
       // Shadow DOM 查询逻辑
       let current = el;
-      while (current) {
-        const root = this.getShadowRoot(current);
-        if (root) {
-          contexts.push(root);
-          current = Array.from(root.children).find(child => child.nodeType === Node.ELEMENT_NODE);
-        } else {
-          break;
-        }
+      const result = this.#deepQueryAll(current);
+      if (result.length > 0) {
+        contexts.push(current, ...result);
       }
     } else {
       // 普通子元素直接使用原生 DOM 上下文

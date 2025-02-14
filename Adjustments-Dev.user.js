@@ -14,7 +14,7 @@
 // @require           https://cdn.jsdelivr.net/npm/md5@2.3.0/dist/md5.min.js
 // @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
 // @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
-// @require           https://asifadeaway.com/utils/ShadowDOMHelperDev.js?v=0.322
+// @require           https://asifadeaway.com/utils/ShadowDOMHelperDev.js?v=0.7
 // @require           https://scriptcat.org/lib/513/2.0.1/ElementGetter.js
 // @grant             GM_info
 // @grant             GM_setValue
@@ -1245,44 +1245,45 @@
     async clickVideoTimeAutoLocation() {
       const $video = await utils.getElementAndCheckExistence('video')
       // const $clickTargets = vals.player_type() === 'video' ? await utils.getElementAndCheckExistence(selectors.videoComment) : await utils.getElementAndCheckExistence(selectors.bangumiComment)
-      const $descriptionClickTarget = vals.player_type() === 'video' ? document.querySelector('#commentapp > bili-comments').shadowRoot.querySelector('#contents').querySelector('#feed #bili-adjustment-contents') : ''
-      if ($descriptionClickTarget) {
-        await elmGetter.each(selectors.videoTime, $descriptionClickTarget, async (target) => {
-          target.addEventListener('click', async (event) => {
-            event.stopPropagation()
-            await modules.locationToPlayer()
-            // const targetTime = vals.player_type() === 'video' ? target.dataset.videoTime : target.dataset.time
-            const targetTime = target.dataset.videoTime
-            if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
-            $video.currentTime = targetTime
-            $video.play()
-          })
-        })
-      }
+      // const $descriptionClickTarget = vals.player_type() === 'video' ? document.querySelector('#commentapp > bili-comments').shadowRoot.querySelector('#contents').querySelector('#feed #bili-adjustment-contents') : ''
+      // if ($descriptionClickTarget) {
+      //   await elmGetter.each(selectors.videoTime, $descriptionClickTarget, async (target) => {
+      //     target.addEventListener('click', async (event) => {
+      //       event.stopPropagation()
+      //       await modules.locationToPlayer()
+      //       // const targetTime = vals.player_type() === 'video' ? target.dataset.videoTime : target.dataset.time
+      //       const targetTime = target.dataset.videoTime
+      //       if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
+      //       $video.currentTime = targetTime
+      //       $video.play()
+      //     })
+      //   })
+      // }
       const host = document.querySelector("#commentapp > bili-comments")
       const stop = ShadowDOMHelper.watchQuery(
         host,
         '#feed',
         async item => {
+          // utils.logger.debug(item)
           const seekLink = await ShadowDOMHelper.queryUntil(
             item,
-            '#comment >> bili-rich-text >> #contents',
+            '#comment >> bili-rich-text >> #contents > a[data-type="seek"]',
             1500
           )
-          // utils.logger.debug(seekLink)
-          if (seekLink) {
-            const seekLinks = seekLink.querySelectorAll('a[data-type="seek"]');
-            seekLinks.forEach(link => {
-              link.addEventListener('click', async (event) => {
-                event.stopPropagation();
-                await modules.locationToPlayer()
-                const targetTime = link.dataset.videoTime
-                if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
-                $video.currentTime = targetTime
-                $video.play();
-              })
-            })
-          }
+          console.log(seekLink)
+          // if (seekLink) {
+          //   const seekLinks = seekLink.querySelectorAll('a[data-type="seek"]');
+          //   seekLinks.forEach(link => {
+          //     link.addEventListener('click', async (event) => {
+          //       event.stopPropagation();
+          //       await modules.locationToPlayer()
+          //       const targetTime = link.dataset.videoTime
+          //       if (targetTime > $video.duration) alert('当前时间点大于视频总时长，将跳到视频结尾！')
+          //       $video.currentTime = targetTime
+          //       $video.play();
+          //     })
+          //   })
+          // }
         },
         {
           nodeNameFilter: 'bili-comment-thread-renderer',
