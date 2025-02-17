@@ -14,7 +14,7 @@
 // @require           https://cdn.jsdelivr.net/npm/md5@2.3.0/dist/md5.min.js
 // @require           https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js
 // @require           https://cdn.jsdelivr.net/npm/axios@1.6.5/dist/axios.min.js
-// @require           https://asifadeaway.com/utils/ShadowDOMHelperDev.js?#sha256=74a0ba4cd4c78004f7878ff546826cf8744823a2d66c4ea20a4cf51515ce1cf9
+// @require           https://asifadeaway.com/utils/ShadowDOMHelper.js?#sha256=74a0ba4cd4c78004f7878ff546826cf8744823a2d66c4ea20a4cf51515ce1cf9
 // @require           https://scriptcat.org/lib/513/2.0.1/ElementGetter.js?#sha256=V0EUYIfbOrr63nT8+W7BP1xEmWcumTLWu2PXFJHh5dg=
 // @grant             GM_info
 // @grant             GM_setValue
